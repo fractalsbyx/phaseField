@@ -79,14 +79,14 @@ private:
         // Number of componenets 
         const unsigned int num_comps = 2; // aka K
         // Number of phases
-        const unsigned int num_phases = 3; // aka N
+        const unsigned int num_phases = 4; // aka N
         // Constitutional free energy well curvature [phase] [component]
         const std::vector<std::vector<double>> kWell
-            {{10,10,10},{10,10,10},{10,10,10},{50.0,50.0,50.0}};
-        const std::vector<double> fWell{0.01,0.0,0.0,0.0};
+            {{0.8,0.8,0.8},{1.0,2.0,1.0},{2.0,2.0,2.0},{50.0,50.0,50.0}};
+        const std::vector<double> fWell{0.0,0.0,0.0,0.0};
         // Composition at constitutional free energy well "minimum"
         const std::vector<std::vector<double>> cmin
-            {{0.1,0.9,0.0},{0.90,0.1,0.0},{0.5,0.5,0.0},{0.0,0.0,0.0}};
+            {{0.75,0.1,0.15},{0.94,0.03,0.03},{0.67,0.33,0.0},{0.0,0.0,1.0}};
         // User input initial (liquid) composition
         const std::vector<double> c0{0.1, 0.9, 0.7};
 

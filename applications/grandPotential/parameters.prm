@@ -57,7 +57,7 @@ set Steps between remeshing operations = 250
 # Set the time step parameters
 # =================================================================================
 # The size of the time step
-set Time step = 0.00005
+set Time step = 0.0001
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
@@ -102,7 +102,7 @@ set Skip print steps = 10
 set Boundary condition for variable n0 =  PERIODIC
 set Boundary condition for variable n1 =  PERIODIC
 set Boundary condition for variable n2 =  PERIODIC
-# set Boundary condition for variable n3 =  PERIODIC
+set Boundary condition for variable n3 =  PERIODIC
 # set Boundary condition for variable dndt0 =  PERIODIC
 # set Boundary condition for variable dndt1 =  PERIODIC
 # set Boundary condition for variable dndt2 =  PERIODIC
@@ -121,10 +121,10 @@ set Boundary condition for variable mu1 =  PERIODIC
 # where [symmetry] is ISOTROPIC, TRANSVERSE, ORTHOTROPIC, or ANISOTROPIC.
 
 #The coefficient for the polynomial terms of the order-parameter free energy
-set Model constant m0 = 0.1, DOUBLE
+set Model constant m0 = 1.0, DOUBLE
 
 # Gradient energy coefficient
-set Model constant kappa = 0.0125, DOUBLE
+set Model constant kappa = 0.125, DOUBLE
 
 # Grain interaction coeffiecient
 set Model constant gamma = 1.5, DOUBLE

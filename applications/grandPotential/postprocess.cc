@@ -13,7 +13,7 @@ void variableAttributeLoader::loadPostProcessorVariableAttributes(){
     set_variable_name                (0,"sum_nsq");
     set_variable_type                (0,SCALAR);
 
-    set_dependencies_value_term_RHS(0, "n0, n1, n2");
+    set_dependencies_value_term_RHS(0, "n0, n1, n2, n3");
     set_dependencies_gradient_term_RHS(0, "");
 
     set_output_integral             (0,false);
@@ -22,7 +22,7 @@ void variableAttributeLoader::loadPostProcessorVariableAttributes(){
     set_variable_name                (1,"gb");
     set_variable_type                (1,SCALAR);
 
-    set_dependencies_value_term_RHS(1, "n0, n1, n2");
+    set_dependencies_value_term_RHS(1, "n0, n1, n2, n3");
     set_dependencies_gradient_term_RHS(1, "");
 
     set_output_integral             (1,false);
@@ -30,7 +30,7 @@ void variableAttributeLoader::loadPostProcessorVariableAttributes(){
 	set_variable_name                (2,"sum_n");
     set_variable_type                (2,SCALAR);
 
-    set_dependencies_value_term_RHS(2, "n0, n1, n2");
+    set_dependencies_value_term_RHS(2, "n0, n1, n2, n3");
     set_dependencies_gradient_term_RHS(2, "");
 
     set_output_integral             (2,false);

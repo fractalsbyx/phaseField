@@ -14,7 +14,7 @@
 // rate calculations.
 //#include "customPDE.h"
 void variableAttributeLoader::loadVariableAttributes(){
-    const unsigned int num_phases = 3;
+    const unsigned int num_phases = 4;
     const unsigned int num_comps = 2;
     std::string list_valn = "";
     std::string list_gradn = "";
@@ -43,6 +43,7 @@ void variableAttributeLoader::loadVariableAttributes(){
 
     std::cout << list_valn << "| " << list_valmu << "| "
         << list_gradn << "| " << list_gradmu << "\n";
+    std::string dep_all = list_valn+list_gradn+list_valmu+list_gradmu;
     std::string dep_valn = list_valn+list_gradn+list_valmu+list_gradmu;
     std::string dep_valmudndt = list_valn+list_gradn+list_valmu+list_gradmu;
     dep_valn.pop_back();        // remove last comma and space
@@ -50,12 +51,12 @@ void variableAttributeLoader::loadVariableAttributes(){
     dep_valn.pop_back();
     dep_valmudndt.pop_back();
     for (unsigned int var_index=0; var_index<num_phases; var_index++){ // phase order params
-        set_dependencies_value_term_RHS(var_index, dep_valn); // order params, saved dndt vals, mu vals
-        set_dependencies_gradient_term_RHS(var_index, "");
+        set_dependencies_value_term_RHS(var_index, dep_all); // order params, saved dndt vals, mu vals
+        set_dependencies_gradient_term_RHS(var_index, dep_all);
     }
     for (unsigned int var_index=num_phases; var_index<num_phases+num_comps; var_index++){ // mu vals
-        set_dependencies_value_term_RHS(var_index, dep_valmudndt);
-        set_dependencies_gradient_term_RHS(var_index, list_gradmu);
+        set_dependencies_value_term_RHS(var_index, dep_all);
+        set_dependencies_gradient_term_RHS(var_index, dep_all);
     }
 }
 
