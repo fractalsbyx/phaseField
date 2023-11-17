@@ -27,145 +27,180 @@ void userInputParameters<dim>::load_user_constants(inputFileReader & input_file_
             abort();
         }
 
-        std::vector<std::string> model_constants_type_strings = dealii::Utilities::split_string_list(model_constants_strings.at(model_constants_strings.size()-1),' ');
+        std::vector<std::string> model_constant_type_split_strings = dealii::Utilities::split_string_list(model_constants_strings.back(),' ');
+        std::string model_constant_type = model_constants_strings.back();//at(model_constants_strings.size()-1);
 
-        if (model_constants_strings.size() == 2){
-            if (boost::iequals(model_constants_type_strings.at(0),"double")){
-                model_constants.push_back(dealii::Utilities::string_to_double(model_constants_strings.at(0)));
+        if      (boost::iequals(model_constant_type,"double")){
+            std::cout << "Reading model constant double [" << input_file_reader.model_constant_names[i] << "]" << std::endl;
+            model_constants.push_back(dealii::Utilities::string_to_double(model_constants_strings.at(0)));
+        }
+        else if (boost::iequals(model_constant_type,"int")){
+            std::cout << "Reading model constant int [" << input_file_reader.model_constant_names[i] << "]" << std::endl;
+            model_constants.push_back(dealii::Utilities::string_to_int(model_constants_strings.at(0)));
+        }
+        else if (boost::iequals(model_constant_type,"bool")){
+            std::cout << "Reading model constant bool [" << input_file_reader.model_constant_names[i] << "]" << std::endl;
+            bool temp;
+            if (boost::iequals(model_constants_strings.at(0),"true")){
+                temp = true;
+            }
+            else{
+                temp = false;
+            }
+            model_constants.push_back(temp);
+        }
+        else if (boost::iequals(model_constant_type,"string")){
+            std::cout << "Reading model constant string [" << input_file_reader.model_constant_names[i] << "]" << std::endl;
+            model_constants.push_back(model_constants_strings.at(0));
+        }
+        else if (boost::iequals(model_constant_type,"double array")){
+            std::cout << "Reading model constant double array [" << input_file_reader.model_constant_names[i] << "]" << std::endl;
+            unsigned int num_elements = model_constants_strings.size()-1;
+            std::vector<double> double_array;
+            for (unsigned int i = 0; i<num_elements; ++i){
+                double_array.push_back(dealii::Utilities::string_to_double(model_constants_strings.at(i)));
+            }
+            model_constants.push_back(double_array);
+        }
+        else if (boost::iequals(model_constant_type,"int array")){
+            std::cout << "Reading model constant int array [" << input_file_reader.model_constant_names[i] << "]" << std::endl;
+            unsigned int num_elements = model_constants_strings.size()-1;
+            std::vector<int> int_array;
+            for (unsigned int i = 0; i<num_elements; ++i){
+                int_array.push_back(dealii::Utilities::string_to_int(model_constants_strings.at(i)));
+            }
+            model_constants.push_back(int_array);
+        }
+        else if (boost::iequals(model_constant_type,"bool array")){
+            std::cout << "Reading model constant bool array [" << input_file_reader.model_constant_names[i] << "]" << std::endl;
+            unsigned int num_elements = model_constants_strings.size()-1;
+            std::vector<bool> bool_array;
+            for (unsigned int i = 0; i<num_elements; ++i){
+                bool_array.push_back(boost::iequals(model_constants_strings.at(i),"true"));
+            }
+            model_constants.push_back(bool_array);
+        }
+        else if (boost::iequals(model_constant_type,"string array")){
+            std::cout << "Reading model constant string array [" << input_file_reader.model_constant_names[i] << "]" << std::endl;
+            unsigned int num_elements = model_constants_strings.size()-1;
+            std::vector<std::string> string_array;
+            for (unsigned int i = 0; i<num_elements; ++i){
+                string_array.push_back(model_constants_strings.at(i));
+            }
+            model_constants.push_back(string_array);
+        }
+        else if (boost::iequals(model_constant_type,"tensor")){
+            unsigned int num_elements = model_constants_strings.size()-1;
 
-            }
-            else if (boost::iequals(model_constants_type_strings.at(0),"int")){
-                model_constants.push_back(dealii::Utilities::string_to_int(model_constants_strings.at(0)));
-            }
-            else if (boost::iequals(model_constants_type_strings.at(0),"bool")){
-                bool temp;
-                if (boost::iequals(model_constants_strings.at(0),"true")){
-                    temp = true;
+            // Strip parentheses from the input, counting how many rows there are
+            unsigned int open_parentheses = 0;
+            unsigned int close_parentheses = 0;
+            for (unsigned int element=0; element<num_elements; element++){
+                std::size_t index = 0;
+                while (index != std::string::npos){
+                    index = model_constants_strings.at(element).find("(");
+                    if (index != std::string::npos) {
+                        model_constants_strings.at(element).erase(index,1);
+                        open_parentheses++;
+                    }
                 }
-                else {
-                    temp = false;
+                index = 0;
+                while (index != std::string::npos){
+                    index = model_constants_strings.at(element).find(")");
+                    if (index != std::string::npos) {
+                        model_constants_strings.at(element).erase(index,1);
+                        close_parentheses++;
+                    }
                 }
-                model_constants.push_back(temp);
             }
-            else {
-                std::cerr << "PRISMS-PF ERROR: The type for user-defined variables must be 'double', 'int', 'bool', 'tensor', or 'elastic constants'." << std::endl;
+            if (open_parentheses != close_parentheses){
+                std::cerr << "PRISMS-PF ERROR: User-defined constant tensor does not have the same number of open and close parentheses." << std::endl;
                 abort();
             }
-        }
-        else {
-            if (boost::iequals(model_constants_type_strings.at(0),"tensor")){
-                unsigned int num_elements = model_constants_strings.size()-1;
-
-                // Strip parentheses from the input, counting how many rows there are
-                unsigned int open_parentheses = 0;
-                unsigned int close_parentheses = 0;
-                for (unsigned int element=0; element<num_elements; element++){
-                    std::size_t index = 0;
-                    while (index != std::string::npos){
-                        index = model_constants_strings.at(element).find("(");
-                        if (index != std::string::npos) {
-                            model_constants_strings.at(element).erase(index,1);
-                            open_parentheses++;
-                        }
-                    }
-                    index = 0;
-                    while (index != std::string::npos){
-                        index = model_constants_strings.at(element).find(")");
-                        if (index != std::string::npos) {
-                            model_constants_strings.at(element).erase(index,1);
-                            close_parentheses++;
-                        }
-                    }
-                }
-                if (open_parentheses != close_parentheses){
-                    std::cerr << "PRISMS-PF ERROR: User-defined constant tensor does not have the same number of open and close parentheses." << std::endl;
-                    abort();
-                }
-                // Rank 1 tensor
-                if (open_parentheses < 3){
-                    if (num_elements > 1 && num_elements < 4){
-                        dealii::Tensor<1,dim> temp;
-                        for (unsigned int i=0; i<dim; i++){
-                            temp[i] = dealii::Utilities::string_to_double(model_constants_strings.at(i));
-                        }
-                        model_constants.push_back(temp);
-                    }
-                    else {
-                        std::cerr << "PRISMS-PF ERROR: The columns in user-defined constant tensors cannot be longer than 3 elements (internally truncated to the number of dimensions)." << std::endl;
-                        abort();
-                    }
-                }
-                // Rank 2 tensor
-                else if (open_parentheses < 5){
-                    unsigned int row_length;
-                    if (num_elements == 4){
-                        row_length = 2;
-                        if (dim > 2){
-                            std::cerr << "PRISMS-PF ERROR: User-defined constant tensor does not have enough elements, for 3D calculations matrices must be 3x3." << std::endl;
-                            abort();
-                        }
-                    }
-                    else if (num_elements == 9){
-                        row_length = 3;
-                    }
-                    else {
-                        std::cerr << "PRISMS-PF ERROR: User-defined constant tensor does not have the correct number of elements, matrices must be 2x2 or 3x3." << std::endl;
-                        abort();
-                    }
-
-                    dealii::Tensor<2,dim> temp;
+            // Rank 1 tensor
+            if (open_parentheses < 3){
+                if (num_elements > 1 && num_elements < 4){
+                    dealii::Tensor<1,dim> temp;
                     for (unsigned int i=0; i<dim; i++){
-                        for (unsigned int j=0; j<dim; j++){
-                            temp[i][j] = dealii::Utilities::string_to_double(model_constants_strings.at(i*row_length+j));
-                        }
+                        temp[i] = dealii::Utilities::string_to_double(model_constants_strings.at(i));
                     }
                     model_constants.push_back(temp);
                 }
+                else {
+                    std::cerr << "PRISMS-PF ERROR: The columns in user-defined constant tensors cannot be longer than 3 elements (internally truncated to the number of dimensions)." << std::endl;
+                    abort();
+                }
             }
-            else if (boost::iequals(model_constants_type_strings.at(1),"elastic") && boost::iequals(model_constants_type_strings.at(2),"constants")){
-                unsigned int num_elements = model_constants_strings.size()-1;
-
-                // Strip parentheses from the input, counting how many rows there are
-                unsigned int open_parentheses = 0;
-                unsigned int close_parentheses = 0;
-                for (unsigned int element=0; element<num_elements; element++){
-                    std::size_t index = 0;
-                    while (index != std::string::npos){
-                        index = model_constants_strings.at(element).find("(");
-                        if (index != std::string::npos) {
-                            model_constants_strings.at(element).erase(index,1);
-                            open_parentheses++;
-                        }
-                    }
-                    index = 0;
-                    while (index != std::string::npos){
-                        index = model_constants_strings.at(element).find(")");
-                        if (index != std::string::npos) {
-                            model_constants_strings.at(element).erase(index,1);
-                            close_parentheses++;
-                        }
+            // Rank 2 tensor
+            else if (open_parentheses < 5){
+                unsigned int row_length;
+                if (num_elements == 4){
+                    row_length = 2;
+                    if (dim > 2){
+                        std::cerr << "PRISMS-PF ERROR: User-defined constant tensor does not have enough elements, for 3D calculations matrices must be 3x3." << std::endl;
+                        abort();
                     }
                 }
-                if (open_parentheses != close_parentheses){
-                    std::cerr << "PRISMS-PF ERROR: User-defined elastic constant list does not have the same number of open and close parentheses." << std::endl;
+                else if (num_elements == 9){
+                    row_length = 3;
+                }
+                else {
+                    std::cerr << "PRISMS-PF ERROR: User-defined constant tensor does not have the correct number of elements, matrices must be 2x2 or 3x3." << std::endl;
                     abort();
                 }
 
-                // Load in the elastic constants as a vector
-                std::vector<double> temp_elastic_constants;
-                for (unsigned int i=0; i<num_elements; i++){
-                    temp_elastic_constants.push_back(dealii::Utilities::string_to_double(model_constants_strings.at(i)));
+                dealii::Tensor<2,dim> temp;
+                for (unsigned int i=0; i<dim; i++){
+                    for (unsigned int j=0; j<dim; j++){
+                        temp[i][j] = dealii::Utilities::string_to_double(model_constants_strings.at(i*row_length+j));
+                    }
                 }
-
-                std::string elastic_const_symmetry = model_constants_type_strings.at(0);
-                dealii::Tensor<2,2*dim-1+dim/3> temp = get_Cij_tensor(temp_elastic_constants,elastic_const_symmetry);
                 model_constants.push_back(temp);
             }
-            else {
-                std::cerr << "PRISMS-PF ERROR: Only user-defined constant tensors may have multiple elements." << std::endl;
+        }
+        else if (boost::iequals(model_constant_type_split_strings.at(1),"elastic") && boost::iequals(model_constant_type_split_strings.at(2),"constants")){
+            unsigned int num_elements = model_constants_strings.size()-1;
+
+            // Strip parentheses from the input, counting how many rows there are
+            unsigned int open_parentheses = 0;
+            unsigned int close_parentheses = 0;
+            for (unsigned int element=0; element<num_elements; element++){
+                std::size_t index = 0;
+                while (index != std::string::npos){
+                    index = model_constants_strings.at(element).find("(");
+                    if (index != std::string::npos) {
+                        model_constants_strings.at(element).erase(index,1);
+                        open_parentheses++;
+                    }
+                }
+                index = 0;
+                while (index != std::string::npos){
+                    index = model_constants_strings.at(element).find(")");
+                    if (index != std::string::npos) {
+                        model_constants_strings.at(element).erase(index,1);
+                        close_parentheses++;
+                    }
+                }
+            }
+            if (open_parentheses != close_parentheses){
+                std::cerr << "PRISMS-PF ERROR: User-defined elastic constant list does not have the same number of open and close parentheses." << std::endl;
                 abort();
             }
 
+            // Load in the elastic constants as a vector
+            std::vector<double> temp_elastic_constants;
+            for (unsigned int i=0; i<num_elements; i++){
+                temp_elastic_constants.push_back(dealii::Utilities::string_to_double(model_constants_strings.at(i)));
+            }
+
+            std::string elastic_const_symmetry = model_constant_type_split_strings.at(0);
+            dealii::Tensor<2,2*dim-1+dim/3> temp = get_Cij_tensor(temp_elastic_constants,elastic_const_symmetry);
+            model_constants.push_back(temp);
+        }
+        else {
+            std::cerr << "PRISMS-PF ERROR: The type for user-defined variables must be "
+                      << " 'double', 'int', 'bool', 'string', 'double array', 'int array', 'bool array', 'string array', 'tensor', 'n elastic constants'." << std::endl;
+            abort();
         }
     }
 }
