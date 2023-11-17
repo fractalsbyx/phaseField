@@ -1,6 +1,5 @@
 *.zip
 *vscode
-*build
 # Compiled Object files
 *.slo
 *.lo
