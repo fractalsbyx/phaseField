@@ -41,12 +41,12 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
         //scalar_IC = 0.1*(dist(rng)-0.05);
         scalar_IC = 0;
     }*/
-    mu_ini = std::vector<std::vector<double>> (num_phases, std::vector<double> (num_comps));
-    for(unsigned int phase = 0; phase < num_phases; phase++){
-        for(unsigned int comp = 0; comp < num_comps; comp++){
-            mu_ini[phase][comp] = 0.0;//kWell[phase][comp]*(c0[comp] - cmin[phase][comp]);
-        }
-    }
+    // mu_ini = std::vector<std::vector<double>> (num_phases, std::vector<double> (num_comps));
+    // for(unsigned int phase = 0; phase < num_phases; phase++){
+    //     for(unsigned int comp = 0; comp < num_comps; comp++){
+    //         mu_ini[phase][comp] = 0.0;//kWell[phase][comp]*(c0[comp] - cmin[phase][comp]);
+    //     }
+    // }
 
     double center[3] = {5.0,5.0,5.0};
     double rad = 2.0;

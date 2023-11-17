@@ -43,20 +43,25 @@ void variableAttributeLoader::loadVariableAttributes(){
 
     std::cout << list_valn << "| " << list_valmu << "| "
         << list_gradn << "| " << list_gradmu << "\n";
-    std::string dep_all = list_valn+list_gradn+list_valmu+list_gradmu;
-    std::string dep_valn = list_valn+list_gradn+list_valmu+list_gradmu;
-    std::string dep_valmudndt = list_valn+list_gradn+list_valmu+list_gradmu;
-    dep_valn.pop_back();        // remove last comma and space
-    dep_valmudndt.pop_back();
+    //std::string dep_all = list_valn+list_gradn+list_valmu+list_gradmu;
+    std::string dep_valn = list_valn+list_gradn+list_valmu;
+    std::string dep_gradn = list_gradn;
+    std::string dep_valmu = list_valn+list_gradn+list_valmu;
+    std::string dep_gradmu = list_gradmu+list_valn;
+    dep_valn.pop_back();    // remove last comma and space
+    dep_valmu.pop_back();
     dep_valn.pop_back();
-    dep_valmudndt.pop_back();
+    dep_valmu.pop_back();
     for (unsigned int var_index=0; var_index<num_phases; var_index++){ // phase order params
-        set_dependencies_value_term_RHS(var_index, dep_all); // order params, saved dndt vals, mu vals
-        set_dependencies_gradient_term_RHS(var_index, dep_all);
+        set_dependencies_value_term_RHS(var_index, dep_valn); // order params, saved dndt vals, mu vals
+        dep_gradn = "grad(n"+std::to_string(var_index)+")";
+        set_dependencies_gradient_term_RHS(var_index, dep_gradn);
     }
-    for (unsigned int var_index=num_phases; var_index<num_phases+num_comps; var_index++){ // mu vals
-        set_dependencies_value_term_RHS(var_index, dep_all);
-        set_dependencies_gradient_term_RHS(var_index, dep_all);
+    for (unsigned int comp_index=0; comp_index<num_comps; comp_index++){ // mu vals
+        unsigned int var_index = num_phases+comp_index;
+        set_dependencies_value_term_RHS(var_index, dep_valmu);
+        dep_gradmu = "grad(mu"+std::to_string(comp_index)+")";
+        set_dependencies_gradient_term_RHS(var_index, dep_gradmu);
     }
 }
 
@@ -100,9 +105,9 @@ for (unsigned int i=0; i<num_phases; ++i){
 }
 // START COPIED PORTION
 for (unsigned int i=0; i<num_phases; ++i){
-    omegaC[i] = constV(fWell[i]);
+    omegaC[i] += constV(fWell[i]);
     for (unsigned int j=0; j<num_comps; ++j){
-        omegaC[i] -= constV(0.5)*mu_values[j]*mu_values[j]/constV(Va*Va*kWell[i][j])
+        omegaC[i] += -constV(0.5)*mu_values[j]*mu_values[j]/constV(Va*Va*kWell[i][j])
             + mu_values[j]*constV(cmin[i][j]/Va);
     }
 }
@@ -156,16 +161,17 @@ for (unsigned int i=0; i<num_comps; ++i){
     for (unsigned int j=0; j<num_phases; ++j){
         for (unsigned int k=0; k<num_phases; ++k){
             scalarvalueType drhodn = dhdn[k][j]*(mu_values[i]/(Va*kWell[k][i]) + constV(cmin[k][i]));
-            dmudtValue[i] -= dndt_values[j]*drhodn;
+            dmudtValue[i] -= (-constV(L)*dndt_values[j])*drhodn;
+            dmudtGrad[i] -=  (-constV(L)*dndt_grad[j])*drhodn;
         }
     }
 }
 
 // submit terms
 for (unsigned int i=0; i<num_phases; ++i){
-    variable_list.set_scalar_value_term_RHS(i,eta_values[i] +
-        dndt_values[i]*constV(userInputs.dtValue));
-    variable_list.set_scalar_gradient_term_RHS(i,dndt_grad[i]*constV(userInputs.dtValue));
+    variable_list.set_scalar_value_term_RHS(i,eta_values[i] 
+        -constV(L)*dndt_values[i]*constV(userInputs.dtValue));
+    variable_list.set_scalar_gradient_term_RHS(i,-constV(L)*dndt_grad[i]*constV(userInputs.dtValue));
 }
 for (unsigned int i=0; i<num_comps; ++i){
     dmudtValue[i] = mu_values[i] + dmudtValue[i]*constV(userInputs.dtValue);

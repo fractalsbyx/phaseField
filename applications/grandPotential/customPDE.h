@@ -7,12 +7,18 @@ class customPDE: public MatrixFreePDE<dim,degree>
 public:
     // Constructor
     customPDE(userInputParameters<dim> _userInputs): MatrixFreePDE<dim,degree>(_userInputs) , userInputs(_userInputs) {
-    //Defining seed
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    //Initializing distribution
-    dist = distribution(0.0,1.0);
-    //Initializing random variable
-    rng = engine(seed);
+        //Defining seed
+        unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+        //Initializing distribution
+        dist = distribution(0.0,1.0);
+        //Initializing random variable
+        rng = engine(seed);
+        mu_ini = std::vector<std::vector<double>> (num_phases, std::vector<double> (num_comps));
+        for(unsigned int phase = 0; phase < num_phases; phase++){
+            for(unsigned int comp = 0; comp < num_comps; comp++){
+                mu_ini[phase][comp] = 0.0;//kWell[phase][comp]*(c0[comp] - cmin[phase][comp]);
+            }
+        }
     };
 
     // Function to set the initial conditions (in ICs_and_BCs.h)
@@ -77,7 +83,7 @@ private:
         // const std::vector<double> c0{0.1, 0.2, 0.7};
 
         // Number of componenets 
-        const unsigned int num_comps = 2; // aka K
+        const unsigned int num_comps = 2; // aka K-1
         // Number of phases
         const unsigned int num_phases = 4; // aka N
         // Constitutional free energy well curvature [phase] [component]
@@ -109,5 +115,4 @@ private:
 
         
 	// ================================================================
-
 };
