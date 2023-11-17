@@ -57,7 +57,7 @@ set Steps between remeshing operations = 250
 # Set the time step parameters
 # =================================================================================
 # The size of the time step
-set Time step = 0.00005
+set Time step = 0.0001
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
