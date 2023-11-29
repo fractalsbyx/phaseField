@@ -61,7 +61,7 @@ set Time step = 0.00005
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
-set Number of time steps = 20000
+set Number of time steps = 5000
 
 # =================================================================================
 # Set the boundary conditions
@@ -97,15 +97,6 @@ set Boundary condition for variable mu0 =  PERIODIC
 set Boundary condition for variable mu1 =  PERIODIC
 
 # =================================================================================
-# Set the model constants
-# =================================================================================
-# Set the user-defined model constants, which must have a counter-part given in
-# customPDE.h. These are most often used in the residual equations in equations.h,
-# but may also be used for initial conditions and nucleation calculations. The type
-# options currently are DOUBLE, INT, BOOL, TENSOR, and [symmetry] ELASTIC CONSTANTS
-# where [symmetry] is ISOTROPIC, TRANSVERSE, ORTHOTROPIC, or ANISOTROPIC.
-
-# =================================================================================
 # Set the output parameters
 # =================================================================================
 # Type of spacing between outputs ("EQUAL_SPACING", "LOG_SPACING", "N_PER_DECADE",
@@ -132,3 +123,49 @@ set Checkpoint condition = EQUAL_SPACING
 # Number of times the creates checkpoints (total number for "EQUAL_SPACING"
 # and "LOG_SPACING", number per decade for "N_PER_DECADE", ignored for "LIST")
 set Number of checkpoints = 2
+
+# =================================================================================
+# Set the model constants
+# =================================================================================
+# Set the user-defined model constants, which must have a counter-part given in
+# customPDE.h. These are most often used in the residual equations in equations.h,
+# but may also be used for initial conditions and nucleation calculations. The type
+# options currently are DOUBLE, INT, BOOL, STRING (without commas), DOUBLE ARRAY, INT ARRAY,
+# BOOL ARRAY, STRING ARRAY, TENSOR, and [symmetry] ELASTIC CONSTANTS
+# where [symmetry] is ISOTROPIC, TRANSVERSE, ORTHOTROPIC, or ANISOTROPIC.
+
+# Number of Phases possible in this model
+set Model constant num_phases = 4, INT
+
+# Number of species present (including solvent/matrix)
+set Model constant num_comps = 3, INT
+
+# Free energy well minima
+set Model constant fWell = 0.0, 0.0, 0.0, 0.0, DOUBLE ARRAY
+
+# Free energy well curvatures
+set Model constant kWell = 0.8,0.8,0.8, 1.0,2.0,1.0, 2.0,2.0,2.0, 50.0,50.0,50.0, DOUBLE ARRAY
+
+# Free energy well composition minima
+set Model constant cmin = 0.75,0.1,0.15, 0.94,0.03,0.03, 0.67,0.33,0.0, 0.0,0.0,1.0, DOUBLE ARRAY
+
+# Free energy well composition minima
+# set Model constant cmin = 0.75,0.1, 0.94,0.03, 0.67,0.33, 0.0,0.0, DOUBLE ARRAY
+
+# Grain Mobility
+set Model constant L = 1.0, DOUBLE
+
+# Energy scale
+set Model constant m0 = 1.0, DOUBLE
+
+# Gradient Penalty
+set Model constant kappa = 0.1250, DOUBLE
+
+# Interface term
+set Model constant gamma = 1.5, DOUBLE
+
+# Component Mobility
+set Model constant M = 10.0, DOUBLE
+
+# Volume Scale
+set Model constant Va = 1.0, DOUBLE
