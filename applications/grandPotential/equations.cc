@@ -14,14 +14,14 @@
 // rate calculations.
 
 void variableAttributeLoader::loadVariableAttributes(){
-    const unsigned int n_phases{4};
-    const unsigned int n_components{2};
+    const unsigned int num_phases{4};
+    const unsigned int num_compVars{2};
     std::string string_valn = "";
     std::string string_valdndt = "";
     std::string string_valmu = "";
     std::string string_gradn = "";
     std::string string_gradmu = "";
-for (unsigned int var_index=0; var_index<n_phases; var_index++){
+for (unsigned int var_index=0; var_index<num_phases; var_index++){
         std::string var_name = "n";
         var_name.append(std::to_string(var_index));
         string_valn.append(var_name+",");
@@ -31,22 +31,22 @@ for (unsigned int var_index=0; var_index<n_phases; var_index++){
     	set_variable_equation_type		(var_index,EXPLICIT_TIME_DEPENDENT);
         
     }
-    for (unsigned int var_index=0; var_index<n_components; var_index++){
+    for (unsigned int var_index=0; var_index<num_compVars; var_index++){
         std::string var_name = "mu";
         var_name.append(std::to_string(var_index));
         string_valmu.append(var_name+",");
         string_gradmu.append("grad("+var_name+"),");
-        set_variable_name				(n_phases+var_index,var_name);
-    	set_variable_type				(n_phases+var_index,SCALAR);
-    	set_variable_equation_type		(n_phases+var_index,EXPLICIT_TIME_DEPENDENT);
+        set_variable_name				(num_phases+var_index,var_name);
+    	set_variable_type				(num_phases+var_index,SCALAR);
+    	set_variable_equation_type		(num_phases+var_index,EXPLICIT_TIME_DEPENDENT);
     }
-    for (unsigned int var_index=0; var_index<n_phases; var_index++){
+    for (unsigned int var_index=0; var_index<num_phases; var_index++){
         std::string var_name = "dndt";
         var_name.append(std::to_string(var_index));
         string_valdndt.append(var_name+",");
-        set_variable_name				(n_phases+n_components+var_index,var_name);
-    	set_variable_type				(n_phases+n_components+var_index,SCALAR);
-    	set_variable_equation_type		(n_phases+n_components+var_index,AUXILIARY);
+        set_variable_name				(num_phases+num_compVars+var_index,var_name);
+    	set_variable_type				(num_phases+num_compVars+var_index,SCALAR);
+    	set_variable_equation_type		(num_phases+num_compVars+var_index,AUXILIARY);
     }
     std::cout << string_valn << " | " << string_valmu << " | " << string_valdndt << " | "
         << string_gradn << " | " << string_gradmu << "\n";
@@ -56,15 +56,15 @@ for (unsigned int var_index=0; var_index<n_phases; var_index++){
     dep_valmudndt.pop_back();
     string_gradmu.pop_back();
     string_gradn.pop_back();
-    for (unsigned int var_index=0; var_index<n_phases; var_index++){
+    for (unsigned int var_index=0; var_index<num_phases; var_index++){
         set_dependencies_value_term_RHS(var_index, dep_valn);
         set_dependencies_gradient_term_RHS(var_index, "");
     }
-    for (unsigned int var_index=n_phases; var_index<n_phases+n_components; var_index++){
+    for (unsigned int var_index=num_phases; var_index<num_phases+num_compVars; var_index++){
         set_dependencies_value_term_RHS(var_index, dep_valmudndt);
         set_dependencies_gradient_term_RHS(var_index, string_gradmu);
     }
-    for (unsigned int var_index=n_phases+n_components; var_index<2*n_phases+n_components; var_index++){
+    for (unsigned int var_index=num_phases+num_compVars; var_index<2*num_phases+num_compVars; var_index++){
         set_dependencies_value_term_RHS(var_index, dep_valmudndt);
         set_dependencies_gradient_term_RHS(var_index, string_gradn);
     }
@@ -87,32 +87,30 @@ void customPDE<dim,degree>::explicitEquationRHS(variableContainer<dim,degree,dea
 
 // --- Getting the values and derivatives of the model variables ---
 
-const unsigned int n_phases = 4;
-const unsigned int n_components = 2;
-std::vector<scalarvalueType> eta_values(n_phases);
-std::vector<scalarvalueType> dndt_values(n_phases);
-std::vector<scalarvalueType> mu_values(n_components);
-std::vector<scalargradType> mu_gradients(n_components);
+std::vector<scalarvalueType> eta_values(num_phases);
+std::vector<scalarvalueType> dndt_values(num_phases);
+std::vector<scalarvalueType> mu_values(num_compVars);
+std::vector<scalargradType> mu_gradients(num_compVars);
 
-for (unsigned int i=0; i<n_phases; ++i){
+for (unsigned int i=0; i<num_phases; ++i){
 	eta_values[i] = variable_list.get_scalar_value(i);
-	dndt_values[i] = variable_list.get_scalar_value(i+n_phases+n_components);
+	dndt_values[i] = variable_list.get_scalar_value(i+num_phases+num_compVars);
 }
-for (unsigned int i=0; i<n_components; ++i){
-	mu_values[i] = variable_list.get_scalar_value(i+n_phases);
-	mu_gradients[i] = variable_list.get_scalar_gradient(i+n_phases);
+for (unsigned int i=0; i<num_compVars; ++i){
+	mu_values[i] = variable_list.get_scalar_value(i+num_phases);
+	mu_gradients[i] = variable_list.get_scalar_gradient(i+num_phases);
 }
 scalarvalueType h_denom = 0.0;
-for (unsigned int i=0; i<n_phases; ++i){
+for (unsigned int i=0; i<num_phases; ++i){
 	h_denom += eta_values[i]*eta_values[i];
 }
-std::vector<scalarvalueType> h(n_phases);
+std::vector<scalarvalueType> h(num_phases);
 std::vector<std::vector<scalarvalueType>>
-    dhdn(n_phases, std::vector<scalarvalueType> (n_phases));
+    dhdn(num_phases, std::vector<scalarvalueType> (num_phases));
 
-for (unsigned int i=0; i<n_phases; ++i){
+for (unsigned int i=0; i<num_phases; ++i){
     h[i] = eta_values[i]*eta_values[i]/h_denom;
-    for (unsigned int j=0; j<n_phases; ++j){
+    for (unsigned int j=0; j<num_phases; ++j){
         dhdn[i][j] = -2.0*eta_values[i]*eta_values[i]*eta_values[j]/(h_denom*h_denom);
         if(i == j){
             dhdn[i][j] += 2.0*eta_values[i]/h_denom;
@@ -120,32 +118,32 @@ for (unsigned int i=0; i<n_phases; ++i){
     }
 }
 
-std::vector<scalarvalueType> dmudtValue(n_components);
-std::vector<scalargradType> dmudtGrad(n_components);
+std::vector<scalarvalueType> dmudtValue(num_compVars);
+std::vector<scalargradType> dmudtGrad(num_compVars);
 
-for (unsigned int i=0; i<n_components; ++i){
+for (unsigned int i=0; i<num_compVars; ++i){
     scalarvalueType susceptibility = 0.0;
-    for (unsigned int j=0; j<n_phases; ++j){
+    for (unsigned int j=0; j<num_phases; ++j){
         susceptibility += h[j]/(Va*Va*kWell[j][i]);
     }
     dmudtGrad[i] = -M*mu_gradients[i]/susceptibility;
     dmudtValue[i] = 0.0;
-    for (unsigned int j=0; j<n_phases; ++j){
-        for (unsigned int k=0; k<n_phases; ++k){
+    for (unsigned int j=0; j<num_phases; ++j){
+        for (unsigned int k=0; k<num_phases; ++k){
             scalarvalueType drhodn = dhdn[k][j]*(mu_values[i]/(Va*kWell[k][i]) + constV(cmin[k][i]));
             dmudtValue[i] -= dndt_values[j]*drhodn;
         }
     }
 }
 
-for (unsigned int i=0; i<n_phases; ++i){
+for (unsigned int i=0; i<num_phases; ++i){
     variable_list.set_scalar_value_term_RHS(i,eta_values[i] +
         dndt_values[i]*userInputs.dtValue);
 }
-for (unsigned int i=0; i<n_components; ++i){
-    variable_list.set_scalar_value_term_RHS(i+n_phases,mu_values[i] +
+for (unsigned int i=0; i<num_compVars; ++i){
+    variable_list.set_scalar_value_term_RHS(i+num_phases,mu_values[i] +
         dmudtValue[i]*userInputs.dtValue);
-    variable_list.set_scalar_gradient_term_RHS(i+n_phases,dmudtGrad[i]*userInputs.dtValue);
+    variable_list.set_scalar_gradient_term_RHS(i+num_phases,dmudtGrad[i]*userInputs.dtValue);
 }
 }
 
@@ -165,42 +163,40 @@ template <int dim, int degree>
 void customPDE<dim,degree>::nonExplicitEquationRHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
 				 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
 
-const unsigned int n_phases = 4;
-const unsigned int n_components = 2;
-std::vector<scalarvalueType> eta_values(n_phases);
-std::vector<scalargradType> eta_gradients(n_phases);
-std::vector<scalarvalueType> mu_values(n_components);
+std::vector<scalarvalueType> eta_values(num_phases);
+std::vector<scalargradType> eta_gradients(num_phases);
+std::vector<scalarvalueType> mu_values(num_compVars);
 
-for (unsigned int i=0; i<n_phases; ++i){
+for (unsigned int i=0; i<num_phases; ++i){
  	eta_values[i] = variable_list.get_scalar_value(i);
 	eta_gradients[i] = variable_list.get_scalar_gradient(i);
 }
 
-for (unsigned int i=0; i<n_components; ++i){
-	mu_values[i] = variable_list.get_scalar_value(i+n_phases);
+for (unsigned int i=0; i<num_compVars; ++i){
+	mu_values[i] = variable_list.get_scalar_value(i+num_phases);
 }
 
-std::vector<scalarvalueType> omegaC(n_phases);
+std::vector<scalarvalueType> omegaC(num_phases);
 scalarvalueType h_denom = 0.0;
 
-for (unsigned int i=0; i<n_phases; ++i){
+for (unsigned int i=0; i<num_phases; ++i){
     h_denom += eta_values[i]*eta_values[i];
     omegaC[i] = fWell[i];
-    for (unsigned int j=0; j<n_components; ++j){
+    for (unsigned int j=0; j<num_compVars; ++j){
         omegaC[i] += -0.5*mu_values[j]*mu_values[j]/constV(Va*Va*kWell[i][j])
             + mu_values[j]*cmin[i][j]/Va;
     }
 }
 
-std::vector<scalarvalueType> dndtValue(n_phases);
-std::vector<scalargradType> dndtGrad(n_phases);
+std::vector<scalarvalueType> dndtValue(num_phases);
+std::vector<scalargradType> dndtGrad(num_phases);
 
-for (unsigned int i=0; i < n_phases; ++i){
-    dndtValue[i] = mWell*(eta_values[i]*eta_values[i]*eta_values[i] - eta_values[i]);
+for (unsigned int i=0; i < num_phases; ++i){
+    dndtValue[i] = m0*(eta_values[i]*eta_values[i]*eta_values[i] - eta_values[i]);
     dndtGrad[i] = kappa*eta_gradients[i];
-    for (unsigned int j=0; j<n_phases; ++j){
+    for (unsigned int j=0; j<num_phases; ++j){
         if(i != j){
-            dndtValue[i] += mWell*2.0*eta_values[i]*gamma*eta_values[j]*eta_values[j];
+            dndtValue[i] += m0*2.0*eta_values[i]*gamma*eta_values[j]*eta_values[j];
         } else {
             dndtValue[i] += 2.0*eta_values[i]/h_denom*omegaC[i];
         }
@@ -209,9 +205,9 @@ for (unsigned int i=0; i < n_phases; ++i){
     }
 }
 
-for (unsigned int i=0; i < n_phases; ++i){
-    variable_list.set_scalar_value_term_RHS(i+n_phases+n_components,-L*dndtValue[i]);
-    variable_list.set_scalar_gradient_term_RHS(i+n_phases+n_components,-L*dndtGrad[i]);
+for (unsigned int i=0; i < num_phases; ++i){
+    variable_list.set_scalar_value_term_RHS(i+num_phases+num_compVars,-L*dndtValue[i]);
+    variable_list.set_scalar_gradient_term_RHS(i+num_phases+num_compVars,-L*dndtGrad[i]);
 }
 
 }

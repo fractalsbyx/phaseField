@@ -57,19 +57,57 @@ private:
 	// ================================================================
 	// Methods specific to this subclass
 	// ================================================================
+    // Function to reshape a 1D vector to a 2D vector with n rows and m columns
+    std::vector<std::vector<double>> reshapeVector(const std::vector<double>& inputVector, unsigned int n, unsigned int m) {
+        int totalElements = n * m;
 
+        // Check if the total number of elements matches the size of the input vector
+        if (inputVector.size() != totalElements) {
+            std::cerr << "[customPDE.h] Error: The total number of elements ["
+                        << (n*m) << "] does not match the size of the input vector ["
+                        << inputVector.size() << "]." << std::endl;
+            std::exit(1);
+            // Return an empty 2D vector to indicate an error
+            return {};
+        }
+
+        // Reshape the vector
+        std::vector<std::vector<double>> reshapedVector(n, std::vector<double>(m));
+
+        for (int i = 0; i < totalElements; ++i) {
+            reshapedVector[i / m][i % m] = inputVector[i];
+        }
+
+        return reshapedVector;
+    }
 
 	// ================================================================
 	// Model constants specific to this subclass
 	// ================================================================
+        const unsigned int num_phases = userInputs.get_model_constant_int("num_phases"); // 4
+        const unsigned int num_comps  = userInputs.get_model_constant_int("num_comps"); // 3
+        const unsigned int num_compVars = num_comps-1;
+        
+        const std::vector<double> fWell = userInputs.get_model_constant_double_array("fWell");
+        const std::vector<std::vector<double>> kWell = reshapeVector(userInputs.get_model_constant_double_array("kWell"),
+                                                                num_phases, num_comps);
+        const std::vector<std::vector<double>> cmin  = reshapeVector(userInputs.get_model_constant_double_array("cmin"),
+                                                                num_phases, num_comps);
+        const double L      = userInputs.get_model_constant_double("L");
+        const double m0     = userInputs.get_model_constant_double("m0");
+        const double kappa  = userInputs.get_model_constant_double("kappa");
+        const double gamma  = userInputs.get_model_constant_double("gamma");
+        const double M      = userInputs.get_model_constant_double("M");
+        const double Va     = userInputs.get_model_constant_double("Va");
+
+        /*
         const std::vector<std::vector<double>> kWell
             {{0.8,0.8,0.8},{1.0,2.0,1.0},{2.0,2.0,2.0},{50.0,50.0,50.0}};
         const std::vector<std::vector<double>> cmin
             {{0.75,0.1,0.15},{0.94,0.03,0.03},{0.67,0.33,0.0},{0.0,0.0,1.0}};
         const std::vector<double> fWell{0.0,0.0,0.0,0.0};
-        const double L{1.0}, mWell{1.0}, kappa{0.125}, Va{1.0}, gamma{1.5};
-        const double M{10.0};
-
+        const double L{1.0}, m0{1.0}, kappa{0.125}, Va{1.0}, gamma{1.5};
+        */
 
         //Declaring random number generator (Type std::mt19937_64)
          engine rng;
