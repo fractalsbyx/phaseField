@@ -1,5 +1,6 @@
 #include "../../include/matrixFreePDE.h"
 #include <random>
+#include <unordered_map>
 
 template <int dim, int degree>
 class customPDE: public MatrixFreePDE<dim,degree>
@@ -81,33 +82,64 @@ private:
         return reshapedVector;
     }
 
+    // key is phase ID, value is list of op indeces
+    std::unordered_map<unsigned int, std::vector<unsigned int> > make_map(std::vector<int> phase_id){
+        std::unordered_map<unsigned int, std::vector<unsigned int>> out;
+        for(unsigned int var_index = 0; var_index < phase_id.size(); ++var_index){
+            out[phase_id[var_index]].push_back(var_index);
+        }
+        return out;
+    }
+    std::unordered_map<unsigned int, unsigned int> make_map_from_name(std::vector<std::string> phase_id, std::unordered_map<std::string, unsigned int> phase_index){
+        std::unordered_map<unsigned int, unsigned int> out;
+        for(unsigned int var_index = 0; var_index < phase_id.size(); ++var_index){
+            out[phase_index[phase_id[var_index]]] = var_index;
+        }
+        return out;
+    }
+    std::vector<int> get_phase_index(unsigned int _num_phases, unsigned int _num_ops){
+        std::vector<int> out(_num_ops);
+        if(boost::iequals(userInputs.get_model_constant_string("set_ids_by"), "INDEX")){
+            out = userInputs.get_model_constant_int_array("phase_id");
+        }
+        else if(boost::iequals(userInputs.get_model_constant_string("set_ids_by"), "NAME")){
+            std::unordered_map<std::string, unsigned int> phase_id_by_name;
+            std::vector<std::string> phase_names = userInputs.get_model_constant_string_array("phase_names");
+            for(unsigned int i = 0; i<_num_phases; ++i){
+                phase_id_by_name[phase_names[i]] = i;
+            }
+            std::vector<std::string> phase_id_names = userInputs.get_model_constant_string_array("phase_id");
+            for(unsigned int op = 0; op<_num_ops; ++op){
+                out[op] = phase_id_by_name[phase_id_names[op]];
+            }
+        }
+        return out;
+    }
+
 	// ================================================================
 	// Model constants specific to this subclass
 	// ================================================================
-        const unsigned int num_phases = userInputs.get_model_constant_int("num_phases"); // 4
-        const unsigned int num_comps  = userInputs.get_model_constant_int("num_comps"); // 3
-        const unsigned int num_compVars = num_comps-1;
-        
+        const unsigned int num_phases = userInputs.get_model_constant_int("num_phases");
+        const unsigned int num_comps  = userInputs.get_model_constant_int("num_comps");
+        const unsigned int num_muFields = num_comps-1;
+        const unsigned int num_ops = userInputs.get_model_constant_int("num_ops");
+
         const std::vector<double> fWell = userInputs.get_model_constant_double_array("fWell");
+        // These variable are read in linearly, but neet to be 2D vectors of shape [num_phases][num_comps-1] 
         const std::vector<std::vector<double>> kWell = reshapeVector(userInputs.get_model_constant_double_array("kWell"),
-                                                                num_phases, num_comps);
+                                                                        num_phases, num_muFields);
         const std::vector<std::vector<double>> cmin  = reshapeVector(userInputs.get_model_constant_double_array("cmin"),
-                                                                num_phases, num_comps);
+                                                                        num_phases, num_muFields);
         const double L      = userInputs.get_model_constant_double("L");
         const double m0     = userInputs.get_model_constant_double("m0");
         const double kappa  = userInputs.get_model_constant_double("kappa");
         const double gamma  = userInputs.get_model_constant_double("gamma");
         const double M      = userInputs.get_model_constant_double("M");
         const double Va     = userInputs.get_model_constant_double("Va");
+        std::vector<int> phase_index = get_phase_index(num_phases, num_ops);
 
-        /*
-        const std::vector<std::vector<double>> kWell
-            {{0.8,0.8,0.8},{1.0,2.0,1.0},{2.0,2.0,2.0},{50.0,50.0,50.0}};
-        const std::vector<std::vector<double>> cmin
-            {{0.75,0.1,0.15},{0.94,0.03,0.03},{0.67,0.33,0.0},{0.0,0.0,1.0}};
-        const std::vector<double> fWell{0.0,0.0,0.0,0.0};
-        const double L{1.0}, m0{1.0}, kappa{0.125}, Va{1.0}, gamma{1.5};
-        */
+        // std::unordered_map<unsigned int, std::vector<unsigned int>> ops_of_phase;
+        // std::vector<std::string> phase_names = userInputs.get_model_constant_string_array("phase_names");
 
         //Declaring random number generator (Type std::mt19937_64)
          engine rng;

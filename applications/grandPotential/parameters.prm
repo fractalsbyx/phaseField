@@ -88,11 +88,11 @@ set Number of time steps = 5000
 set Boundary condition for variable n0 =  PERIODIC
 set Boundary condition for variable n1 =  PERIODIC
 set Boundary condition for variable n2 =  PERIODIC
-set Boundary condition for variable n3 =  PERIODIC
+#set Boundary condition for variable n3 =  PERIODIC
 set Boundary condition for variable dndt0 =  PERIODIC
 set Boundary condition for variable dndt1 =  PERIODIC
 set Boundary condition for variable dndt2 =  PERIODIC
-set Boundary condition for variable dndt3 =  PERIODIC
+#set Boundary condition for variable dndt3 =  PERIODIC
 set Boundary condition for variable mu0 =  PERIODIC
 set Boundary condition for variable mu1 =  PERIODIC
 
@@ -108,7 +108,7 @@ set Output condition = EQUAL_SPACING
 set Number of outputs = 50
 
 # The number of time steps between updates being printed to the screen
-set Skip print steps = 10
+set Skip print steps = 25
 
 # =================================================================================
 # Set the checkpoint/restart parameters
@@ -134,6 +134,26 @@ set Number of checkpoints = 2
 # BOOL ARRAY, STRING ARRAY, TENSOR, and [symmetry] ELASTIC CONSTANTS
 # where [symmetry] is ISOTROPIC, TRANSVERSE, ORTHOTROPIC, or ANISOTROPIC.
 
+# Number of order parameters 
+set Model constant num_ops = 3, INT
+
+# =================================================================================
+# Select whether to set phase id's by index or by name. If NAME, is specified, then
+# variable 'phase_names' must be specified and 'phase_id' must be a STRING ARRAY.
+# Otherwise, (if INDEX specified,) the 'phase_id' must be an INT ARRAY.
+# NAME or INDEX
+set Model constant set_ids_by = NAME, STRING
+
+# phase names by at each phase index. Size num_phases
+set Model constant phase_names = LIQUID, ALPHA, BETA, GAMMA, STRING ARRAY
+
+# phase_id for each parameter. Size num_ops
+# set Model constant phase_id = 0, 1, 2, 3, INT ARRAY
+
+# phase_id for each parameter. Size num_ops
+set Model constant phase_id = LIQUID, ALPHA, ALPHA, ALPHA, STRING ARRAY
+# =================================================================================
+
 # Number of Phases possible in this model
 set Model constant num_phases = 4, INT
 
@@ -144,13 +164,18 @@ set Model constant num_comps = 3, INT
 set Model constant fWell = 0.0, 0.0, 0.0, 0.0, DOUBLE ARRAY
 
 # Free energy well curvatures
-set Model constant kWell = 0.8,0.8,0.8, 1.0,2.0,1.0, 2.0,2.0,2.0, 50.0,50.0,50.0, DOUBLE ARRAY
+    # Has size num_phases * (num_comps-1)
+    # Written in order of phase, component
+    # [phase1-comp1, phase1-comp2, phase1-comp3, ... , phase1-compN,
+    #  phase2-comp1, phase2-comp2, phase2-comp3, ... , phase2-compN, ...]
+set Model constant kWell = 0.8,0.8, 1.0,2.0, 2.0,2.0, 50.0,50.0, DOUBLE ARRAY
 
 # Free energy well composition minima
-set Model constant cmin = 0.75,0.1,0.15, 0.94,0.03,0.03, 0.67,0.33,0.0, 0.0,0.0,1.0, DOUBLE ARRAY
-
-# Free energy well composition minima
-# set Model constant cmin = 0.75,0.1, 0.94,0.03, 0.67,0.33, 0.0,0.0, DOUBLE ARRAY
+    # Has size num_phases * (num_comps-1)
+    # Written in order of phase, component
+    # [phase1-comp1, phase1-comp2, phase1-comp3, ... , phase1-compN,
+    #  phase2-comp1, phase2-comp2, phase2-comp3, ... , phase2-compN, ...]
+set Model constant cmin = 0.75,0.1, 0.94,0.03, 0.67,0.33, 0.0,0.0, DOUBLE ARRAY
 
 # Grain Mobility
 set Model constant L = 1.0, DOUBLE

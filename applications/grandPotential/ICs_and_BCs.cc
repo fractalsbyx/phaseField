@@ -11,35 +11,49 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     // Use "if" statements to set the initial condition for each variable
     // according to its variable index
 
-	  // The initial condition is two circles/spheres defined
-	  // by a hyperbolic tangent function. The center of each circle/sphere is
-	  // given by "center" and its radius is given by "rad".
+    // std::vector<std::vector<double>> mu_ini(num_phases, std::vector<double> (num_comps));
+    // for(unsigned int phase = 0; phase < num_phases; phase++){
+    //     for(unsigned int comp = 0; comp < num_muFields; comp++){
+    //         mu_ini[phase][comp] = 0.0;//kWell[phase][comp]*(c0[comp] - cmin[phase][comp]);
+    //     }
+    // }
 
-    double center[1][3] = {{0.5,0.5,0.5}};
-    double rad[1] = {2.0};
-    double distance;
-    scalar_IC = 0.0;
-    // Initial condition for the concentration field
-    if ((index == 0) or (index == 1)){
-        for (unsigned int i=0; i<1; i++){
-            distance = 0.0;
-            for (unsigned int dir = 0; dir < dim; dir++){
-                distance += (p[dir]-center[i][dir]*userInputs.domain_size[dir])*
-                    (p[dir]-center[i][dir]*userInputs.domain_size[dir]);
-            }
-            distance = std::sqrt(distance);
-            if(index == 0){
-            //    scalar_IC = 1.0;
-                scalar_IC = 0.5*(1+std::tanh(2.0*(distance-rad[i])));
-            }
-            if(index == 1){
-                scalar_IC = 1.0 - 0.5*(1.0+std::tanh(2.0*(distance-rad[i])));
-            }
+
+
+    double center[3] = {5.0,5.0,5.0};
+    double rad = 2.0;
+    double xwidth = 2.5;
+    double dist2 = 0.0;
+    double dist = 0.0;
+    double xdist = p[0]-center[0];
+    for(unsigned int xyz = 0; xyz<dim; xyz++){
+        dist2 += (p[xyz]-center[xyz])*(p[xyz]-center[xyz]);
+    }
+    dist = std::sqrt(dist2);
+    double tanh_profile = 0.5*(1+std::tanh(-2.0*(dist-rad)));
+    double tanh_profileB= 0.5*(1+std::tanh(-2.0*(std::abs(xdist)-xwidth)));
+    if (index<=num_ops){
+        if (index==0){
+            scalar_IC = (1 - tanh_profile)*(1-tanh_profileB);
+        }
+        else if (index==1){
+            scalar_IC = tanh_profile;
+        }
+        else if (index==2){
+            scalar_IC = tanh_profileB*(1-tanh_profile);
+        }
+        else{
+            scalar_IC = 0.0;
         }
     }
-    if (index > 3){
-        //scalar_IC = 0.1*(dist(rng)-0.05);
+    else if (index<=num_ops+num_comps){
         scalar_IC = 0;
+        // for(unsigned int phase = 0; phase<num_phases; ++phase){
+        //     scalar_IC += 0.0;// tanh_profile*mu_ini[0][index-num_phases] + (1-tanh_profile)*mu_ini[1][index-num_phases];
+        // }
+    }
+    else{
+        scalar_IC = 0.0;
     }
     // Initial condition for the order parameter field
 
