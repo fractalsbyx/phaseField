@@ -192,7 +192,7 @@ for (unsigned int i=0; i<num_phases; ++i){
     omegaC[i] = fWell[i];
     for (unsigned int j=0; j<num_muFields; ++j){
         omegaC[i] += -0.5*mu_values[j]*mu_values[j]/constV(Va*Va*kWell[i][j])
-            + mu_values[j]*cmin[i][j]/Va;
+            - mu_values[j]*cmin[i][j]/Va;
     }
 }
 
