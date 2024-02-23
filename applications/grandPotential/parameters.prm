@@ -10,7 +10,7 @@ set Number of dimensions = 2
 # Each axes spans from zero to the specified length
 set Domain size X = 10
 set Domain size Y = 10
-#set Domain size Z = 300
+set Domain size Z = 5
 
 # =================================================================================
 # Set the element parameters
@@ -20,9 +20,9 @@ set Domain size Y = 10
 # For optimal performance, use refineFactor primarily to determine the element size
 set Subdivisions X = 1
 set Subdivisions Y = 1
-#set Subdivisions Z = 3
+set Subdivisions Z = 1
 
-set Refine factor = 7
+set Refine factor = 8
 
 # Set the polynomial degree of the element (allowed values: 1, 2, or 3)
 set Element degree = 1
@@ -31,33 +31,41 @@ set Element degree = 1
 # Set the adaptive mesh refinement parameters
 # =================================================================================
 # Set the flag determining if adaptive meshing is activated
-set Mesh adaptivity = false
+set Mesh adaptivity = true
 
 # Set the maximum and minimum level of refinement
 # When adaptive meshing is enabled, the refine factor set in the block above is
 # only used to generate the first pass of the mesh as the initial conditions are
 # applied. It should be set somewhere between the max and min levels below.
-set Max refinement level = 7
+set Max refinement level = 8
 set Min refinement level = 2
 
 # Set the number of time steps between remeshing operations
 set Steps between remeshing operations = 250
 
 # Set the criteria for adapting the mesh
-# subsection Refinement criterion: phi
+subsection Refinement criterion: n0
     # Select whether the mesh is refined based on the variable value (VALUE),
     # its gradient (GRADIENT), or both (VALUE_AND_GRADIENT)
-#    set Criterion type = VALUE
+    set Criterion type = VALUE
     # Set the lower and upper bounds for the value-based refinement window
-#    set Value lower bound = -0.99
-#    set Value upper bound = 0.99
-#end
+    set Value lower bound = 0.001
+    set Value upper bound = 0.999
+end
+subsection Refinement criterion: n1
+    # Select whether the mesh is refined based on the variable value (VALUE),
+    # its gradient (GRADIENT), or both (VALUE_AND_GRADIENT)
+    set Criterion type = VALUE
+    # Set the lower and upper bounds for the value-based refinement window
+    set Value lower bound = 0.001
+    set Value upper bound = 0.999
+end
 
 # =================================================================================
 # Set the time step parameters
 # =================================================================================
 # The size of the time step
-set Time step = 0.00005
+set Time step = 5.0e-5
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
@@ -87,11 +95,11 @@ set Number of time steps = 5000
 
 set Boundary condition for variable n0 =  PERIODIC
 set Boundary condition for variable n1 =  PERIODIC
-set Boundary condition for variable n2 =  PERIODIC
+#set Boundary condition for variable n2 =  PERIODIC
 #set Boundary condition for variable n3 =  PERIODIC
 set Boundary condition for variable dndt0 =  PERIODIC
 set Boundary condition for variable dndt1 =  PERIODIC
-set Boundary condition for variable dndt2 =  PERIODIC
+#set Boundary condition for variable dndt2 =  PERIODIC
 #set Boundary condition for variable dndt3 =  PERIODIC
 set Boundary condition for variable mu0 =  PERIODIC
 set Boundary condition for variable mu1 =  PERIODIC
@@ -135,7 +143,7 @@ set Number of checkpoints = 2
 # where [symmetry] is ISOTROPIC, TRANSVERSE, ORTHOTROPIC, or ANISOTROPIC.
 
 # Number of order parameters 
-set Model constant num_ops = 3, INT
+set Model constant num_ops = 2, INT
 
 # =================================================================================
 # Select whether to set phase id's by index or by name. If NAME, is specified, then
@@ -151,7 +159,7 @@ set Model constant phase_names = LIQUID, ALPHA, BETA, GAMMA, STRING ARRAY
 # set Model constant phase_id = 0, 1, 2, 3, INT ARRAY
 
 # phase_id for each parameter. Size num_ops
-set Model constant phase_id = LIQUID, ALPHA, ALPHA, ALPHA, STRING ARRAY
+set Model constant phase_id = LIQUID, ALPHA, STRING ARRAY
 # =================================================================================
 
 # Number of Phases possible in this model
@@ -161,27 +169,27 @@ set Model constant num_phases = 4, INT
 set Model constant num_comps = 3, INT
 
 # Free energy well minima
-set Model constant fWell = 0.0, 0.0, 0.0, 0.0, DOUBLE ARRAY
+set Model constant fWell = 4.0, 0.0, 0.0, 0.0, DOUBLE ARRAY
 
 # Free energy well curvatures
     # Has size num_phases * (num_comps-1)
     # Written in order of phase, component
     # [phase1-comp1, phase1-comp2, phase1-comp3, ... , phase1-compN,
     #  phase2-comp1, phase2-comp2, phase2-comp3, ... , phase2-compN, ...]
-set Model constant kWell = 0.8,0.8, 1.0,2.0, 2.0,2.0, 50.0,50.0, DOUBLE ARRAY
+set Model constant kWell = 1.0,0.8, 10.0,20.0, 2.0,2.0, 50.0,50.0, DOUBLE ARRAY
 
 # Free energy well composition minima
     # Has size num_phases * (num_comps-1)
     # Written in order of phase, component
     # [phase1-comp1, phase1-comp2, phase1-comp3, ... , phase1-compN,
     #  phase2-comp1, phase2-comp2, phase2-comp3, ... , phase2-compN, ...]
-set Model constant cmin = 0.75,0.1, 0.94,0.03, 0.67,0.33, 0.0,0.0, DOUBLE ARRAY
+set Model constant cmin = 0.33,0.33, 0.94,0.03, 0.67,0.33, 0.0,0.0, DOUBLE ARRAY
 
 # Grain Mobility
-set Model constant L = 1.0, DOUBLE
+set Model constant L = 10.0, DOUBLE
 
 # Energy scale
-set Model constant m0 = 1.0, DOUBLE
+set Model constant m0 = 16.0, DOUBLE
 
 # Gradient Penalty
 set Model constant kappa = 0.1250, DOUBLE
@@ -190,7 +198,17 @@ set Model constant kappa = 0.1250, DOUBLE
 set Model constant gamma = 1.5, DOUBLE
 
 # Component Mobility
-set Model constant M = 10.0, DOUBLE
+set Model constant M = 0.1, DOUBLE
 
 # Volume Scale
 set Model constant Va = 1.0, DOUBLE
+
+# =================================================================================
+# Set initial conditions or custom parameters
+# =================================================================================
+
+# Liquid composition
+set Model constant c0 = 0.33, 0.33, DOUBLE ARRAY
+
+# Particle initial radius
+set Model constant r0 = 1.0, DOUBLE

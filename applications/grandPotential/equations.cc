@@ -14,7 +14,7 @@
 // rate calculations.
 
 void variableAttributeLoader::loadVariableAttributes(){
-    const unsigned int num_ops{3};
+    const unsigned int num_ops{2};
     const unsigned int num_muFields{2};
     std::string string_valn = "";
     std::string string_valdndt = "";
