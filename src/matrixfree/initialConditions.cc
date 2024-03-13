@@ -206,8 +206,7 @@ void MatrixFreePDE<dim,degree>::applyInitialConditions(){
     // 2) READ EACH VTK FILE ONCE, APPLY ICs FOR SCALAR FIELDS
     typedef PRISMS::PField<double*, double, dim> ScalarField;
     typedef PRISMS::Body<double*, dim> Body;
-    Body body;
-
+    
     for (std::unordered_map<std::string, std::vector<size_t>>::iterator it = file_field_map.begin();
             it != file_field_map.end(); it++){
         bool using_parallel_files = false;
@@ -228,6 +227,7 @@ void MatrixFreePDE<dim,degree>::applyInitialConditions(){
             filename = filename + ".vtk"; // add file extension
         }
         
+        Body body;
         std::cout << "Reading " << filename << "\n";
         body.read_vtk(filename);
 
