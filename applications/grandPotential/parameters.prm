@@ -65,7 +65,7 @@ end
 # Set the time step parameters
 # =================================================================================
 # The size of the time step
-set Time step = 5.0e-5
+set Time step = 1.0e-3
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
@@ -188,17 +188,20 @@ set Model constant cmin = 0.33,0.33, 0.94,0.03, 0.67,0.33, 0.0,0.0, DOUBLE ARRAY
 # Grain Mobility
 set Model constant L = 10.0, DOUBLE
 
-# Energy scale
-set Model constant m0 = 16.0, DOUBLE
+# Interface width (m)
+set Model constant l_gb = 0.25, DOUBLE
 
-# Gradient Penalty
-set Model constant kappa = 0.1250, DOUBLE
+# Interface energy (J/m^3)
+set Model constant sigma = 0.666, DOUBLE
+
+# Length scale (m)
+set Model constant l0 = 1.0, DOUBLE
 
 # Interface term
 set Model constant gamma = 1.5, DOUBLE
 
-# Component Mobility
-set Model constant M = 0.1, DOUBLE
+# Diffusivity
+set Model constant D = 0.1, DOUBLE
 
 # Volume Scale
 set Model constant Va = 1.0, DOUBLE
@@ -211,4 +214,4 @@ set Model constant Va = 1.0, DOUBLE
 set Model constant c0 = 0.33, 0.33, DOUBLE ARRAY
 
 # Particle initial radius
-set Model constant r0 = 1.0, DOUBLE
+set Model constant r0 = 0.25, DOUBLE

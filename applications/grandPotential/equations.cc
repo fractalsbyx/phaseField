@@ -131,7 +131,7 @@ for (unsigned int i=0; i<num_muFields; ++i){
     for (unsigned int j=0; j<num_phases; ++j){
         susceptibility += h[j]/(Va*Va*kWell[j][i]);
     }
-    dmudtGrad[i] = -M*mu_gradients[i]/susceptibility;
+    dmudtGrad[i] = -D*mu_gradients[i]; //(D*susceptibility)*mu_gradients[i]/susceptibility
     dmudtValue[i] = 0.0;
     for (unsigned int k=0; k<num_phases; ++k){
         for (unsigned int j=0; j<num_ops; ++j){

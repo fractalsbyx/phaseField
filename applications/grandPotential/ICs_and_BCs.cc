@@ -38,7 +38,7 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
 
     // make mu fields
     for(unsigned int mu_index = 0; mu_index<num_muFields; ++mu_index){
-        mu_vals[0] = kWell[0][mu_index]*(c0[mu_index]-cmin[0][mu_index]);
+        mu_vals[mu_index] = Va*kWell[phase_index[0]][mu_index]*(c0[mu_index]-cmin[phase_index[0]][mu_index]);
     }
 
     // ===========================================================================
