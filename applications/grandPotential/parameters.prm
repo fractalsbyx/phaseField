@@ -200,8 +200,8 @@ set Model constant l0 = 1.0, DOUBLE
 # Interface term
 set Model constant gamma = 1.5, DOUBLE
 
-# Diffusivity
-set Model constant D = 0.1, DOUBLE
+# Diffusivity (num_phases)
+set Model constant D = 0.1, 0.01, 0.01, 0.01, DOUBLE ARRAY
 
 # Volume Scale
 set Model constant Va = 1.0, DOUBLE

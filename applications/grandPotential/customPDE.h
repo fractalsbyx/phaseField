@@ -13,7 +13,7 @@ public:
         for(uint i=0;i<kWell.size(); ++i){
             divideByX(kWell[i], Va*m0_dim);
         }
-        D = D/(l0*l0);// *m0*Va*Va/(l0*l0);//*m0*l0*l0*l0*l0;
+        divideByX(D, l0*l0);
         //Defining seed
         unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
         //Initializing distribution
@@ -152,7 +152,7 @@ private:
         double m0     = 1.0;
         double kappa  = (1.0/8.0)*(l_gb*l_gb)/(l0*l0); //kappa_dim/(m0_dim*l0*l0);
         double gamma  = userInputs.get_model_constant_double("gamma");
-        double D      = userInputs.get_model_constant_double("D");
+        std::vector<double> D      = userInputs.get_model_constant_double_array("D");
         
         std::vector<int> phase_index = get_phase_index(num_phases, num_ops);
 

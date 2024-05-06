@@ -128,10 +128,12 @@ std::vector<scalargradType> dmudtGrad(num_muFields);
 
 for (unsigned int i=0; i<num_muFields; ++i){
     scalarvalueType susceptibility = 0.0;
+    dmudtGrad[i] *= 0;
     for (unsigned int j=0; j<num_phases; ++j){
         susceptibility += h[j]/(Va*Va*kWell[j][i]);
+        dmudtGrad[i] -= h[j]*D[j]*mu_gradients[i];
     }
-    dmudtGrad[i] = -D*mu_gradients[i]; //(D*susceptibility)*mu_gradients[i]/susceptibility
+    //dmudtGrad[i] = -D*mu_gradients[i]; //(D*susceptibility)*mu_gradients[i]/susceptibility
     dmudtValue[i] = 0.0;
     for (unsigned int k=0; k<num_phases; ++k){
         for (unsigned int j=0; j<num_ops; ++j){
