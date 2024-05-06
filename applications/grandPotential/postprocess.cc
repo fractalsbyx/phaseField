@@ -10,7 +10,7 @@
 
 void variableAttributeLoader::loadPostProcessorVariableAttributes(){
     const unsigned int num_ops{2};
-    const unsigned int num_muFields{2};
+    const unsigned int num_muFields{1};
     std::string string_valn = "";
     std::string string_valmu = "";
 for (unsigned int n_index=0; n_index<num_ops; n_index++){

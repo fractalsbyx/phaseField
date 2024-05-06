@@ -93,16 +93,12 @@ set Number of time steps = 5000
 # PERIODIC, NATURAL, PERIODIC, NATURAL
 # PERIODIC, PERIODIC, NATURAL, NATURAL
 
-set Boundary condition for variable n0 =  PERIODIC
-set Boundary condition for variable n1 =  PERIODIC
-#set Boundary condition for variable n2 =  PERIODIC
-#set Boundary condition for variable n3 =  PERIODIC
-set Boundary condition for variable dndt0 =  PERIODIC
-set Boundary condition for variable dndt1 =  PERIODIC
-#set Boundary condition for variable dndt2 =  PERIODIC
-#set Boundary condition for variable dndt3 =  PERIODIC
-set Boundary condition for variable mu0 =  PERIODIC
-set Boundary condition for variable mu1 =  PERIODIC
+set Boundary condition for variable n0 =  NATURAL, NATURAL, PERIODIC, PERIODIC
+set Boundary condition for variable n1 =  NATURAL, NATURAL, PERIODIC, PERIODIC
+set Boundary condition for variable dndt0 =  NATURAL, NATURAL, PERIODIC, PERIODIC
+set Boundary condition for variable dndt1 =  NATURAL, NATURAL, PERIODIC, PERIODIC
+set Boundary condition for variable mu0 =  NATURAL, NATURAL, PERIODIC, PERIODIC
+
 
 # =================================================================================
 # Set the output parameters
@@ -153,37 +149,29 @@ set Model constant num_ops = 2, INT
 set Model constant set_ids_by = NAME, STRING
 
 # phase names by at each phase index. Size num_phases
-set Model constant phase_names = LIQUID, ALPHA, BETA, GAMMA, STRING ARRAY
+set Model constant phase_names = LIQUID, ALPHA, STRING ARRAY
 
 # phase_id for each parameter. Size num_ops
-# set Model constant phase_id = 0, 1, 2, 3, INT ARRAY
+# set Model constant phase_id = 0, 1, INT ARRAY
 
 # phase_id for each parameter. Size num_ops
 set Model constant phase_id = LIQUID, ALPHA, STRING ARRAY
 # =================================================================================
 
 # Number of Phases possible in this model
-set Model constant num_phases = 4, INT
+set Model constant num_phases = 2, INT
 
 # Number of species present (including solvent/matrix)
-set Model constant num_comps = 3, INT
+set Model constant num_comps = 2, INT
 
 # Free energy well minima
-set Model constant fWell = 4.0, 0.0, 0.0, 0.0, DOUBLE ARRAY
+set Model constant fWell = 0.0, 0.0, DOUBLE ARRAY
 
 # Free energy well curvatures
-    # Has size num_phases * (num_comps-1)
-    # Written in order of phase, component
-    # [phase1-comp1, phase1-comp2, phase1-comp3, ... , phase1-compN,
-    #  phase2-comp1, phase2-comp2, phase2-comp3, ... , phase2-compN, ...]
-set Model constant kWell = 1.0,0.8, 10.0,20.0, 2.0,2.0, 50.0,50.0, DOUBLE ARRAY
+set Model constant kWell = 10.0, 10.0, DOUBLE ARRAY
 
 # Free energy well composition minima
-    # Has size num_phases * (num_comps-1)
-    # Written in order of phase, component
-    # [phase1-comp1, phase1-comp2, phase1-comp3, ... , phase1-compN,
-    #  phase2-comp1, phase2-comp2, phase2-comp3, ... , phase2-compN, ...]
-set Model constant cmin = 0.33,0.33, 0.94,0.03, 0.67,0.33, 0.0,0.0, DOUBLE ARRAY
+set Model constant cmin = 0.20, 0.80, DOUBLE ARRAY
 
 # Grain Mobility
 set Model constant L = 10.0, DOUBLE
@@ -201,7 +189,7 @@ set Model constant l0 = 1.0, DOUBLE
 set Model constant gamma = 1.5, DOUBLE
 
 # Diffusivity (num_phases)
-set Model constant D = 0.1, 0.01, 0.01, 0.01, DOUBLE ARRAY
+set Model constant D = 0.1, 0.01, DOUBLE ARRAY
 
 # Volume Scale
 set Model constant Va = 1.0, DOUBLE
@@ -210,8 +198,8 @@ set Model constant Va = 1.0, DOUBLE
 # Set initial conditions or custom parameters
 # =================================================================================
 
-# Liquid composition
-set Model constant c0 = 0.33, 0.33, DOUBLE ARRAY
+# Initial composition
+set Model constant c0 = 1.0, 0.5, DOUBLE ARRAY
 
 # Particle initial radius
-set Model constant r0 = 0.25, DOUBLE
+set Model constant r0 = 0.5, DOUBLE
