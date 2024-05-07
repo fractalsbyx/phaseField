@@ -211,7 +211,7 @@ set Model constant Va = 1.0, DOUBLE
 # =================================================================================
 
 # Liquid composition
-set Model constant c0 = 0.33, 0.33, DOUBLE ARRAY
+set Model constant c0 = 0.33,0.33, 0.94,0.03, 0.67,0.33, 0.0,0.0, DOUBLE ARRAY
 
 # Particle initial radius
 set Model constant r0 = 0.25, DOUBLE

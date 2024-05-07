@@ -14,6 +14,7 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     // Precalculating everything makes writing initial conditions easier. May take slightly more runtime.
     std::vector<double> op_vals(num_ops, 0.0);
     std::vector<double> mu_vals(num_muFields, 0.0);
+    std::vector<double> h(num_ops, 0.0);
 
     // Custom coordinate system
     double center[3] = {0.5*userInputs.domain_size[0],0.5*userInputs.domain_size[1],0.0*userInputs.domain_size[2]};
@@ -26,7 +27,8 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     // constant definitions
     double pi = 3.141592653589793238;
     double intf = std::sqrt(0.5*m0/kappa);
-    std::vector<double> c0 = userInputs.get_model_constant_double_array("c0");
+    std::vector<std::vector<double>> c0  = reshapeVector(userInputs.get_model_constant_double_array("c0"),
+                                                                  num_phases, num_muFields);
     double rad = userInputs.get_model_constant_double("r0");
 
     // profile for making order parameters
@@ -36,9 +38,24 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     op_vals[0] = 1.0 - tanh_circle;//liquid
     op_vals[1] = tanh_circle;
 
+    // Interpolation fields
+    double sum_nsq = 0;
+    for(unsigned int op_index = 0; op_index<num_ops; ++op_index){
+        sum_nsq += op_vals[op_index]*op_vals[op_index];
+    }
+    for(unsigned int op_index = 0; op_index<num_ops; ++op_index){
+        h[op_index] = op_vals[op_index]*op_vals[op_index]/sum_nsq;
+    }
+
     // make mu fields
     for(unsigned int mu_index = 0; mu_index<num_muFields; ++mu_index){
-        mu_vals[mu_index] = Va*kWell[phase_index[0]][mu_index]*(c0[mu_index]-cmin[phase_index[0]][mu_index]);
+        for(unsigned int op_index = 0; op_index<num_ops; ++op_index){
+            mu_vals[mu_index] += h[op_index]
+                                *Va*kWell[phase_index[op_index]][mu_index]
+                                *(c0[phase_index[op_index]][mu_index]
+                                    -cmin[phase_index[op_index]][mu_index]);
+        }
+        //mu_vals[mu_index] = Va*kWell[phase_index[0]][mu_index]*(c0[mu_index]-cmin[phase_index[0]][mu_index]);
     }
 
     // ===========================================================================
