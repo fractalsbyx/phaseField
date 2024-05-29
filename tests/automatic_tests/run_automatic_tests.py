@@ -61,7 +61,7 @@ def run_simulation(run_name,dir_path):
 
 	# Compile and run
 	subprocess.call(["cmake", "."]) # print to the screen to prevent a timeout on Travis
-	subprocess.call(["make", "release","-j9"],stdout=f)
+	subprocess.call(["make", "release"],stdout=f)
 	print("Compiling complete, running the regression test...")
 	sys.stdout.flush()
 	start = time.time()
