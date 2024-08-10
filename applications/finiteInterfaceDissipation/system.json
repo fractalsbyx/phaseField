@@ -1,0 +1,26 @@
+{
+    "num_phases": 3,
+    "phase_names": ["Phase_A", "Phase_B", "Phase_C"],
+    "phases": {
+        "Phase_A": {
+            "num_sublattices": 2,
+            "num_sites": [2, 3],
+            "occupation": [["AL", "CU"], ["AL", "CU"]],
+            "is_interstitial": [false, false],
+            "end member parameters": {
+                "AL,AL": "expression",
+                "AL,CU": "expression",
+                "CU,AL": "expression",
+                "CU,CU": "expression"
+            },
+            "interaction parameters": {
+                "AL,CU:AL": "expression",
+                "AL,CU:CU": "expression",
+                "AL:AL,CU": "expression",
+                "CU:AL,CU": "expression"
+            },
+        },
+        "Phase_B": {},
+        "Phase_C": {}
+    },
+  }
