@@ -12,56 +12,93 @@
 // The final pair of attributes determine whether a variable represents a field
 // that can nucleate and whether the value of the field is needed for nucleation
 // rate calculations.
+#include "json.hpp"
+struct InteractionData{
+        dealii::VectorizedArray<double> full_product;
+        std::vector<dealii::VectorizedArray<double>> excluded_product;
+};
 
 void variableAttributeLoader::loadVariableAttributes(){
-    const unsigned int num_ops{3};
-    const unsigned int num_comps{1};
-    const unsigned int num_phases{1};
-    std::string string_val_n = "";
-    std::string string_val_c = "";
-    std::string string_grad_n = "";
-    std::string string_grad_c = "";
-    for (unsigned int op_index=0; op_index<num_ops; op_index++){
-        std::string var_name = "n";
-        var_name.append(std::to_string(op_index));
-        string_val_n.append(var_name+",");
-        string_grad_n.append("grad("+var_name+"),");
-        set_variable_name				(op_index, var_name);
-    	set_variable_type				(op_index, SCALAR);
-    	set_variable_equation_type		(op_index, EXPLICIT_TIME_DEPENDENT);
-        set_allowed_to_nucleate			(op_index, (op_index>0));
-        set_need_value_nucleation		(op_index, true);
+    #include "IsothermalSystem.h"
+    uint num_ops = 4;
+
+    // Different scope from customPDE, must initialize identical system
+    std::string sysFile = "system.json";
+    // Create an input file stream
+    std::ifstream inputFile(sysFile);
+    // Check if the file was successfully opened
+    if (!inputFile.is_open()) {
+        std::cerr << "Could not open the file: " << sysFile << std::endl;
+        std::exit(1);
     }
-    for (unsigned int phase_index=0; phase_index<num_phases; phase_index++){
-        for (unsigned int comp_index=0; comp_index<num_comps; comp_index++){
-            std::string var_name = "c_";
-            var_name.append(std::to_string(phase_index + "_"));
-            var_name.append(std::to_string(comp_index));
-            string_val_c.append(var_name+",");
-            string_grad_c.append("grad("+var_name+"),");
-            set_variable_name				(num_ops+(num_comps*phase_index)+comp_index, var_name);
-            set_variable_type				(num_ops+(num_comps*phase_index)+comp_index, SCALAR);
-            set_variable_equation_type		(num_ops+(num_comps*phase_index)+comp_index, EXPLICIT_TIME_DEPENDENT);
-            set_need_value_nucleation		(num_ops+(num_comps*phase_index)+comp_index, true);
+    // Parse the JSON file into a JSON object
+    nlohmann::json TCSystem;
+    try {
+        inputFile >> TCSystem;
+    } catch (nlohmann::json::parse_error& e) {
+        std::cerr << "JSON parse error: " << e.what() << std::endl;
+        std::exit(1);
+    }
+    // Close the file
+    inputFile.close();
+    IsothermalSystem Sys(TCSystem);
+
+    // Get names for composition fields
+    std::string comp_names;
+    std::string grad_comp_names;
+    for (const auto& [phase_name, phase] : Sys.phases){
+        for (unsigned int s=0; s<phase.num_sublattices; s++){
+            if (phase.sublattice_comps[s].size()>1){ // saving memory for fixed sublattices
+                for (const std::string& comp : phase.sublattice_comps[s]){
+                    std::string var_name = phase_name + '_' + std::to_string(s) + '_' + comp;
+                    comp_names.append(var_name);
+                    grad_comp_names.append("grad("+var_name+")");
+                }
+            }
         }
     }
-    std::cout << string_val_n << " | " << string_val_c << " | "
-            << string_grad_n << " | " << string_grad_c << "\n";
-    std::string dep_val_n = string_val_n+string_val_c;
-    std::string dep_val_c = string_val_n+string_val_c;
-    std::string dep_grad_n = string_val_n+string_grad_n;
-    std::string dep_grad_c = string_val_n+string_val_c+string_grad_c;
-    dep_val_n.pop_back();
-    dep_val_c.pop_back();
-    for (unsigned int op_index=0; op_index<num_ops; op_index++){
-        set_dependencies_value_term_RHS(op_index, dep_val_n);
-        set_dependencies_gradient_term_RHS(op_index, dep_grad_n);
+    comp_names.pop_back(); // remove comma
+    grad_comp_names.pop_back();
+
+    // Get names for order parameter fields
+    std::string op_names;
+    std::string grad_op_names;
+    for (unsigned int i=0; i<num_ops; ++i){
+        std::string var_name = "phi" + std::to_string(i);
+        op_names.append(var_name);
+        grad_op_names.append("grad("+var_name+")");
     }
-    for (unsigned int phase_index = 0; phase_index < num_phases; phase_index++){
-        for (unsigned int comp_index = 0; comp_index < num_comps; comp_index++){
-            set_dependencies_value_term_RHS(num_ops+(num_comps*phase_index)+comp_index, dep_val_c);
-            set_dependencies_gradient_term_RHS(num_ops+(num_comps*phase_index)+comp_index, dep_grad_c);
+    op_names.pop_back(); // remove comma
+    grad_op_names.pop_back();
+
+    uint var_index = 0;
+    // Assign composition fields
+    for (const auto& [phase_name, phase] : Sys.phases){
+        for (unsigned int s=0; s<phase.num_sublattices; s++){
+            if (phase.sublattice_comps[s].size()>1){ // saving memory for fixed sublattices
+                for (const std::string& comp : phase.sublattice_comps[s]){
+                    std::string var_name = phase_name + '_' + std::to_string(s) + '_' + comp;
+                    set_variable_name				(var_index, var_name);
+                    set_variable_type				(var_index, SCALAR);
+                    set_variable_equation_type		(var_index, EXPLICIT_TIME_DEPENDENT);
+                    set_need_value_nucleation		(var_index, true);
+                    set_dependencies_value_term_RHS (var_index, op_names+','+grad_op_names+','+comp_names+','+grad_comp_names);
+                    set_dependencies_gradient_term_RHS(var_index++, op_names+','+grad_op_names+','+comp_names+','+grad_comp_names);
+                }
+            }
         }
+    }
+
+    // Assign order parameter fields
+    for (unsigned int i=0; i<num_ops; ++i){
+        std::string var_name = "phi" + std::to_string(i);
+        set_variable_name				(var_index, var_name);
+        set_variable_type				(var_index, SCALAR);
+        set_variable_equation_type		(var_index, EXPLICIT_TIME_DEPENDENT);
+        // set_allowed_to_nucleate			(var_index, (op_index>0));
+        set_need_value_nucleation		(var_index, true);
+        set_dependencies_value_term_RHS (var_index, op_names+','+grad_op_names+','+comp_names+','+grad_comp_names);
+        set_dependencies_gradient_term_RHS(var_index++, op_names+','+grad_op_names+','+comp_names+','+grad_comp_names);
     }
     std::cout << "Finished loadVariableAttributes\n";
 }
@@ -92,8 +129,8 @@ std::vector<scalargradType> dFdphi_grad(num_ops);
 std::vector<scalarvalueType> dphidt_val(num_ops, constV(0.0));
 std::vector<scalargradType> dphidt_grad(num_ops);
 // "Order Parameter" for each phase [phase_name]
-std::unordered_map<std::string, scalarvalueType> phi_phase_val(num_phases);
-std::unordered_map<std::string, scalargradType> phi_phase_grad(num_phases);
+std::unordered_map<std::string, scalarvalueType> phi_phase_val;
+std::unordered_map<std::string, scalargradType> phi_phase_grad;
 // Local composition [component_name]
 std::unordered_map<std::string, scalarvalueType> c_val;
 std::unordered_map<std::string, scalargradType> c_grad;
@@ -103,61 +140,170 @@ std::unordered_map<std::string, std::unordered_map<std::string, scalargradType>>
 // Sublattice occupation [phase_name][sublattice index s][component name]
 std::unordered_map<std::string, std::vector<std::unordered_map<std::string, scalarvalueType>>> y_val;
 std::unordered_map<std::string, std::vector<std::unordered_map<std::string, scalargradType>>> y_grad;
+// Constituent chemical potentials [phase_name][sublattice index s][component name]
+std::unordered_map<std::string, std::vector<std::unordered_map<std::string, scalarvalueType>>>mu_val;
+std::unordered_map<std::string, std::vector<std::unordered_map<std::string, scalargradType>>> mu_grad;
 //
 std::unordered_map<std::string, std::vector<std::unordered_map<std::string, scalarvalueType>>> dydt_val;
 std::unordered_map<std::string, std::vector<std::unordered_map<std::string, scalargradType>>> dydt_grad;
 // something
-std::unordered_map<std::string, std::vector<scalarvalueType>> phi_dcdt_val(num_phases, std::vector<scalarvalueType>(num_comps));
-std::unordered_map<std::string, std::vector<scalargradType>> phi_dcdt_grad(num_phases, std::vector<scalargradType>(num_comps));
+// std::unordered_map<std::string, std::vector<scalarvalueType>>;
+// std::unordered_map<std::string, std::vector<scalargradType>>;
 
-std::vector<scalarvalueType> deltaG(num_phases, constV(0.0));
+std::unordered_map<std::string, scalarvalueType> G_ref;
+std::unordered_map<std::string, scalarvalueType> G_conf;
+std::unordered_map<std::string, scalarvalueType> G_ex;
+std::unordered_map<std::string, scalarvalueType> G;
 
 // Retrieve fields
 unsigned int var_index = 0;
-for (auto phase = phase_names.begin(); phase < phase_names.end(); phase++){
-    for (unsigned int s=0; s<num_sublattices[*phase]; s++){
-        if (sublattice_comps[*phase][s].size()>1){ // saving memory for fixed sublattices
-        for (auto comp = sublattice_comps[*phase][s].begin(); comp<sublattice_comps[*phase][s].end(); comp++){
-            y_val[*phase][s][*comp] = variable_list.get_scalar_value(var_index);
-            y_grad[*phase][s][*comp] = variable_list.get_scalar_gradient(var_index++);
-            c_phase_val[*phase][*comp] += num_sites[*phase][s] * y_val[*phase][s][*comp] / total_num_sites[*phase];
-            c_phase_grad[*phase][*comp] += num_sites[*phase][s] * y_grad[*phase][s][*comp] / total_num_sites[*phase];
+for (const auto& [key, phase] : Sys.phases){
+    y_val[phase.name] = std::vector<std::unordered_map<std::string, scalarvalueType>>  (phase.num_sublattices, std::unordered_map<std::string, scalarvalueType>());
+    y_grad[phase.name] = std::vector<std::unordered_map<std::string, scalargradType>>  (phase.num_sublattices, std::unordered_map<std::string, scalargradType>());
+    for (unsigned int s=0; s<phase.num_sublattices; s++){
+        if (phase.sublattice_comps[s].size()>1){ // saving memory for fixed sublattices
+        for (const std::string& comp : phase.sublattice_comps[s]){
+            y_val[phase.name][s][comp] = variable_list.get_scalar_value(var_index);
+            y_grad[phase.name][s][comp] = variable_list.get_scalar_gradient(var_index++);
+            c_phase_val[phase.name][comp] += phase.num_sites[s] * y_val[phase.name][s][comp] / phase.total_num_sites;
+            c_phase_grad[phase.name][comp] += phase.num_sites[s] * y_grad[phase.name][s][comp] / phase.total_num_sites;
         }
         }
         else{
-            auto comp = sublattice_comps[*phase][s].begin();
-            c_phase_val[*phase][*comp] += num_sites[*phase][s] * 1.0 / total_num_sites[*phase];
-            c_phase_grad[*phase][*comp] += num_sites[*phase][s] * 1.0 / total_num_sites[*phase];
+            auto comp = *(phase.sublattice_comps[s].begin());
+            y_val[phase.name][s][comp] = constV(1.0);
+            c_phase_val[phase.name][comp] += phase.num_sites[s] * 1.0 / phase.total_num_sites;
         }
     }
+    phi_phase_val[phase.name] *= 0.0;
+    phi_phase_grad[phase.name] *= 0.0;
 }
 for (unsigned int i=0; i<num_ops; ++i){
 	phi_val[i] =  variable_list.get_scalar_value(var_index);
 	phi_grad[i] = variable_list.get_scalar_gradient(var_index++);
-    auto phase = op_phase_name.begin()+i; // Could just use index, want to be consistent with rest of code.
-    phi_phase_val[*phase] += phi_val[i];   // This and phase comps need order parameters to sum to 1,
-    phi_phase_grad[*phase] += phi_grad[i]; // otherwise this must be done later with interpolation function.
-    for (auto comp = comp_names.begin(); comp<comp_names.end(); comp++){
-        c_val[*comp] += c_phase_val[*phase][*comp] * phi_val[i];
-        c_grad[*comp] +=  c_phase_grad[*phase][*comp] * phi_val[i] + c_phase_val[*phase][*comp] * phi_grad[i];
+    std::string phase = op_phase_name[i];
+    phi_phase_val[phase] += phi_val[i];   // This and phase comps need order parameters to sum to 1,
+    phi_phase_grad[phase] += phi_grad[i]; // otherwise this must be done later with interpolation function.
+    for (const std::string& comp : Sys.phases.at(phase).comps){
+        c_val[comp] += c_phase_val[phase][comp] * phi_val[i];
+        c_grad[comp] +=  c_phase_grad[phase][comp] * phi_val[i] + c_phase_val[phase][comp] * phi_grad[i];
     }
 }
 
-//
-for (unsigned int j=0; j<num_phases; j++){
-    for (unsigned int k=0; k<num_comps; k++){
-        phi_dcdt_grad[j][k] = phi_phase[j]*D[j]*c_grad[j][k];
-        phi_dcdt_val[j][k] = phi_phase[j]
-            *(P*(1-phi_phase[j])*(sum_mu[k] - mu[j][k])
-            -phi_phase[j]*sum_dphidt_c[j]);
+// Calculate G for each phase
+for (const auto& [key, phase] : Sys.phases){
+    scalarvalueType& G_phase = G[phase.name];
+    //scalarvalueType 
+    G_phase = constV(0.0);
+    G_phase += Sys.Temperature*entropy(phase, y_val[phase.name]);
+    calcEntropicMu(phase, y_val[phase.name], y_grad[phase.name], mu_val[phase.name], mu_grad[phase.name]);
+    for (auto& [key2, parameter] : phase.L_parameter){
+        InteractionData L_data = Interaction(parameter, y_val[phase.name]);
+        G_phase += parameter.value * L_data.full_product;
+        updateMu(parameter, L_data, y_val[phase.name], y_grad[phase.name], mu_val[phase.name], mu_grad[phase.name]);
     }
 }
 
-for (unsigned int i=0; i<num_ops; ++i){
-    dphidt_val[i] = sigma*(pi/l_gb)*(pi/l_gb)*(phi_val[i]-0.5);
-    dphidt_grad[i] = sigma*phi_grad[i];
 }
 
+template <int dim, int degree>
+dealii::VectorizedArray<double> customPDE<dim,degree>::entropy(const Phase& phase, std::vector<std::unordered_map<std::string, scalarvalueType>>& y_val) const {
+    scalarvalueType S_phase = constV(0.0);
+    for (uint s = 0; s < phase.sublattice_comps.size(); ++s){
+        double a = phase.num_sites[s]/phase.total_num_sites;
+        for (const std::string& constituent : phase.sublattice_comps[s]){
+            S_phase += a * y_val[s][constituent] * std::log(y_val[s][constituent]);
+        }
+    }
+    return R*S_phase;
+}
+
+template <int dim, int degree>
+void customPDE<dim,degree>::calcEntropicMu(const Phase& phase,
+                                            std::vector<std::unordered_map<std::string, scalarvalueType>>& y_val,
+                                            std::vector<std::unordered_map<std::string, scalargradType>>& y_grad,
+                                            std::vector<std::unordered_map<std::string, scalarvalueType>>& mu_val,
+                                            std::vector<std::unordered_map<std::string, scalargradType>>& mu_grad) const {
+    // code
+    scalarvalueType S_phase = constV(0.0);
+    for (uint s = 0; s < phase.sublattice_comps.size(); ++s){
+        double a = phase.num_sites[s]/phase.total_num_sites;
+        for (const std::string& constituent : phase.sublattice_comps[s]){
+            mu_val[s][constituent] += a * (constV(1.0) + std::log(y_val[s][constituent]));
+            mu_grad[s][constituent] += a * y_grad[s][constituent]/y_val[s][constituent];
+        }
+    }
+}
+
+template <int dim, int degree>
+void customPDE<dim,degree>::updateMu(const InteractionParameter& L, const InteractionData& id,
+                                        std::vector<std::unordered_map<std::string, scalarvalueType>>& y_val,
+                                        std::vector<std::unordered_map<std::string, scalargradType>>& y_grad,
+                                        std::vector<std::unordered_map<std::string, scalarvalueType>>& mu_val,
+                                        std::vector<std::unordered_map<std::string, scalargradType>>& mu_grad) const {
+    const auto& occupation = L.occupation;
+    for (uint s = 0; s < occupation.size(); ++s){
+        auto& constituents = occupation[s];
+        scalarvalueType diff;
+        switch (constituents.size()){
+            case 1:
+                // Single element
+                if (constituents[0] == "*"){
+                    mu_val[s][constituents[0]] = id.excluded_product[s];
+                }
+            break;
+
+            case 2:
+                // Redlich-Kister
+                diff = (y_val[s][constituents[0]] - y_val[s][constituents[1]]);
+                mu_val[s][constituents[0]] += id.excluded_product[s] * (double)L.degree * dealii::Utilities::pow(diff, L.degree-1);
+                mu_val[s][constituents[1]] +=-id.excluded_product[s] * (double)L.degree * dealii::Utilities::pow(diff, L.degree-1);
+                mu_grad[s][constituents[0]] += id.excluded_product[s] * (double)(L.degree * (L.degree-1)) * dealii::Utilities::pow(diff, L.degree-2) * y_grad[s][constituents[0]];
+                mu_grad[s][constituents[1]] += id.excluded_product[s] * (double)(L.degree * (L.degree-1)) * dealii::Utilities::pow(diff, L.degree-2) * y_grad[s][constituents[1]];
+            break;
+
+            default:
+                // TODO: Muggianu
+                mu_val[s][constituents[0]] *= 1.0;
+        }
+        
+    }
+}
+
+template <int dim, int degree>
+InteractionData customPDE<dim,degree>::Interaction(const InteractionParameter& L, std::vector<std::unordered_map<std::string, scalarvalueType>>& y_val) const {
+    const auto& occupation = L.occupation;
+    std::vector<scalarvalueType> terms(y_val.size(), constV(1.0));
+    std::vector<scalarvalueType> othersProduct(y_val.size(), constV(1.0));
+    scalarvalueType prod_term = constV(1.0);
+    for (uint s = 0; s < occupation.size(); ++s){
+        scalarvalueType y_term = SublatticeTerm(occupation[s], s, y_val);
+        prod_term *= y_term;
+        for(uint s1 = 0; s1 < occupation.size(); ++s1){
+            othersProduct[s1] *= (s1!=s) ? y_term : 1.0;
+        }
+    }
+    return {product_term, othersProduct};
+}
+
+
+template <int dim, int degree>
+dealii::VectorizedArray<double> customPDE<dim,degree>::SublatticeTerm(std::vector<std::string>& constituents, uint sublattice, std::vector<std::unordered_map<std::string, scalarvalueType>>& y_val) const {
+    switch (constituents.size()){
+        case 1:
+            // Single element
+            return (constituents[0] == "*") ? constV(1.0) : y_val[sublattice][constituents[0]];
+        break;
+
+        case 2:
+            // Redlich-Kister
+            return y_val[sublattice][constituents[0]] - y_val[sublattice][constituents[1]];
+        break;
+        
+        default:
+            // TODO: Muggianu
+            return constV(1.0);
+    }
 }
 
 // =============================================================================================
@@ -175,64 +321,6 @@ for (unsigned int i=0; i<num_ops; ++i){
 template <int dim, int degree>
 void customPDE<dim,degree>::nonExplicitEquationRHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
 				 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
-
-std::vector<scalarvalueType> phi_values(num_ops);
-std::vector<scalargradType> phi_gradients(num_ops);
-std::vector<scalarvalueType> c_values(num_cFields);
-
-for (unsigned int i=0; i<num_ops; ++i){
- 	phi_values[i] = variable_list.get_scalar_value(i);
-	phi_gradients[i] = variable_list.get_scalar_gradient(i);
-}
-
-for (unsigned int i=0; i<num_cFields; ++i){
-	c_values[i] = variable_list.get_scalar_value(i+num_ops);
-}
-
-std::vector<scalarvalueType> omegaC(num_phases);
-scalarvalueType sum_nsq = 0.0;
-
-for (unsigned int i=0; i<num_ops; ++i){
-    sum_nsq += phi_values[i]*phi_values[i];
-}
-
-for (unsigned int i=0; i<num_phases; ++i){
-    omegaC[i] = fWell[i];
-    for (unsigned int j=0; j<num_cFields; ++j){
-        omegaC[i] += -0.5*c_values[j]*c_values[j]/constV(Va*Va*kWell[i][j])
-            - c_values[j]*cmin[i][j]/Va;
-    }
-}
-
-std::vector<scalarvalueType> dndtValue(num_ops);
-std::vector<scalargradType> dndtGrad(num_ops);
-
-for (unsigned int i=0; i < num_ops; ++i){
-    dndtValue[i] = m0*(phi_values[i]*phi_values[i]*phi_values[i] - phi_values[i]);
-    dndtGrad[i] = kappa*phi_gradients[i];
-    dndtValue[i] += 2.0*phi_values[i]/sum_nsq * omegaC[phase_index[i]];
-    for (unsigned int j=0; j<num_ops; ++j){//fix?
-        if(i != j){
-            dndtValue[i] += m0*2.0*phi_values[i]*gamma*phi_values[j]*phi_values[j];
-        }
-        dndtValue[i] -= 2.0*phi_values[j]*phi_values[j]*phi_values[i]/(sum_nsq*sum_nsq)
-                        *omegaC[phase_index[j]];
-    }
-}
-
-//std::vector<double> forcingTerm(num_ops, 0.0);
-std::vector<dealii::VectorizedArray<double>> forcingTerm(num_ops, constV(0.0));
-std::vector<dealii::VectorizedArray<double>> mob_term(num_ops, constV(1.0));
-double interface_width = 1.0/std::sqrt(0.5*m0/kappa);
-seedNucleus(q_point_loc, forcingTerm, mob_term, interface_width);
-
-for (unsigned int i=0; i < num_ops; ++i){
-    //variable_list.set_scalar_value_term_RHS(i+num_ops+num_cFields,-L*(dndtValue[i])*mob_term[i]+forcingTerm[i]);
-    //variable_list.set_scalar_gradient_term_RHS(i+num_ops+num_cFields,-L*(dndtGrad[i])*mob_term[i]);
-    variable_list.set_scalar_value_term_RHS(i+num_ops+num_cFields,-L*(dndtValue[i]-nuc_force*forcingTerm[i]));
-    variable_list.set_scalar_gradient_term_RHS(i+num_ops+num_cFields,-L*(dndtGrad[i]));
-}
-
 }
 
 // =============================================================================================
@@ -252,46 +340,4 @@ for (unsigned int i=0; i < num_ops; ++i){
 template <int dim, int degree>
 void customPDE<dim,degree>::equationLHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
 		dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
-}
-
-// =================================================================================
-// seedNucleus: a function particular to this app
-// =================================================================================
-template <int dim,int degree>
-void customPDE<dim,degree>::seedNucleus(const dealii::Point<dim, dealii::VectorizedArray<double> > & q_point_loc,
-	std::vector<dealii::VectorizedArray<double>> & source_term,
-	std::vector<dealii::VectorizedArray<double>> & mob_term,
-    double interface_coeff) const {
-
-    for (typename std::vector<nucleus<dim> >::const_iterator thisNucleus=this->nuclei.begin(); thisNucleus!=this->nuclei.end(); ++thisNucleus){
-        if (thisNucleus->seededTime + thisNucleus->seedingTime > this->currentTime){
-            // Calculate the weighted distance function to the order parameter freeze boundary (weighted_dist = 1.0 on that boundary)
-            unsigned int nuc_op_index = thisNucleus->orderParameterIndex;
-            dealii::VectorizedArray<double> weighted_dist = this->weightedDistanceFromNucleusCenter(thisNucleus->center, userInputs.get_nucleus_freeze_semiaxes(nuc_op_index), q_point_loc, nuc_op_index);
-
-            for (unsigned i=0; i<mob_term[nuc_op_index].size();i++){
-                if (weighted_dist[i] <= 1.0){
-                    mob_term[nuc_op_index][i] = 0.0;
-
-                    // Seed a nucleus if it was added to the list of nuclei this time step
-                    if (true/*thisNucleus->seedingTimestep == this->currentIncrement*/){
-                        // Find the weighted distance to the outer edge of the nucleus and use it to calculate the order parameter source term
-                        dealii::Point<dim,double> q_point_loc_element;
-                        for (unsigned int j=0; j<dim; j++){
-                            q_point_loc_element(j) = q_point_loc(j)[i];
-                        }
-                        double r = this->weightedDistanceFromNucleusCenter(thisNucleus->center, userInputs.get_nucleus_semiaxes(thisNucleus->orderParameterIndex), q_point_loc_element, thisNucleus->orderParameterIndex);
-
-                        double avg_semiaxis = 0.0;
-                        for (unsigned int j=0; j<dim; j++){
-                            avg_semiaxis += thisNucleus->semiaxes[j];
-                        }
-                        avg_semiaxis /= dim;
-
-                        source_term[nuc_op_index][i] += 0.5*(1.0-std::tanh(avg_semiaxis*(r-1.0)/interface_coeff));
-                    }
-                }
-            }
-        }
-    }
 }

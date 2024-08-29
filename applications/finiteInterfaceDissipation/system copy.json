@@ -1,0 +1,79 @@
+{
+    "comp_names": ["AL", "CU"],
+    "phases": {
+        "Phase_A": {
+            "num_sublattices": 2,
+            "num_sites": [2, 3],
+            "occupation": [["AL", "CU"], ["AL", "CU"]],
+            "is_interstitial": [false, false],
+            "end member parameters": {
+                "AL,AL": "expression",
+                "AL,CU": "expression",
+                "CU,AL": "expression",
+                "CU,CU": "expression"
+            },
+            "interaction parameters": {
+                "AL,CU:AL": {
+                    "sublattice_index": 0,
+                    "elements": ["AL", "CU"],
+                    "degree": 1,
+                    "value": "expression"
+                },
+                "AL,CU:CU": {
+                    "sublattice_index": 0,
+                    "elements": ["AL", "CU"],
+                    "degree": 1,
+                    "value": "expression"
+                },
+                "AL:AL,CU": {
+                    "sublattice_index": 0,
+                    "elements": ["AL", "CU"],
+                    "degree": 1,
+                    "value": "expression"
+                },
+                "CU:AL,CU": {
+                    "sublattice_index": 0,
+                    "elements": ["AL", "CU"],
+                    "degree": 1,
+                    "value": "expression"
+                }
+            },
+        },
+        "Phase_B": {
+            "num_sublattices": 2,
+            "num_sites": [4, 3],
+            "occupation": [["AL"], ["AL", "CU"]],
+            "is_interstitial": [false, false],
+            "end member parameters": {
+                "AL,AL": "expression",
+                "AL,CU": "expression"
+            },
+            "interaction parameters": {
+                "AL:AL,CU": {
+                    "sublattice_index": 0,
+                    "elements": ["AL", "CU"],
+                    "degree": 1,
+                    "value": "expression"
+                }
+            }
+        },
+        "Phase_C": {
+            "num_sublattices": 2,
+            "num_sites": [2, 7],
+            "occupation": [["AL", "CU"], ["CU"]],
+            "is_interstitial": [true, false],
+            "end member parameters": {
+                "AL,CU": "expression",
+                "CU,CU": "expression"
+            },
+            "interaction parameters": {
+                "AL,CU:CU": {
+                    "sublattice_index": 0,
+                    "elements": ["AL", "CU"],
+                    "degree": 1,
+                    "value": "expression"
+                }
+            }
+        }
+    }
+  }
