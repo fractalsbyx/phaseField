@@ -12,9 +12,7 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     // according to its variable index
 
     // Precalculating everything makes writing initial conditions easier. May take slightly more runtime.
-    std::vector<double> op_vals(num_ops, 0.0);
-    std::vector<double> mu_vals(num_muFields, 0.0);
-    std::vector<double> h(num_ops, 0.0);
+    /*container defs*/
 
     // Custom coordinate system
     double center[3] = {0.5*userInputs.domain_size[0],0.5*userInputs.domain_size[1],(dim>2)*userInputs.domain_size[2]};
@@ -24,44 +22,16 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     if(dim<3){z=0;}
     double r2 = x*x+y*y+z*z;
 
-    // constant definitions
-    double pi = 3.141592653589793238;
-    double intf = std::sqrt(0.5*m0/kappa);
-    std::vector<std::vector<double>> c0  = reshapeVector(userInputs.get_model_constant_double_array("c0"),
-                                                                  num_phases, num_muFields);
-    
     // TODO: make order parameters
-    op_vals[0] = 1.0;//liquid
-
-    // Interpolation fields
-    double sum_nsq = 0;
-    for(unsigned int op_index = 0; op_index<num_ops; ++op_index){
-        sum_nsq += op_vals[op_index]*op_vals[op_index];
-    }
-    for(unsigned int op_index = 0; op_index<num_ops; ++op_index){
-        h[op_index] = op_vals[op_index]*op_vals[op_index]/sum_nsq;
-    }
-
-    // make mu fields
-    for(unsigned int mu_index = 0; mu_index<num_muFields; ++mu_index){
-        for(unsigned int op_index = 0; op_index<num_ops; ++op_index){
-            mu_vals[mu_index] += h[op_index]
-                                *Va*kWell[phase_index[op_index]][mu_index]
-                                *(c0[phase_index[op_index]][mu_index]
-                                    -cmin[phase_index[op_index]][mu_index]);
-        }
-    }
+    
 
     // ===========================================================================
     // Submit fields
     // ===========================================================================
-    scalar_IC = 0.0;
-    for(unsigned int op_index = 0; op_index<num_ops; ++op_index){
-        if(index==op_index){scalar_IC = op_vals[op_index];}
-    }
-    for(unsigned int mu_index = 0; mu_index<num_muFields; ++mu_index){
-        if(index==num_ops+mu_index){scalar_IC = mu_vals[mu_index];}
-    }
+    scalar_IC = 0.0*r2;
+    // for(unsigned int op_index = 0; op_index<num_ops; ++op_index){
+    //     if(index==op_index){scalar_IC = op_vals[op_index];}
+    // }
 }
 
 // ===========================================================================
