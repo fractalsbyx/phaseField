@@ -37,7 +37,7 @@
                     "degree": 1,
                     "value": "expression"
                 }
-            },
+            }
         },
         "Phase_B": {
             "num_sublattices": 2,

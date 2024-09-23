@@ -66,19 +66,6 @@ private:
 	// ================================================================
 	// Methods specific to this subclass
 	// ================================================================
-    dealii::VectorizedArray<double> entropy(const Phase& phase, std::vector<std::unordered_map<std::string, scalarvalueType>>& y_val) const;
-    void updateMu(const InteractionParameter& L, const InteractionData& id,
-                    std::vector<std::unordered_map<std::string, scalarvalueType>>& y_val,
-                    std::vector<std::unordered_map<std::string, scalargradType>>& y_grad,
-                    std::vector<std::unordered_map<std::string, scalarvalueType>>& mu_val,
-                    std::vector<std::unordered_map<std::string, scalargradType>>& mu_grad) const;
-    void calcEntropicMu(const Phase& phase,
-                        std::vector<std::unordered_map<std::string, scalarvalueType>>& y_val,
-                        std::vector<std::unordered_map<std::string, scalargradType>>& y_grad,
-                        std::vector<std::unordered_map<std::string, scalarvalueType>>& mu_val,
-                        std::vector<std::unordered_map<std::string, scalargradType>>& mu_grad) const;
-    InteractionData Interaction(const InteractionParameter& L, std::vector<std::unordered_map<std::string, scalarvalueType>>& y_val) const;
-    dealii::VectorizedArray<double> SublatticeTerm(std::vector<std::string>& constituents, uint sublattice, std::vector<std::unordered_map<std::string, scalarvalueType>>& y_val) const;
 
     void parseSystem(){
         // Create an input file stream
@@ -130,4 +117,3 @@ private:
 	// ================================================================
 
 };
-

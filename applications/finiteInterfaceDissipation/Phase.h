@@ -1,6 +1,8 @@
 #include <unordered_map>
 #include <unordered_set>
+#include <set>
 #include <vector>
+#include <list>
 #include <string>
 #include <boost/algorithm/string.hpp>
 #include "json.hpp"
@@ -59,10 +61,12 @@ class Phase {
     std::string name;
     uint num_sublattices;
     std::vector<double> num_sites;
+    std::vector<double> a;
     std::vector<bool> is_interstitial;
+    std::list<uint> mixed_sublattices;
     double total_num_sites;
     double total_num_subst_sites;
-    std::vector<std::unordered_set<std::string>> sublattice_comps;
+    std::vector<std::set<std::string>> sublattice_comps;
     std::unordered_set<std::string> comps;
     std::unordered_map<std::string, InteractionParameter> L_parameter;
 };
