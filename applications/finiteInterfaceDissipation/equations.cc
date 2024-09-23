@@ -13,11 +13,7 @@
 // that can nucleate and whether the value of the field is needed for nucleation
 // rate calculations.
 #include "json.hpp"
-struct InteractionData{
-        dealii::VectorizedArray<double> full_product;
-        std::vector<dealii::VectorizedArray<double>> excluded_product;
-};
-
+#include "PhaseFieldContainer.h"
 void variableAttributeLoader::loadVariableAttributes(){
     #include "IsothermalSystem.h"
     uint num_ops = 4;
@@ -128,33 +124,13 @@ std::vector<scalargradType> dFdphi_grad(num_ops);
 // 
 std::vector<scalarvalueType> dphidt_val(num_ops, constV(0.0));
 std::vector<scalargradType> dphidt_grad(num_ops);
-// "Order Parameter" for each phase [phase_name]
-std::unordered_map<std::string, scalarvalueType> phi_phase_val;
-std::unordered_map<std::string, scalargradType> phi_phase_grad;
 // Local composition [component_name]
 std::unordered_map<std::string, scalarvalueType> c_val;
 std::unordered_map<std::string, scalargradType> c_grad;
-// Composition within phase [phase_name][component_name]
-std::unordered_map<std::string, std::unordered_map<std::string, scalarvalueType>> c_phase_val;
-std::unordered_map<std::string, std::unordered_map<std::string, scalargradType>> c_phase_grad;
-// Sublattice occupation [phase_name][sublattice index s][component name]
-std::unordered_map<std::string, std::vector<std::unordered_map<std::string, scalarvalueType>>> y_val;
-std::unordered_map<std::string, std::vector<std::unordered_map<std::string, scalargradType>>> y_grad;
-// Constituent chemical potentials [phase_name][sublattice index s][component name]
-std::unordered_map<std::string, std::vector<std::unordered_map<std::string, scalarvalueType>>>mu_val;
-std::unordered_map<std::string, std::vector<std::unordered_map<std::string, scalargradType>>> mu_grad;
 //
 std::unordered_map<std::string, std::vector<std::unordered_map<std::string, scalarvalueType>>> dydt_val;
 std::unordered_map<std::string, std::vector<std::unordered_map<std::string, scalargradType>>> dydt_grad;
-// something
-// std::unordered_map<std::string, std::vector<scalarvalueType>>;
-// std::unordered_map<std::string, std::vector<scalargradType>>;
-
-std::unordered_map<std::string, scalarvalueType> G_ref;
-std::unordered_map<std::string, scalarvalueType> G_conf;
-std::unordered_map<std::string, scalarvalueType> G_ex;
-std::unordered_map<std::string, scalarvalueType> G;
-
+PhaseFieldContainer<dim, degree> phases()
 // Retrieve fields
 unsigned int var_index = 0;
 for (const auto& [key, phase] : Sys.phases){
@@ -204,106 +180,6 @@ for (const auto& [key, phase] : Sys.phases){
     }
 }
 
-}
-
-template <int dim, int degree>
-dealii::VectorizedArray<double> customPDE<dim,degree>::entropy(const Phase& phase, std::vector<std::unordered_map<std::string, scalarvalueType>>& y_val) const {
-    scalarvalueType S_phase = constV(0.0);
-    for (uint s = 0; s < phase.sublattice_comps.size(); ++s){
-        double a = phase.num_sites[s]/phase.total_num_sites;
-        for (const std::string& constituent : phase.sublattice_comps[s]){
-            S_phase += a * y_val[s][constituent] * std::log(y_val[s][constituent]);
-        }
-    }
-    return R*S_phase;
-}
-
-template <int dim, int degree>
-void customPDE<dim,degree>::calcEntropicMu(const Phase& phase,
-                                            std::vector<std::unordered_map<std::string, scalarvalueType>>& y_val,
-                                            std::vector<std::unordered_map<std::string, scalargradType>>& y_grad,
-                                            std::vector<std::unordered_map<std::string, scalarvalueType>>& mu_val,
-                                            std::vector<std::unordered_map<std::string, scalargradType>>& mu_grad) const {
-    // code
-    scalarvalueType S_phase = constV(0.0);
-    for (uint s = 0; s < phase.sublattice_comps.size(); ++s){
-        double a = phase.num_sites[s]/phase.total_num_sites;
-        for (const std::string& constituent : phase.sublattice_comps[s]){
-            mu_val[s][constituent] += a * (constV(1.0) + std::log(y_val[s][constituent]));
-            mu_grad[s][constituent] += a * y_grad[s][constituent]/y_val[s][constituent];
-        }
-    }
-}
-
-template <int dim, int degree>
-void customPDE<dim,degree>::updateMu(const InteractionParameter& L, const InteractionData& id,
-                                        std::vector<std::unordered_map<std::string, scalarvalueType>>& y_val,
-                                        std::vector<std::unordered_map<std::string, scalargradType>>& y_grad,
-                                        std::vector<std::unordered_map<std::string, scalarvalueType>>& mu_val,
-                                        std::vector<std::unordered_map<std::string, scalargradType>>& mu_grad) const {
-    const auto& occupation = L.occupation;
-    for (uint s = 0; s < occupation.size(); ++s){
-        auto& constituents = occupation[s];
-        scalarvalueType diff;
-        switch (constituents.size()){
-            case 1:
-                // Single element
-                if (constituents[0] == "*"){
-                    mu_val[s][constituents[0]] = id.excluded_product[s];
-                }
-            break;
-
-            case 2:
-                // Redlich-Kister
-                diff = (y_val[s][constituents[0]] - y_val[s][constituents[1]]);
-                mu_val[s][constituents[0]] += id.excluded_product[s] * (double)L.degree * dealii::Utilities::pow(diff, L.degree-1);
-                mu_val[s][constituents[1]] +=-id.excluded_product[s] * (double)L.degree * dealii::Utilities::pow(diff, L.degree-1);
-                mu_grad[s][constituents[0]] += id.excluded_product[s] * (double)(L.degree * (L.degree-1)) * dealii::Utilities::pow(diff, L.degree-2) * y_grad[s][constituents[0]];
-                mu_grad[s][constituents[1]] += id.excluded_product[s] * (double)(L.degree * (L.degree-1)) * dealii::Utilities::pow(diff, L.degree-2) * y_grad[s][constituents[1]];
-            break;
-
-            default:
-                // TODO: Muggianu
-                mu_val[s][constituents[0]] *= 1.0;
-        }
-        
-    }
-}
-
-template <int dim, int degree>
-InteractionData customPDE<dim,degree>::Interaction(const InteractionParameter& L, std::vector<std::unordered_map<std::string, scalarvalueType>>& y_val) const {
-    const auto& occupation = L.occupation;
-    std::vector<scalarvalueType> terms(y_val.size(), constV(1.0));
-    std::vector<scalarvalueType> othersProduct(y_val.size(), constV(1.0));
-    scalarvalueType prod_term = constV(1.0);
-    for (uint s = 0; s < occupation.size(); ++s){
-        scalarvalueType y_term = SublatticeTerm(occupation[s], s, y_val);
-        prod_term *= y_term;
-        for(uint s1 = 0; s1 < occupation.size(); ++s1){
-            othersProduct[s1] *= (s1!=s) ? y_term : 1.0;
-        }
-    }
-    return {product_term, othersProduct};
-}
-
-
-template <int dim, int degree>
-dealii::VectorizedArray<double> customPDE<dim,degree>::SublatticeTerm(std::vector<std::string>& constituents, uint sublattice, std::vector<std::unordered_map<std::string, scalarvalueType>>& y_val) const {
-    switch (constituents.size()){
-        case 1:
-            // Single element
-            return (constituents[0] == "*") ? constV(1.0) : y_val[sublattice][constituents[0]];
-        break;
-
-        case 2:
-            // Redlich-Kister
-            return y_val[sublattice][constituents[0]] - y_val[sublattice][constituents[1]];
-        break;
-        
-        default:
-            // TODO: Muggianu
-            return constV(1.0);
-    }
 }
 
 // =============================================================================================
