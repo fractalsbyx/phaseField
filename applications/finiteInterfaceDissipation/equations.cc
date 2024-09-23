@@ -133,26 +133,8 @@ std::unordered_map<std::string, std::vector<std::unordered_map<std::string, scal
 PhaseFieldContainer<dim, degree> phases()
 // Retrieve fields
 unsigned int var_index = 0;
-for (const auto& [key, phase] : Sys.phases){
-    y_val[phase.name] = std::vector<std::unordered_map<std::string, scalarvalueType>>  (phase.num_sublattices, std::unordered_map<std::string, scalarvalueType>());
-    y_grad[phase.name] = std::vector<std::unordered_map<std::string, scalargradType>>  (phase.num_sublattices, std::unordered_map<std::string, scalargradType>());
-    for (unsigned int s=0; s<phase.num_sublattices; s++){
-        if (phase.sublattice_comps[s].size()>1){ // saving memory for fixed sublattices
-        for (const std::string& comp : phase.sublattice_comps[s]){
-            y_val[phase.name][s][comp] = variable_list.get_scalar_value(var_index);
-            y_grad[phase.name][s][comp] = variable_list.get_scalar_gradient(var_index++);
-            c_phase_val[phase.name][comp] += phase.num_sites[s] * y_val[phase.name][s][comp] / phase.total_num_sites;
-            c_phase_grad[phase.name][comp] += phase.num_sites[s] * y_grad[phase.name][s][comp] / phase.total_num_sites;
-        }
-        }
-        else{
-            auto comp = *(phase.sublattice_comps[s].begin());
-            y_val[phase.name][s][comp] = constV(1.0);
-            c_phase_val[phase.name][comp] += phase.num_sites[s] * 1.0 / phase.total_num_sites;
-        }
-    }
-    phi_phase_val[phase.name] *= 0.0;
-    phi_phase_grad[phase.name] *= 0.0;
+for (const auto& phase : phases){
+    phase.
 }
 for (unsigned int i=0; i<num_ops; ++i){
 	phi_val[i] =  variable_list.get_scalar_value(var_index);
