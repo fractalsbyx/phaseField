@@ -127,9 +127,7 @@ std::vector<scalargradType> dphidt_grad(num_ops);
 // Local composition [component_name]
 std::unordered_map<std::string, scalarvalueType> c_val;
 std::unordered_map<std::string, scalargradType> c_grad;
-//
-std::unordered_map<std::string, std::vector<std::unordered_map<std::string, scalarvalueType>>> dydt_val;
-std::unordered_map<std::string, std::vector<std::unordered_map<std::string, scalargradType>>> dydt_grad;
+
 PhaseFieldContainer<dim, degree> phases()
 // Retrieve fields
 unsigned int var_index = 0;

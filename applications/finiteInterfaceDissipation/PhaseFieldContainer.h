@@ -20,24 +20,45 @@ class PhaseFieldContainer{
                                     comps(phase.comps),
                                     variable_list(variable_list),
                                     first_var_index(var_index){
-        x_data = std::unordered_map<std::string, FieldContainer<dim>>;
-        dfdx_data = std::unordered_map<std::string, FieldContainer<dim>>;
-        dxdt_data = std::unordered_map<std::string, FieldContainer<dim>>;
+        // Phase Value
+        
+        // Components Value
         for (const auto& comp : comps){
             x_data[comp].val = variable_list.get_scalar_value(var_index);
             x_data[comp].grad = variable_list.get_scalar_gradient(var_index++);
         }
-        phi_phase.val *= 0.0;
-        phi_phase.grad *= 0.0;
+        phi.val *= 0.0;
+        phi.grad *= 0.0;
     }
     ~PhaseFieldContainer(){}
 
     public:
 
+    // Custom START
     void calculate_dfdx(){
         for(const auto& comp : comps){
             dfdx[comp].val = constV(0.0);
             dfdx[comp].grad *= constV(0.0);
+        }
+    }
+    void calculate_G(){
+        for(const auto& comp : comps){
+            dfdx[comp].val = constV(0.0);
+            dfdx[comp].grad *= constV(0.0);
+        }
+    }
+    // Custom END
+
+    void calculate_dfdphi1(){
+        for(const auto& phi : order_parameters){
+            dfdphi[comp].val = constV(0.0);
+            dfdphi[comp].grad *= constV(0.0);
+        }
+    }
+    void calculate_dfdphi2(){
+        for(auto& op : order_parameters){
+            op.dfdphi.grad *= constV(0.0);
+            op.dfdphi.val = op.dfdphi.val 
         }
     }
 
@@ -47,13 +68,26 @@ class PhaseFieldContainer{
         const scalarValue VAL_ZERO = constV(0.0);
         const scalarGrad VEC_ZERO = temp;
 
-        for(const auto& comp : comps){
-            dxdt[comp].grad += M[comp]*dfdx[comp].grad;
-            dxdt[comp].val += phi_phase.grad * dfdx.grad * [comp]/phi_phase.val;
-
-            dxdt[comp].val += P[comp] *;
+        for(const auto& i : comps){
+            // Spatial flux
+            for(const auto& i : comps){
+                dxdt[i].grad += Vm*Vm * M[i][j] * dfdx[i].grad;
+                dxdt[i].val += Vm*Vm * M[i][j] * phi.grad * dfdx.grad / phi.val;
+            }
+            // Internal relaxation (eq. 16)
+            scalarValue pairsum1 = constV(0.0);
+            FieldContainer pairsum2 = constV(0.0);
+            for (const auto& beta : phaselist){
+                pairsum1 += beta.phi.val * (beta.dfdx_data[i].val - dfdx_data[i].val);
+                pairsum2.val += phi.val * (beta.x_data[i].val - x_data[i].val) * beta.dphidt.val;
+                pairsum2.val += (phi.val * (beta.x_data[i].grad - x_data[i].grad)
+                                +phi.grad * (beta.x_data[i].val - x_data[i].val)
+                                ) * beta.dphidt.grad;
+                pairsum2.grad -= phi.val * (beta.x_data[i].val - x_data[i].val) * beta.dphidt.grad;
+            }
+            dxdt[i].val += P[i] * phi.val * pairsum1 + pairsum2.val;
+            dxdt[i].grad += pairsum2.grad;
         }
-        return;
     }
 
     void submit_dxdt(const double& dt){
@@ -77,5 +111,6 @@ class PhaseFieldContainer{
     std::unordered_map<std::string, FieldContainer<dim>> dfdx_data;
     std::unordered_map<std::string, FieldContainer<dim>> dxdt_data;
 
-    FieldContainer<dim> phi_phase;
+    FieldContainer<dim> phi;
+    FieldContainer<dim> dphidt;
 };
