@@ -9,6 +9,13 @@ struct FieldContainer{
     dealii::Tensor<1, dim, dealii::VectorizedArray<double>> grad;
 };
 
+template <int dim>
+struct CompData{
+    FieldContainer<dim> x_data;
+    FieldContainer<dim> dfdx_data;
+    FieldContainer<dim> dxdt_data;
+};
+
 template <int dim, int degree>
 class PhaseFieldContainer{
     typedef dealii::VectorizedArray<double> scalarValue;
@@ -30,18 +37,18 @@ class PhaseFieldContainer{
         phi.val *= 0.0;
         phi.grad *= 0.0;
     }
-    ~PhaseFieldContainer(){}
+    virtual ~PhaseFieldContainer(){}
 
     public:
 
     // Custom START
-    void calculate_dfdx(){
+    virtual void calculate_dfdx(){
         for(const auto& comp : comps){
             dfdx[comp].val = constV(0.0);
             dfdx[comp].grad *= constV(0.0);
         }
     }
-    void calculate_G(){
+    virtual void calculate_G(){
         for(const auto& comp : comps){
             dfdx[comp].val = constV(0.0);
             dfdx[comp].grad *= constV(0.0);
@@ -49,17 +56,13 @@ class PhaseFieldContainer{
     }
     // Custom END
 
-    void calculate_dfdphi1(){
-        for(const auto& phi : order_parameters){
-            dfdphi[comp].val = constV(0.0);
-            dfdphi[comp].grad *= constV(0.0);
-        }
+    void calculate_dfdphiA(){
+        dfdphi[comp].val = constV(0.0);
+        dfdphi[comp].grad *= constV(0.0);
     }
-    void calculate_dfdphi2(){
-        for(auto& op : order_parameters){
-            op.dfdphi.grad *= constV(0.0);
-            op.dfdphi.val = op.dfdphi.val 
-        }
+    void calculate_dfdphiB(){
+        dfdphi.grad *= constV(0.0);
+        dfdphi.val = dfdphi.val;
     }
 
     void calculate_dxdt(){
@@ -97,7 +100,47 @@ class PhaseFieldContainer{
             variable_list.set_scalar_value_term_RHS(var_index++,                          - dt * dydt_data[s][constituent].grad);
         }
     }
+    // Equation 37
+    scalarValue K_ab(const PhaseFieldContainer& beta){
+        scalarValue mu_ab;
+        scalarValue symmetric_term = 4.0*N*eta*(phi.val+beta.phi.val);
+        scalarValue denom_sum_term = constV(0.0);
+        for (const auto& comp : comps){
+            denom_sum_term +=   (x_data[comp].val - beta.x_data[comp].val)*
+                                (x_data[comp].val - beta.x_data[comp].val)/
+                                P[comp];
+        }
+        scalarValue denominator = 1.0 + (mu_ab * PI*PI * denom_sum_term)/symmetric_term;
+        return mu_ab/denominator;
+    }
+    // Equation 38
+    scalarValue delta_G_phi_ab(const PhaseFieldContainer& beta){
+        scalarValue sum_term = constV(0.0);
+        for (const auto& comp : comps){
+            sum_term += (phi.val*dfdx[comp].val + beta.phi.val*beta.dfdx[comp].val)*
+                        (beta.x_data[comp].val - x_data[comp].val);
+        }
+        sum_term /= phi.val + beta.phi.val;
+        return beta.phase_free_energy - phase_free_energy - sum_term;
+    }
+    // Equation 39
+    void calculate_dphidt(){
+        dphidt.val = constV(0.0);
+        for(const PhaseFieldContainer& beta : phaselist){
+            scalarValue inner_sum_term = constV(0.0);
+            for(const PhaseFieldContainer& gamma : phaselist){
+                if(gamma != this && gamma != beta){
+                    inner_sum_term += (sigma_beta_gamma - sigma_alpha_gamma) * gamma.I.val;
+                }
+            }
+            dphidt.val += K_ab(beta) * 
+                        (sigma_ab*(I.val - beta.I.val) +
+                        inner_sum_term);
+        }
 
+        dphidt.val /= N;
+        dphidt.grad /= N;
+    }
 
     protected:
     // References to phase object
@@ -107,9 +150,13 @@ class PhaseFieldContainer{
     variableContainer<dim,degree,scalarValue>& variable_list;
     const uint first_var_index;
 
+    std::unordered_map<std::string, CompData<dim>> comps;
+    std::set<std::string> comp_names;
     std::unordered_map<std::string, FieldContainer<dim>> x_data;
     std::unordered_map<std::string, FieldContainer<dim>> dfdx_data;
     std::unordered_map<std::string, FieldContainer<dim>> dxdt_data;
+
+    scalarValue phase_free_energy;
 
     FieldContainer<dim> phi;
     FieldContainer<dim> dphidt;
