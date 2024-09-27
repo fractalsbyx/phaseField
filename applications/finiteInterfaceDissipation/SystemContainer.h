@@ -1,6 +1,6 @@
 #include "PhaseFieldContainer.h"
 #include "IsothermalSystem.h"
-#include <set>
+#include <map>
 
 
 template <int dim, int degree>
@@ -9,11 +9,11 @@ class SystemContainer{
     typedef dealii::Tensor<1, dim, dealii::VectorizedArray<double>> scalarGrad;
     #define constV(a) dealii::make_vectorized_array(a)
 
-    SystemContainer(const IsothermalSystem& isoSys, variableContainer<dim,degree,scalarValue>& variable_list){
-        uint var_index = 0;
-        for(const Phase& phase : isoSys.phases){
-            phase_containers.insert(PhaseFieldContainer<dim, degree>(phase, variable_list, var_index));
+    SystemContainer(const IsothermalSystem& isoSys, variableContainer<dim,degree,scalarValue>& variable_list){};
+    ~SystemContainer(){
+        for(PhaseFieldContainer<dim, degree>* [key, phase_field] : phase_fields){
+            delete phase_field;
         }
     }
-    std::set<PhaseFieldContainer<dim, degree>> phase_containers;
+    std::map<std::string, PhaseFieldContainer<dim, degree>*> phase_fields;
 };
