@@ -5,13 +5,13 @@
 template <int dim, int degree>
 class ExamplePhase : public PhaseFieldContainer<dim, degree>{
 private:
-    const scalarValue& x_CU = x_data["CU"].val;
-    const scalarValue& x_SI = x_data["SI"].val;
-    const scalarValue& x_MG = x_data["MG"].val;
+    const scalarValue& x_CU;
+    const scalarValue& x_SI;
+    const scalarValue& x_MG;
 
-    scalarValue& dfdx_CU = dfdx_data["CU"].val;
-    scalarValue& dfdx_SI = dfdx_data["SI"].val;
-    scalarValue& dfdx_MG = dfdx_data["MG"].val;
+    scalarValue& dfdx_CU;
+    scalarValue& dfdx_SI;
+    scalarValue& dfdx_MG;
 public:
     phase_name = "ExamplePhase";
     ExamplePhase() :    x_CU(x_data["CU"].val),
@@ -34,13 +34,16 @@ public:
 template <int dim, int degree>
 class FCC : public PhaseFieldContainer<dim, degree>{
 private:
-    const scalarValue& x_CU = x_data["CU"].val;
-    const scalarValue& x_SI = x_data["SI"].val;
-    const scalarValue& x_MG = x_data["MG"].val;
+    const scalarValue& x_CU;
+    const scalarValue& x_SI;
+    const scalarValue& x_MG;
 
-    scalarValue& dfdx_CU = dfdx_data["CU"].val;
-    scalarValue& dfdx_SI = dfdx_data["SI"].val;
-    scalarValue& dfdx_MG = dfdx_data["MG"].val;
+    scalarValue& dfdx_CU;
+    scalarValue& dfdx_SI;
+    scalarValue& dfdx_MG;
+    scalarValue& d2fdx2_CU;
+    scalarValue& d2fdx2_SI;
+    scalarValue& d2fdx2_MG;
 public:
     phase_name = "FCC";
     FCC() : x_CU(x_data["CU"].val),
@@ -63,10 +66,9 @@ public:
 // Other Phases 
 // ...
 
-
 // 
 template <int dim, int degree>
-SystemContainer<dim, degree>::SystemContainer(const IsothermalSystem& isoSys, variableContainer<dim,degree,scalarValue>& variable_list){
+SystemContainer<dim, degree>::SystemContainer(const IsothermalSystem& _isoSys, variableContainer<dim,degree,scalarValue>& _variable_list){
     uint var_index = 0;
     // For all phase names
     phase_fields.insert({"ExamplePhase", new ExamplePhase<dim,degree>(isoSys.phases.at("ExamplePhase"), variable_list, var_index)});

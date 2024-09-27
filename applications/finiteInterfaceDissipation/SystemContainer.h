@@ -9,11 +9,29 @@ class SystemContainer{
     typedef dealii::Tensor<1, dim, dealii::VectorizedArray<double>> scalarGrad;
     #define constV(a) dealii::make_vectorized_array(a)
 
-    SystemContainer(const IsothermalSystem& isoSys, variableContainer<dim,degree,scalarValue>& variable_list){};
+    const IsothermalSystem& isoSys;
+    variableContainer<dim,degree,scalarValue>& variable_list;
+    std::map<std::string, PhaseFieldContainer<dim, degree>*> phase_fields;
+    SystemContainer(const IsothermalSystem& _isoSys,
+                    variableContainer<dim,degree,scalarValue>& _variable_list) :
+                    isoSys(_isoSys), variable_list(_variable_list) {
+    }
     ~SystemContainer(){
         for(PhaseFieldContainer<dim, degree>* [key, phase_field] : phase_fields){
             delete phase_field;
         }
     }
-    std::map<std::string, PhaseFieldContainer<dim, degree>*> phase_fields;
+
+    void solve(){
+        for(PhaseFieldContainer<dim, degree>* [key, phase_field] : phase_fields){
+            phase_field.solve(phase_fields);
+        }
+    }
+
+    void submit_fields(){
+        uint var_index = 0;
+        for(PhaseFieldContainer<dim, degree>* [key, phase_field] : phase_fields){
+            phase_field.submit_fields(var_index);
+        }
+    }
 };
