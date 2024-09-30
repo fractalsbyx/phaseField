@@ -23,32 +23,34 @@ class PhaseFieldContainer{
     typedef dealii::Tensor<1, dim, dealii::VectorizedArray<double>> scalarGrad;
     #define constV(a) dealii::make_vectorized_array(a)
 
-    PhaseFieldContainer(const Phase& phase, variableContainer<dim,degree,scalarValue>& variable_list, uint& var_index) :
+    PhaseFieldContainer(const Phase& phase, variableContainer<dim,degree,scalarValue>& variable_list) :
                                     info(phase),
-                                    variable_list(variable_list),
-                                    first_var_index(var_index){
-        // Phase Value
-        phi.val = variable_list.get_scalar_value(var_index);
-        phi.grad = variable_list.get_scalar_gradient(var_index++);
-        // Components Value
-        for (const auto& comp : comps){
-            x_data[comp].val = variable_list.get_scalar_value(var_index);
-            x_data[comp].grad = variable_list.get_scalar_gradient(var_index++);
-        }
+                                    variable_list(variable_list){
     }
     virtual ~PhaseFieldContainer(){}
 
 public:
 
+    void initialize_fields(uint& var_index){
+        // Phase Value
+        phi.val = variable_list.get_scalar_value(var_index);
+        phi.grad = variable_list.get_scalar_gradient(var_index++);
+        // Components Value
+        for (const auto& comp : info.comps){
+            x_data[comp].val = variable_list.get_scalar_value(var_index);
+            x_data[comp].grad = variable_list.get_scalar_gradient(var_index++);
+        }
+    }
+
     // Custom START
     virtual void calculate_dfdx(){
-        for(const auto& comp : comps){
+        for(const auto& comp : info.comps){
             dfdx[comp].val = constV(0.0);
             dfdx[comp].grad *= constV(0.0);
         }
     }
     virtual void calculate_G(){
-        for(const auto& comp : comps){
+        for(const auto& comp : info.comps){
             dfdx[comp].val = constV(0.0);
             dfdx[comp].grad *= constV(0.0);
         }
@@ -61,9 +63,9 @@ public:
         const scalarValue VAL_ZERO = constV(0.0);
         const scalarGrad VEC_ZERO = temp;
 
-        for(const auto& i : comps){
+        for(const auto& i : info.comps){
             // Spatial flux
-            for(const auto& i : comps){
+            for(const auto& i : info.comps){
                 dxdt[i].grad += Vm*Vm * M_ij * dfdx[i].grad;
                 dxdt[i].val += Vm*Vm * M_ij * phi.grad * dfdx.grad / phi.val;
             }
@@ -143,12 +145,10 @@ public:
         }
     }
 
-    protected:
+protected:
     // References to phase object
     const Phase& info;
-
     variableContainer<dim,degree,scalarValue>& variable_list;
-    const uint first_var_index;
 
     std::unordered_map<std::string, CompData<dim>> comps;
     std::set<std::string> comp_names;

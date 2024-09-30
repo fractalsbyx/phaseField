@@ -4,8 +4,13 @@
 #include "Phase.h"
 #include "../../include/variableAttributeLoader.h"
 
+struct CompInfo{
+    double P; // permeability
+};
+
 class IsothermalSystem {
     std::map<std::string, Phase> phases;
+    std::map<std::string, CompInfo> comps;
     double Temperature;
 public:
     IsothermalSystem(){}
@@ -14,9 +19,10 @@ public:
             std::string phase_name = phase.key();
             phases[phase_name] = Phase(phase);
         }
-        for (const auto& phase : TCSystem["phases"].items()) {
-            std::string phase_name = phase.key();
-            phases[phase_name] = Phase(phase);
+        for (const auto& comp : TCSystem["components"].items()) {
+            CompInfo comp_info;
+            comp_info.P = comp.value()["permeability"];
+            comps.insert({comp.key(), comp_info});
         }
     }
 
