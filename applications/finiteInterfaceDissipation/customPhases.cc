@@ -70,10 +70,10 @@ public:
 template <int dim, int degree>
 SystemContainer<dim, degree>::SystemContainer(const IsothermalSystem& _isoSys, variableContainer<dim,degree,scalarValue>& _variable_list){
     // For all phase names
-    phase_fields.insert({"ExamplePhase", new ExamplePhase<dim,degree>(isoSys.phases.at("ExamplePhase"), variable_list)});
-    phase_fields.insert({"FCC", new FCC<dim,degree>(isoSys.phases.at("FCC"), variable_list)});
-    phase_fields.insert({"BCC", new BCC<dim,degree>(isoSys.phases.at("BCC"), variable_list)});
-    phase_fields.insert({"HCP", new HCP<dim,degree>(isoSys.phases.at("HCP"), variable_list)});
+    phase_fields.insert({"ExamplePhase", phase_fields, new ExamplePhase<dim,degree>(isoSys.phases.at("ExamplePhase"), variable_list)});
+    phase_fields.insert({"FCC", phase_fields, new FCC<dim,degree>(isoSys.phases.at("FCC"), variable_list)});
+    phase_fields.insert({"BCC", phase_fields, new BCC<dim,degree>(isoSys.phases.at("BCC"), variable_list)});
+    phase_fields.insert({"HCP", phase_fields, new HCP<dim,degree>(isoSys.phases.at("HCP"), variable_list)});
     // etc.
 }
 

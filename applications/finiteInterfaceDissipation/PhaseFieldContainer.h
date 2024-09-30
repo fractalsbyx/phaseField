@@ -12,8 +12,8 @@ struct FieldContainer{
 template <int dim>
 struct CompData{
     FieldContainer<dim> x_data;
-    FieldContainer<dim> dfdx_data;
-    FieldContainer<dim> dxdt_data;
+    FieldContainer<dim> dfdx;
+    FieldContainer<dim> dxdt;
 };
 constexpr double PI = 3.141592653589793238;
 
@@ -23,8 +23,9 @@ class PhaseFieldContainer{
     typedef dealii::Tensor<1, dim, dealii::VectorizedArray<double>> scalarGrad;
     #define constV(a) dealii::make_vectorized_array(a)
 
-    PhaseFieldContainer(const Phase& phase, variableContainer<dim,degree,scalarValue>& variable_list) :
+    PhaseFieldContainer(const Phase& phase, std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields, variableContainer<dim,degree,scalarValue>& variable_list) :
                                     info(phase),
+                                    phase_fields(phase_fields),
                                     variable_list(variable_list){
     }
     virtual ~PhaseFieldContainer(){}
@@ -37,8 +38,8 @@ public:
         phi.grad = variable_list.get_scalar_gradient(var_index++);
         // Components Value
         for (const auto& comp : info.comps){
-            x_data[comp].val = variable_list.get_scalar_value(var_index);
-            x_data[comp].grad = variable_list.get_scalar_gradient(var_index++);
+            comp_data[comp].x_data.val = variable_list.get_scalar_value(var_index);
+            comp_data[comp].x_data.grad = variable_list.get_scalar_gradient(var_index++);
         }
     }
 
@@ -63,36 +64,38 @@ public:
         const scalarValue VAL_ZERO = constV(0.0);
         const scalarGrad VEC_ZERO = temp;
 
-        for(const auto& i : info.comps){
+        for(auto& [i, i_alpha] : comp_data){
             // Spatial flux
             for(const auto& i : info.comps){
-                dxdt[i].grad += Vm*Vm * M_ij * dfdx[i].grad;
-                dxdt[i].val += Vm*Vm * M_ij * phi.grad * dfdx.grad / phi.val;
+                i_alpha.dxdt.grad += Vm*Vm * M_ij * i_alpha.dfdx.grad;
+                i_alpha.dxdt.val +=  Vm*Vm * M_ij * phi.grad * i_alpha.dfdx.grad / phi.val;
             }
             // Internal relaxation (eq. 16)
             scalarValue pairsum1 = constV(0.0);
             FieldContainer pairsum2 = constV(0.0);
             for (const auto& beta : phaselist){
-                pairsum1 += beta.phi.val * (beta.dfdx_data[i].val - dfdx_data[i].val);
-                pairsum2.val += phi.val * (beta.x_data[i].val - x_data[i].val) * beta.dphidt.val;
-                pairsum2.val += (phi.val * (beta.x_data[i].grad - x_data[i].grad)
-                                +phi.grad * (beta.x_data[i].val - x_data[i].val)
+                const CompData& i_beta = beta.comp_data.at(i);
+                pairsum1 += beta.phi.val * (i_beta.dfdx.val - i_alpha.dfdx.val);
+                pairsum2.val += phi.val * (i_beta.x_data.val - i_alpha.x_data.val) * beta.dphidt.val;
+                pairsum2.val += (phi.val * (i_beta.x_data.grad - i_alpha.x_data.grad)
+                                +phi.grad * (i_beta.x_data.val - i_alpha.x_data.val)
                                 ) * beta.dphidt.grad;
-                pairsum2.grad -= phi.val * (beta.x_data[i].val - x_data[i].val) * beta.dphidt.grad;
+                pairsum2.grad -= phi.val * (i_beta.x_data.val - i_alpha.x_data.val) * beta.dphidt.grad;
             }
-            dxdt[i].val += P[i] * phi.val * pairsum1 + pairsum2.val;
-            dxdt[i].grad += pairsum2.grad;
+            i_alpha.dxdt.val += P[i] * phi.val * pairsum1 + pairsum2.val;
+            i_alpha.dxdt.grad += pairsum2.grad;
         }
     }
     // Equation 37
     scalarValue K_ab(const PhaseFieldContainer& beta){
-        scalarValue mu_ab;
+        scalarValue mu_ab; //TODO
         scalarValue symmetric_term = 4.0*isoSys.N*isoSys.eta*(phi.val+beta.phi.val);
         scalarValue denom_sum_term = constV(0.0);
-        for (const auto& comp : comps){
-            denom_sum_term +=   (x_data[comp].val - beta.x_data[comp].val)*
-                                (x_data[comp].val - beta.x_data[comp].val)/
-                                P[comp];
+        for (auto& [i, i_alpha] : comp_data){
+            const CompData& i_beta = beta.comp_data.at(i);
+            denom_sum_term +=   (i_alpha.x_data.val - i_beta.x_data.val)*
+                                (i_alpha.x_data.val - i_beta.x_data.val)/
+                                P[i];
         }
         scalarValue denominator = 1.0 + (mu_ab * PI*PI * denom_sum_term)/symmetric_term;
         return mu_ab/denominator;
@@ -100,9 +103,10 @@ public:
     // Equation 38
     scalarValue delta_G_phi_ab(const PhaseFieldContainer& beta){
         scalarValue sum_term = constV(0.0);
-        for (const auto& comp : comps){
-            sum_term += (phi.val*dfdx[comp].val + beta.phi.val*beta.dfdx[comp].val)*
-                        (beta.x_data[comp].val - x_data[comp].val);
+        for (auto& [i, i_alpha] : comp_data){
+            const CompData& i_beta = beta.comp_data.at(i);
+            sum_term += (phi.val*i_alpha.dfdx.val + beta.phi.val*i_beta.dfdx.val)*
+                        (i_beta.x_data.val - i_alpha.x_data.val);
         }
         sum_term /= phi.val + beta.phi.val;
         return beta.phase_free_energy - phase_free_energy - sum_term;
@@ -114,11 +118,11 @@ public:
             scalarValue inner_sum_term = constV(0.0);
             for(const PhaseFieldContainer& gamma : phaselist){
                 if(&gamma != this && &gamma != &beta){
-                    inner_sum_term += (sigma_beta_gamma - sigma_alpha_gamma) * gamma.I.val;
+                    inner_sum_term += (sigma(beta, gamma) - sigma(*this, gamma)) * gamma.I.val;
                 }
             }
             dphidt.val += K_ab(beta) * 
-                        (sigma_ab*(I.val - beta.I.val) +
+                        (sigma(*this, beta)*(I.val - beta.I.val) +
                         inner_sum_term);
         }
         dphidt.val /= isoSys.N;
@@ -140,21 +144,22 @@ public:
         variable_list.set_scalar_value_term_RHS(var_index, phi.val + dt * dphidt.val);
         variable_list.set_scalar_value_term_RHS(var_index++,       - dt * dphidt.grad);
         for (const std::string& comp : phase.comps){
-            variable_list.set_scalar_value_term_RHS(var_index, x_data[comp].val + dt * dxdt_data[comp].val);
-            variable_list.set_scalar_value_term_RHS(var_index++,                - dt * dxdt_data[comp].grad);
+            variable_list.set_scalar_value_term_RHS(var_index, x_data[comp].val + dt * dxdt[comp].val);
+            variable_list.set_scalar_value_term_RHS(var_index++,                - dt * dxdt[comp].grad);
         }
     }
 
 protected:
     // References to phase object
     const Phase& info;
+    const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields;
     variableContainer<dim,degree,scalarValue>& variable_list;
 
-    std::unordered_map<std::string, CompData<dim>> comps;
+    std::unordered_map<std::string, CompData<dim>> comp_data;
     std::set<std::string> comp_names;
-    std::unordered_map<std::string, FieldContainer<dim>> x_data;
-    std::unordered_map<std::string, FieldContainer<dim>> dfdx_data;
-    std::unordered_map<std::string, FieldContainer<dim>> dxdt_data;
+    // std::unordered_map<std::string, FieldContainer<dim>> x_data;
+    // std::unordered_map<std::string, FieldContainer<dim>> dfdx;
+    // std::unordered_map<std::string, FieldContainer<dim>> dxdt;
 
     scalarValue phase_free_energy;
 
