@@ -22,6 +22,13 @@ class SystemContainer{
         }
     }
 
+    void initialize_fields(){
+        uint var_index = 0;
+        for(PhaseFieldContainer<dim, degree>* [key, phase_field] : phase_fields){
+            phase_field.initialize_fields(var_index);
+        }
+    }
+
     void solve(){
         for(PhaseFieldContainer<dim, degree>* [key, phase_field] : phase_fields){
             phase_field.solve(phase_fields);

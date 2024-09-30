@@ -63,7 +63,9 @@ void customPDE<dim,degree>::explicitEquationRHS(variableContainer<dim,degree,dea
     // --- Get the values and derivatives of the model variables ---
     SystemContainer<dim, degree> sysFields(Sys, variable_list);
     // Solve
+    sysFields.initialize_fields();
     sysFields.solve();
+    sysFields.submit();
 }
 
 // =============================================================================================
