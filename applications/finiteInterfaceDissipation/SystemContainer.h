@@ -5,6 +5,7 @@
 
 template <int dim, int degree>
 class SystemContainer{
+public:
     typedef dealii::VectorizedArray<double> scalarValue;
     typedef dealii::Tensor<1, dim, dealii::VectorizedArray<double>> scalarGrad;
     #define constV(a) dealii::make_vectorized_array(a)

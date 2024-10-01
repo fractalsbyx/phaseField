@@ -10,7 +10,7 @@ struct CompInfo{
 
 class IsothermalSystem {
     std::map<std::string, Phase> phases;
-    std::map<std::string, CompInfo> comps;
+    std::map<std::string, CompInfo> comp_info;
     double Temperature;
 public:
     IsothermalSystem(){}
@@ -22,7 +22,7 @@ public:
         for (const auto& comp : TCSystem["components"].items()) {
             CompInfo comp_info;
             comp_info.P = comp.value()["permeability"];
-            comps.insert({comp.key(), comp_info});
+            comp_info.insert({comp.key(), comp_info});
         }
     }
 
@@ -35,7 +35,7 @@ public:
         for (const auto& [phase_name, phase] : phases){
             phase_names.append(phase_name + ",");
             grad_phase_names.append("grad(" + phase_name + "),");
-            for (const std::string& comp : comps){
+            for (const auto& [comp, info] : comp_info){
                 std::string var_name = phase_name + '_' + comp;
                 comp_names.append(var_name + ",");
                 grad_comp_names.append("grad("+var_name+"),");
@@ -57,7 +57,7 @@ public:
             loader->set_need_value_nucleation		(var_index, true);
             loader->set_dependencies_value_term_RHS (var_index, phase_names+','+grad_phase_names+','+comp_names+','+grad_comp_names);
             loader->set_dependencies_gradient_term_RHS(var_index++, phase_names+','+grad_phase_names+','+comp_names+','+grad_comp_names);
-            for (const std::string& comp : comps){
+            for (const auto& [comp, info] : comp_info){
                 std::string var_name = phase_name + '_' + comp;
                 loader->set_variable_name				(var_index, var_name);
                 loader->set_variable_type				(var_index, SCALAR);
