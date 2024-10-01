@@ -14,12 +14,15 @@ private:
     scalarValue& dfdx_MG;
 public:
     phase_name = "ExamplePhase";
-    ExamplePhase() :    x_CU(x_data["CU"].val),
-                        x_SI(x_data["SI"].val),
-                        x_MG(x_data["MG"].val),
-                        dfdx_CU(dfdx_data["CU"].val),
-                        dfdx_SI(dfdx_data["SI"].val),
-                        dfdx_MG(dfdx_data["MG"].val)
+    ExamplePhase(const IsothermalSystem& isoSys, const std::string& phase_name,
+        const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields,
+        variableContainer<dim,degree,scalarValue>& variable_list) : 
+        x_CU(x_data["CU"].val),
+        x_SI(x_data["SI"].val),
+        x_MG(x_data["MG"].val),
+        dfdx_CU(dfdx_data["CU"].val),
+        dfdx_SI(dfdx_data["SI"].val),
+        dfdx_MG(dfdx_data["MG"].val)
     {}
     void calculate_G() override {
         phase_free_energy = R*T*(x_CU*log(x_CU) + x_SI*log(x_SI) + x_MG*log(x_MG)) + 2.5*x_CU*x_MG;
@@ -46,12 +49,15 @@ private:
     scalarValue& d2fdx2_MG;
 public:
     phase_name = "FCC";
-    FCC() : x_CU(x_data["CU"].val),
-            x_SI(x_data["SI"].val),
-            x_MG(x_data["MG"].val),
-            dfdx_CU(dfdx_data["CU"].val),
-            dfdx_SI(dfdx_data["SI"].val),
-            dfdx_MG(dfdx_data["MG"].val)
+    FCC(const IsothermalSystem& isoSys, const std::string& phase_name,
+        const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields,
+        variableContainer<dim,degree,scalarValue>& variable_list) : 
+        x_CU(x_data["CU"].val),
+        x_SI(x_data["SI"].val),
+        x_MG(x_data["MG"].val),
+        dfdx_CU(dfdx_data["CU"].val),
+        dfdx_SI(dfdx_data["SI"].val),
+        dfdx_MG(dfdx_data["MG"].val)
     {}
     void calculate_G() override {
         phase_free_energy = // ... ;
@@ -70,10 +76,9 @@ public:
 template <int dim, int degree>
 SystemContainer<dim, degree>::SystemContainer(const IsothermalSystem& _isoSys, variableContainer<dim,degree,scalarValue>& _variable_list){
     // For all phase names
-    phase_fields.insert({"ExamplePhase", phase_fields, new ExamplePhase<dim,degree>(isoSys.phases.at("ExamplePhase"), variable_list)});
-    phase_fields.insert({"FCC", phase_fields, new FCC<dim,degree>(isoSys.phases.at("FCC"), variable_list)});
-    phase_fields.insert({"BCC", phase_fields, new BCC<dim,degree>(isoSys.phases.at("BCC"), variable_list)});
-    phase_fields.insert({"HCP", phase_fields, new HCP<dim,degree>(isoSys.phases.at("HCP"), variable_list)});
+    phase_fields.insert({"ExamplePhase", new ExamplePhase<dim,degree>(isoSys, "ExamplePhase" phase_fields, variable_list)});
+    phase_fields.insert({"FCC", new FCC<dim,degree>(isoSys, "FCC", phase_fields, variable_list)});
+    phase_fields.insert({"BCC", new BCC<dim,degree>(isoSys, "BCC", phase_fields, variable_list)});
+    phase_fields.insert({"HCP", new HCP<dim,degree>(isoSys, "HCP", phase_fields, variable_list)});
     // etc.
 }
-

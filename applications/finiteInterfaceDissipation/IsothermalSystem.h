@@ -9,20 +9,24 @@ struct CompInfo{
 };
 
 class IsothermalSystem {
+public:
     std::map<std::string, Phase> phases;
     std::map<std::string, CompInfo> comp_info;
+    uint N;
+    double Vm;
+    double eta;
     double Temperature;
-public:
     IsothermalSystem(){}
     IsothermalSystem(nlohmann::json& TCSystem){
         for (const auto& phase : TCSystem["phases"].items()) {
             std::string phase_name = phase.key();
             phases[phase_name] = Phase(phase);
         }
+        N = phases.size();
         for (const auto& comp : TCSystem["components"].items()) {
-            CompInfo comp_info;
-            comp_info.P = comp.value()["permeability"];
-            comp_info.insert({comp.key(), comp_info});
+            CompInfo i_info;
+            i_info.P = comp.value()["permeability"];
+            comp_info.insert({comp.key(), i_info});
         }
     }
 

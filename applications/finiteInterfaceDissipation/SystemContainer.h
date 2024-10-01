@@ -1,5 +1,4 @@
 #include "PhaseFieldContainer.h"
-#include "IsothermalSystem.h"
 #include <map>
 
 
@@ -18,28 +17,28 @@ public:
                     isoSys(_isoSys), variable_list(_variable_list) {
     }
     ~SystemContainer(){
-        for(PhaseFieldContainer<dim, degree>* [key, phase_field] : phase_fields){
+        for(auto& [key, phase_field] : phase_fields){
             delete phase_field;
         }
     }
 
     void initialize_fields(){
         uint var_index = 0;
-        for(PhaseFieldContainer<dim, degree>* [key, phase_field] : phase_fields){
+        for(auto& [key, phase_field] : phase_fields){
             phase_field.initialize_fields(var_index);
         }
     }
 
     void solve(){
-        for(PhaseFieldContainer<dim, degree>* [key, phase_field] : phase_fields){
+        for(auto& [key, phase_field] : phase_fields){
             phase_field.solve(phase_fields);
         }
     }
 
-    void submit_fields(){
+    void submit_fields(const double& dt){
         uint var_index = 0;
-        for(PhaseFieldContainer<dim, degree>* [key, phase_field] : phase_fields){
-            phase_field.submit_fields(var_index);
+        for(auto& [key, phase_field] : phase_fields){
+            phase_field.submit_fields(var_index, dt);
         }
     }
 };
