@@ -118,16 +118,24 @@ public:
     // Equation 39
     void calculate_dphidt(){
         dphidt.val = constV(0.0);
+        dphidt.grad *= 0.0;
         for(const PhaseFieldContainer& beta : phase_fields){
-            scalarValue inner_sum_term = constV(0.0);
+            FieldContainer<dim> inner_sum_term;
+            inner_sum_term.val = constV(0.0);
+            inner_sum_term.grad *= 0.0;
             for(const PhaseFieldContainer& gamma : phase_fields){
                 if(&gamma != this && &gamma != &beta){
-                    inner_sum_term += (sigma(beta, gamma) - sigma(*this, gamma)) * gamma.I.val;
+                    inner_sum_term.val += (sigma(beta, gamma) - sigma(*this, gamma)) * gamma.I.val;
+                    inner_sum_term.grad += (sigma(beta, gamma) - sigma(*this, gamma)) * gamma.I.grad;
                 }
             }
             dphidt.val += K_ab(beta) * 
                         (sigma(*this, beta)*(I.val - beta.I.val) +
                         inner_sum_term);
+            dphidt.grad += K_ab(beta) * 
+                        (sigma(*this, beta)*(I.grad - beta.I.grad) +
+                        inner_sum_term);
+                        
         }
         dphidt.val /= isoSys.N;
         dphidt.grad /= isoSys.N;
