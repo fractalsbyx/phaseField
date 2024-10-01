@@ -65,7 +65,7 @@ void customPDE<dim,degree>::explicitEquationRHS([[maybe_unused]] variableContain
     // Solve
     sysFields.initialize_fields();
     sysFields.solve();
-    sysFields.submit_fields();
+    sysFields.submit_fields(userInputs.dtValue);
 }
 
 // =============================================================================================
