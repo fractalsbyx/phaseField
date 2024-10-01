@@ -57,15 +57,15 @@ void variableAttributeLoader::loadVariableAttributes(){
 // each variable in this list corresponds to the index given at the top of this file.
 
 template <int dim, int degree>
-void customPDE<dim,degree>::explicitEquationRHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
-				 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
+void customPDE<dim,degree>::explicitEquationRHS([[maybe_unused]] variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
+				 [[maybe_unused]] dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
 
     // --- Get the values and derivatives of the model variables ---
     SystemContainer<dim, degree> sysFields(Sys, variable_list);
     // Solve
     sysFields.initialize_fields();
     sysFields.solve();
-    sysFields.submit();
+    sysFields.submit_fields();
 }
 
 // =============================================================================================
@@ -81,8 +81,8 @@ void customPDE<dim,degree>::explicitEquationRHS(variableContainer<dim,degree,dea
 // this file.
 
 template <int dim, int degree>
-void customPDE<dim,degree>::nonExplicitEquationRHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
-				 dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
+void customPDE<dim,degree>::nonExplicitEquationRHS([[maybe_unused]] variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
+				 [[maybe_unused]] dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
 }
 
 // =============================================================================================
@@ -100,6 +100,6 @@ void customPDE<dim,degree>::nonExplicitEquationRHS(variableContainer<dim,degree,
 // being solved can be accessed by "this->currentFieldIndex".
 
 template <int dim, int degree>
-void customPDE<dim,degree>::equationLHS(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
-		dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
+void customPDE<dim,degree>::equationLHS([[maybe_unused]] variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
+		[[maybe_unused]] dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
 }

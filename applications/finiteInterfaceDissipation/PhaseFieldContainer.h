@@ -73,7 +73,7 @@ public:
             // Internal relaxation (eq. 16)
             scalarValue pairsum1 = constV(0.0);
             FieldContainer pairsum2 = constV(0.0);
-            for (const auto& beta : phaselist){
+            for (const auto& beta : phase_fields){
                 const CompData& i_beta = beta.comp_data.at(i);
                 pairsum1 += beta.phi.val * (i_beta.dfdx.val - i_alpha.dfdx.val);
                 pairsum2.val += phi.val * (i_beta.x_data.val - i_alpha.x_data.val) * beta.dphidt.val;
@@ -114,9 +114,9 @@ public:
     // Equation 39
     void calculate_dphidt(){
         dphidt.val = constV(0.0);
-        for(const PhaseFieldContainer& beta : phaselist){
+        for(const PhaseFieldContainer& beta : phase_fields){
             scalarValue inner_sum_term = constV(0.0);
-            for(const PhaseFieldContainer& gamma : phaselist){
+            for(const PhaseFieldContainer& gamma : phase_fields){
                 if(&gamma != this && &gamma != &beta){
                     inner_sum_term += (sigma(beta, gamma) - sigma(*this, gamma)) * gamma.I.val;
                 }
