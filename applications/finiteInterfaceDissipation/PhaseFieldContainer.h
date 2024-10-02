@@ -39,9 +39,9 @@ public:
         phi.val = variable_list.get_scalar_value(var_index);
         phi.grad = variable_list.get_scalar_gradient(var_index++);
         // Components Value
-        for (const auto& comp : info.comps){
-            comp_data[comp].x_data.val = variable_list.get_scalar_value(var_index);
-            comp_data[comp].x_data.grad = variable_list.get_scalar_gradient(var_index++);
+        for (const auto& [comp_name, comp_info] : info.comps){
+            comp_data[comp_name].x_data.val = variable_list.get_scalar_value(var_index);
+            comp_data[comp_name].x_data.grad = variable_list.get_scalar_gradient(var_index++);
         }
     }
 
@@ -76,18 +76,18 @@ public:
             scalarValue pairsum1 = constV(0.0);
             FieldContainer pairsum2;
             pairsum2.val = constV(0.0);
-            pairsum2.val *= 0.0;
-            for (const auto& beta : phase_fields){
-                const CompData<dim>& i_beta = beta.comp_data.at(i);
-                pairsum1 += beta.phi.val * (i_beta.dfdx.val - i_alpha.dfdx.val);
-                pairsum2.val += phi.val * (i_beta.x_data.val - i_alpha.x_data.val) * beta.dphidt.val;
+            pairsum2.grad *= 0.0;
+            for (const auto& [beta_name, beta] : phase_fields){
+                const CompData<dim>& i_beta = beta->comp_data.at(i);
+                pairsum1 += beta->phi.val * (i_beta.dfdx.val - i_alpha.dfdx.val);
+                pairsum2.val += phi.val * (i_beta.x_data.val - i_alpha.x_data.val) * beta->dphidt.val;
                 pairsum2.val += (phi.val * (i_beta.x_data.grad - i_alpha.x_data.grad)
                                 +phi.grad * (i_beta.x_data.val - i_alpha.x_data.val)
-                                ) * beta.dphidt.grad;
-                pairsum2.grad -= phi.val * (i_beta.x_data.val - i_alpha.x_data.val) * beta.dphidt.grad;
+                                ) * beta->dphidt.grad;
+                pairsum2.grad -= phi.val * (i_beta.x_data.val - i_alpha.x_data.val) * beta->dphidt.grad;
             }
-            i_alpha.dxdt.val += isoSys.comp_info[i].P * phi.val * pairsum1 + pairsum2.val;
-            i_alpha.dxdt.grad += isoSys.comp_info[i].P;
+            i_alpha.dxdt.val += isoSys.comp_info.at(i).P * phi.val * pairsum1 + pairsum2.val;
+            i_alpha.dxdt.grad += pairsum2.grad;
         }
     }
     // Equation 37
@@ -99,7 +99,7 @@ public:
             const CompData<dim>& i_beta = beta.comp_data.at(i);
             denom_sum_term +=   (i_alpha.x_data.val - i_beta.x_data.val)*
                                 (i_alpha.x_data.val - i_beta.x_data.val)/
-                                isoSys.comp_info[i].P;
+                                isoSys.comp_info.at(i).P;
         }
         scalarValue denominator = 1.0 + (mu_ab * PI*PI * denom_sum_term)/symmetric_term;
         return mu_ab/denominator;
@@ -119,22 +119,22 @@ public:
     void calculate_dphidt(){
         dphidt.val = constV(0.0);
         dphidt.grad *= 0.0;
-        for(const PhaseFieldContainer& beta : phase_fields){
+        for(const auto& [beta_name, beta] : phase_fields){
             FieldContainer<dim> inner_sum_term;
             inner_sum_term.val = constV(0.0);
             inner_sum_term.grad *= 0.0;
-            for(const PhaseFieldContainer& gamma : phase_fields){
-                if(&gamma != this && &gamma != &beta){
-                    inner_sum_term.val += (sigma(beta, gamma) - sigma(*this, gamma)) * gamma.I.val;
-                    inner_sum_term.grad += (sigma(beta, gamma) - sigma(*this, gamma)) * gamma.I.grad;
+            for(const auto& [gamma_name, gamma] : phase_fields){
+                if(gamma != this && gamma != beta){
+                    inner_sum_term.val += (sigma(*beta, *gamma) - sigma(*this, *gamma)) * gamma->I.val;
+                    inner_sum_term.grad += (sigma(*beta, *gamma) - sigma(*this, *gamma)) * gamma->I.grad;
                 }
             }
-            dphidt.val += K_ab(beta) * 
-                        (sigma(*this, beta)*(I.val - beta.I.val) +
-                        inner_sum_term);
-            dphidt.grad += K_ab(beta) * 
-                        (sigma(*this, beta)*(I.grad - beta.I.grad) +
-                        inner_sum_term);
+            dphidt.val += K_ab(*beta) * 
+                        (sigma(*this, *beta)*(I.val - beta->I.val) +
+                        inner_sum_term.val);
+            dphidt.grad += K_ab(*beta) * 
+                        (sigma(*this, *beta)*(I.grad - beta->I.grad) +
+                        inner_sum_term.grad);
                         
         }
         dphidt.val /= isoSys.N;
@@ -146,11 +146,11 @@ public:
         I.grad = phi.grad;
     }
 
-    inline double sigma(PhaseFieldContainer<dim, degree>& alpha, PhaseFieldContainer<dim, degree>& beta){
+    inline double sigma(const PhaseFieldContainer<dim, degree>& alpha, const PhaseFieldContainer<dim, degree>& beta){
         return 0.5*(alpha.info.sigma + beta.info.sigma);
     }
     inline double M_ij(const std::string& i, const std::string& j){
-        return 0.5*(info.comps[i].M + info.comps[j].M); // fast bad approximation
+        return 0.5*(info.comps.at(i).M + info.comps.at(j).M); // fast bad approximation
     }
 
     void solve(){
@@ -163,10 +163,10 @@ public:
 
     void submit_fields(uint& var_index, const double& dt){
         variable_list.set_scalar_value_term_RHS(var_index, phi.val + dt * dphidt.val);
-        variable_list.set_scalar_value_term_RHS(var_index++,       - dt * dphidt.grad);
+        variable_list.set_scalar_gradient_term_RHS(var_index++,       - dt * dphidt.grad);
         for (auto& [i, i_data] : comp_data){
             variable_list.set_scalar_value_term_RHS(var_index, i_data.x_data.val + dt * i_data.dxdt.val);
-            variable_list.set_scalar_value_term_RHS(var_index++,                - dt * i_data.dxdt.grad);
+            variable_list.set_scalar_gradient_term_RHS(var_index++,                - dt * i_data.dxdt.grad);
         }
     }
 

@@ -16,6 +16,7 @@ public:
                     variableContainer<dim,degree,scalarValue>& _variable_list) :
                     isoSys(_isoSys), variable_list(_variable_list) {
     }
+public:
     ~SystemContainer(){
         for(auto& [key, phase_field] : phase_fields){
             delete phase_field;
@@ -25,20 +26,20 @@ public:
     void initialize_fields(){
         uint var_index = 0;
         for(auto& [key, phase_field] : phase_fields){
-            phase_field.initialize_fields(var_index);
+            phase_field->initialize_fields(var_index);
         }
     }
 
     void solve(){
         for(auto& [key, phase_field] : phase_fields){
-            phase_field.solve(phase_fields);
+            phase_field->solve();
         }
     }
 
     void submit_fields(const double& dt){
         uint var_index = 0;
         for(auto& [key, phase_field] : phase_fields){
-            phase_field.submit_fields(var_index, dt);
+            phase_field->submit_fields(var_index, dt);
         }
     }
 };
