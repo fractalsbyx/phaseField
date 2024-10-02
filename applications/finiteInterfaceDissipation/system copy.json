@@ -1,19 +1,42 @@
 {   
     "solution_component" : "AL",
-    "comp_names" : ["CU", "SI"],
-    "permeability" : {
-        "CU" : 1.0,
-        "SI" : 2.0
+    "components" : {
+        "CU" : {
+            "permeability" : 5.0
+        },
+        "SI" : {
+            "permeability" : 2.6
+        }
     },
-    "phases": {
+    "Vm" : 5.1,
+    "eta" : 1.2,
+    "phases" : {
         "Phase_A": {
-            "mobility" : {
-                
+            "sigma" : 4.0,
+            "CU" : {
+                "mobility" : 3.0
+            },
+            "SI" : {
+                "mobility" : 4.0
             }
         },
         "Phase_B": {
+            "sigma": 5.0,
+            "CU" : {
+                "mobility" : 5.0
+            },
+            "SI" : {
+                "mobility" : 6.0
+            }
         },
         "Phase_C": {
+            "sigma" : 7.0,
+            "CU" : {
+                "mobility" : 7.0
+            },
+            "SI" : {
+                "mobility" : 8.0
+            }
         }
     }
 }
