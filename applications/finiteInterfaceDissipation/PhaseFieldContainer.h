@@ -19,6 +19,7 @@ constexpr double PI = 3.141592653589793238;
 
 template <int dim, int degree>
 class PhaseFieldContainer{
+public:
     typedef dealii::VectorizedArray<double> scalarValue;
     typedef dealii::Tensor<1, dim, dealii::VectorizedArray<double>> scalarGrad;
     #define constV(a) dealii::make_vectorized_array(a)
@@ -31,8 +32,6 @@ class PhaseFieldContainer{
                                     variable_list(variable_list){
     }
     virtual ~PhaseFieldContainer(){}
-
-public:
 
     void initialize_fields(uint& var_index){
         // Phase Value
@@ -47,16 +46,8 @@ public:
 
     // Custom START
     virtual void calculate_dfdx(){
-        for(const auto& comp : info.comps){
-            comp.dfdx.val = constV(0.0);
-            comp.dfdx.grad *= constV(0.0);
-        }
     }
     virtual void calculate_G(){
-        for(const auto& comp : info.comps){
-            comp.dfdx.val = constV(0.0);
-            comp.dfdx.grad *= constV(0.0);
-        }
     }
     // Custom END
 
@@ -93,7 +84,7 @@ public:
     // Equation 37
     scalarValue K_ab(const PhaseFieldContainer& beta){
         scalarValue mu_ab; //TODO
-        scalarValue symmetric_term = 4.0*isoSys.N*isoSys.eta*(phi.val+beta.phi.val);
+        scalarValue symmetric_term = 4.0*(double)isoSys.N*isoSys.eta*(phi.val+beta.phi.val);
         scalarValue denom_sum_term = constV(0.0);
         for (auto& [i, i_alpha] : comp_data){
             const CompData<dim>& i_beta = beta.comp_data.at(i);
@@ -137,8 +128,8 @@ public:
                         inner_sum_term.grad);
                         
         }
-        dphidt.val /= isoSys.N;
-        dphidt.grad /= isoSys.N;
+        dphidt.val /= (double)isoSys.N;
+        dphidt.grad /= (double)isoSys.N;
     }
 
     void calculate_I(){

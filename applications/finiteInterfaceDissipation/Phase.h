@@ -9,20 +9,24 @@ struct PhaseCompInfo{
 
 class Phase {
     public:
-    Phase(const nlohmann::json_abi_v3_11_2::detail::iteration_proxy_value<nlohmann::json_abi_v3_11_2::detail::iter_impl<nlohmann::json_abi_v3_11_2::json>> &phase){
-        name = phase.key();
-        const auto& phase_data = phase.value();
+    Phase(const nlohmann::json &phases, const std::string& phase_name){
+        name = phase_name;
+        const auto& phase_data = phases[phase_name];
+
+        // Constants
+        sigma = phase_data["sigma"];
 
         // Components
-        auto comp_info = phase_data["components"];
+        nlohmann::json comp_info = phase_data["components"];
         std::set<std::string> comps;
-        for (auto [name, val] : comp_info){
-            double mobility = val.as_object().at("mobility");
-            comps.insert({name, {mobility}});
+        for (auto [comp_name, val] : comp_info){
+            double mobility = comp_info[comp_name]["mobility"];
+            comps.insert({comp_name, {mobility}});
         }
         comps.insert(comp_info.begin(), comp_info.end());
     }
     public:
     std::string name;
-    std::map<std::string, PhaseCompInfo>& comps;
+    std::map<std::string, PhaseCompInfo> comps;
+    double sigma;
 };

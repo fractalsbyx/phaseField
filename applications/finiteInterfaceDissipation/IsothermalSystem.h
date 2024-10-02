@@ -20,7 +20,7 @@ public:
     IsothermalSystem(nlohmann::json& TCSystem){
         for (const auto& phase : TCSystem["phases"].items()) {
             std::string phase_name = phase.key();
-            phases[phase_name] = Phase(phase);
+            phases.insert({phase_name, Phase(TCSystem["phases"], phase_name)});
         }
         N = phases.size();
         for (const auto& comp : TCSystem["components"].items()) {
