@@ -13,9 +13,7 @@ public:
     variableContainer<dim,degree,scalarValue>& variable_list;
     std::map<std::string, PhaseFieldContainer<dim, degree>*> phase_fields;
     SystemContainer(const IsothermalSystem& _isoSys,
-                    variableContainer<dim,degree,scalarValue>& _variable_list) :
-                    isoSys(_isoSys), variable_list(_variable_list) {
-    }
+                    variableContainer<dim,degree,scalarValue>& _variable_list);
 public:
     ~SystemContainer(){
         for(auto& [key, phase_field] : phase_fields){
@@ -43,3 +41,5 @@ public:
         }
     }
 };
+
+//#include"customPhases.cc"

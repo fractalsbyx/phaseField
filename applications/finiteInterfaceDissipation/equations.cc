@@ -12,11 +12,10 @@
 // The final pair of attributes determine whether a variable represents a field
 // that can nucleate and whether the value of the field is needed for nucleation
 // rate calculations.
-#include "json.hpp"
-#include "SystemContainer.h"
+
 void variableAttributeLoader::loadVariableAttributes(){
     #include "IsothermalSystem.h"
-
+    std::cout << "Starting loadVariableAttributes...\n";
     // Open file ------------------------------------------------------------------------
     // Different scope from customPDE, must initialize identical system
     std::string sysFile = "system.json";
@@ -43,6 +42,8 @@ void variableAttributeLoader::loadVariableAttributes(){
 
     // Load Variable Attributes
     Sys.load_variables(this);
+
+    std::cout << "Finished loadVariableAttributes\n";
 }
 
 // =============================================================================================

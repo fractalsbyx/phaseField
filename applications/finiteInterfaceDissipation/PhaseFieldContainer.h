@@ -65,7 +65,7 @@ public:
             }
             // Internal relaxation (eq. 16)
             scalarValue pairsum1 = constV(0.0);
-            FieldContainer pairsum2;
+            FieldContainer<dim> pairsum2;
             pairsum2.val = constV(0.0);
             pairsum2.grad *= 0.0;
             for (const auto& [beta_name, beta] : phase_fields){
@@ -154,10 +154,10 @@ public:
 
     void submit_fields(uint& var_index, const double& dt){
         variable_list.set_scalar_value_term_RHS(var_index, phi.val + dt * dphidt.val);
-        variable_list.set_scalar_gradient_term_RHS(var_index++,       - dt * dphidt.grad);
+        variable_list.set_scalar_gradient_term_RHS(var_index++,    - dt * dphidt.grad);
         for (auto& [i, i_data] : comp_data){
             variable_list.set_scalar_value_term_RHS(var_index, i_data.x_data.val + dt * i_data.dxdt.val);
-            variable_list.set_scalar_gradient_term_RHS(var_index++,                - dt * i_data.dxdt.grad);
+            variable_list.set_scalar_gradient_term_RHS(var_index++,              - dt * i_data.dxdt.grad);
         }
     }
 
