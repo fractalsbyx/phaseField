@@ -17,16 +17,36 @@ public:
     double eta;
     double Temperature;
     IsothermalSystem(){}
-    IsothermalSystem(nlohmann::json& TCSystem){
-        for (const auto& phase : TCSystem["phases"].items()) {
-            std::string phase_name = phase.key();
-            phases.insert({phase_name, Phase(TCSystem["phases"], phase_name)});
+    IsothermalSystem(const nlohmann::json& TCSystem){
+        from_json(TCSystem);
+    }
+
+    void from_json(const nlohmann::json& j) {
+        // Parse Vm and eta
+        Vm = j.at("Vm").get<double>();
+        eta = j.at("eta").get<double>();
+
+        // Parse components
+        for (const auto& [comp_name, comp_data] : j.at("components").items()) {
+            CompInfo compInfo;
+            compInfo.P = comp_data.at("permeability").get<double>();
+            comp_info[comp_name] = compInfo;
         }
-        N = phases.size();
-        for (const auto& comp : TCSystem["components"].items()) {
-            CompInfo i_info;
-            i_info.P = comp.value()["permeability"];
-            comp_info.insert({comp.key(), i_info});
+
+        // Parse phases
+        for (const auto& [phase_name, phase_data] : j.at("phases").items()) {
+            Phase phase;
+            phase.name = phase_name;
+            phase.sigma = phase_data.at("sigma").get<double>();
+
+            for (const auto& [comp_name, comp_data] : phase_data.items()) {
+                if (comp_name != "sigma") {
+                    PhaseCompInfo phaseCompInfo;
+                    phaseCompInfo.M = comp_data.at("mobility").get<double>();
+                    phase.comps[comp_name] = phaseCompInfo;
+                }
+            }
+            phases[phase_name] = phase;
         }
     }
 

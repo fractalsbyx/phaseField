@@ -8,7 +8,9 @@ struct PhaseCompInfo{
 };
 
 class Phase {
-    public:
+public:
+    Phase(){}
+    /*
     Phase(const nlohmann::json &phases, const std::string& phase_name){
         name = phase_name;
         const auto& phase_data = phases[phase_name];
@@ -25,7 +27,7 @@ class Phase {
         }
         comps.insert(comp_info.begin(), comp_info.end());
     }
-    public:
+    */
     std::string name;
     std::map<std::string, PhaseCompInfo> comps;
     double sigma;

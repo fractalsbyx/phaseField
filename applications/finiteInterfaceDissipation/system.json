@@ -1,26 +1,42 @@
-{
-    "num_phases": 3,
-    "phase_names": ["Phase_A", "Phase_B", "Phase_C"],
-    "phases": {
-        "Phase_A": {
-            "num_sublattices": 2,
-            "num_sites": [2, 3],
-            "occupation": [["AL", "CU"], ["AL", "CU"]],
-            "is_interstitial": [false, false],
-            "end member parameters": {
-                "AL,AL": "expression",
-                "AL,CU": "expression",
-                "CU,AL": "expression",
-                "CU,CU": "expression"
-            },
-            "interaction parameters": {
-                "AL,CU:AL": "expression",
-                "AL,CU:CU": "expression",
-                "AL:AL,CU": "expression",
-                "CU:AL,CU": "expression"
-            },
+{   
+    "solution_component" : "AL",
+    "components" : {
+        "CU" : {
+            "permeability" : 5.0
         },
-        "Phase_B": {},
-        "Phase_C": {}
+        "SI" : {
+            "permeability" : 2.6
+        }
     },
-  }
+    "Vm" : 5.1,
+    "eta" : 1.2,
+    "phases" : {
+        "Phase_A": {
+            "sigma" : 4.0,
+            "CU" : {
+                "mobility" : 3.0
+            },
+            "SI" : {
+                "mobility" : 4.0
+            }
+        },
+        "Phase_B": {
+            "sigma": 5.0,
+            "CU" : {
+                "mobility" : 5.0
+            },
+            "SI" : {
+                "mobility" : 6.0
+            }
+        },
+        "Phase_C": {
+            "sigma" : 7.0,
+            "CU" : {
+                "mobility" : 7.0
+            },
+            "SI" : {
+                "mobility" : 8.0
+            }
+        }
+    }
+}

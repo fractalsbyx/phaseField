@@ -1,9 +1,6 @@
 #include "../../include/matrixFreePDE.h"
 #include <random>
-#include <unordered_map>
-#include <unordered_set>
-#include "IsothermalSystem.h"
-#include "json.hpp"
+#include "customPhases.cc"
 
 template <int dim, int degree>
 class customPDE: public MatrixFreePDE<dim,degree>
@@ -11,6 +8,7 @@ class customPDE: public MatrixFreePDE<dim,degree>
 public:
     // Constructor
     customPDE(userInputParameters<dim> _userInputs): MatrixFreePDE<dim,degree>(_userInputs) , userInputs(_userInputs) {
+        std::cout << "Starting customPDE initializer...\n";
         //Read system json file to TCSystem
         parseSystem();
         // Zero grad constant
@@ -21,7 +19,7 @@ public:
         dist = distribution(0.0,1.0);
         //Initializing random variable
         rng = engine(seed);
-
+        std::cout << "customPDE initialized\n";
     };
 
     // Function to set the initial conditions (in ICs_and_BCs.h)

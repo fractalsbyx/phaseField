@@ -31,7 +31,7 @@ set Element degree = 1
 # Set the adaptive mesh refinement parameters
 # =================================================================================
 # Set the flag determining if adaptive meshing is activated
-set Mesh adaptivity = true
+set Mesh adaptivity = false
 
 # Set the maximum and minimum level of refinement
 # When adaptive meshing is enabled, the refine factor set in the block above is
@@ -42,46 +42,6 @@ set Min refinement level = 3
 
 # Set the number of time steps between remeshing operations
 set Steps between remeshing operations = 250
-
-# Set the criteria for adapting the mesh
-subsection Refinement criterion: n0
-    # Select whether the mesh is refined based on the variable value (VALUE),
-    # its gradient (GRADIENT), or both (VALUE_AND_GRADIENT)
-    set Criterion type = VALUE
-    # Set the lower and upper bounds for the value-based refinement window
-    set Value lower bound = 0.001
-    set Value upper bound = 0.999
-end
-subsection Refinement criterion: n1
-    # Select whether the mesh is refined based on the variable value (VALUE),
-    # its gradient (GRADIENT), or both (VALUE_AND_GRADIENT)
-    set Criterion type = VALUE
-    # Set the lower and upper bounds for the value-based refinement window
-    set Value lower bound = 0.001
-    set Value upper bound = 0.999
-end
-subsection Refinement criterion: n2
-    # Select whether the mesh is refined based on the variable value (VALUE),
-    # its gradient (GRADIENT), or both (VALUE_AND_GRADIENT)
-    set Criterion type = VALUE
-    # Set the lower and upper bounds for the value-based refinement window
-    set Value lower bound = 0.001
-    set Value upper bound = 0.999
-end
-#subsection Refinement criterion: mu0
-#    # Select whether the mesh is refined based on the variable value (VALUE),
-#    # its gradient (GRADIENT), or both (VALUE_AND_GRADIENT)
-#    set Criterion type = GRADIENT
-#    # Set the lower and upper bounds for the value-based refinement window
-#    set Gradient magnitude lower bound = 0.5
-#end
-#subsection Refinement criterion: mu1
-#    # Select whether the mesh is refined based on the variable value (VALUE),
-#    # its gradient (GRADIENT), or both (VALUE_AND_GRADIENT)
-#    set Criterion type = GRADIENT
-#    # Set the lower and upper bounds for the value-based refinement window
-#    set Gradient magnitude lower bound = 2.0
-#end
 
 # =================================================================================
 # Set the time step parameters
@@ -115,16 +75,8 @@ set Number of time steps = 200000
 # PERIODIC, NATURAL, PERIODIC, NATURAL
 # PERIODIC, PERIODIC, NATURAL, NATURAL
 
-set Boundary condition for variable n0 =  PERIODIC
-set Boundary condition for variable n1 =  PERIODIC
-set Boundary condition for variable n2 =  PERIODIC
-
-set Boundary condition for variable dndt0 =  PERIODIC
-set Boundary condition for variable dndt1 =  PERIODIC
-set Boundary condition for variable dndt2 =  PERIODIC
-
-set Boundary condition for variable mu0 =  PERIODIC
-
+# set Boundary condition for variable n0 =  PERIODIC
+include BC_AMR.prm
 
 # =================================================================================
 # Set the output parameters
@@ -164,113 +116,5 @@ set Number of checkpoints = 2
 # BOOL ARRAY, STRING ARRAY, TENSOR, and [symmetry] ELASTIC CONSTANTS
 # where [symmetry] is ISOTROPIC, TRANSVERSE, ORTHOTROPIC, or ANISOTROPIC.
 
-# Number of order parameters 
-set Model constant num_ops = 3, INT
-
-# =================================================================================
-# Select whether to set phase id's by index or by name. If NAME, is specified, then
-# variable 'phase_names' must be specified and 'phase_id' must be a STRING ARRAY.
-# Otherwise, (if INDEX specified,) the 'phase_id' must be an INT ARRAY.
-# NAME or INDEX
-set Model constant set_ids_by = NAME, STRING
-
-# phase names by at each phase index. Size num_phases
-set Model constant phase_names = LIQUID, ALPHA, BETA, STRING ARRAY
-
-# phase_id for each parameter. Size num_ops
-# set Model constant phase_id = 0, 1, 2, INT ARRAY
-
-# phase_id for each parameter. Size num_ops
-set Model constant phase_id = LIQUID, ALPHA, BETA, STRING ARRAY
-# =================================================================================
-
-# Number of Phases possible in this model
-set Model constant num_phases = 3, INT
-
-# Number of species present (including solvent/matrix)
-set Model constant num_comps = 2, INT
-
-# Free energy well minima
-set Model constant fWell = 6.0, -0.0, -0.0, DOUBLE ARRAY
-
-# Free energy well curvatures
-    # Has size num_phases * (num_comps-1)
-    # Written in order of phase, component
-    # [phase1-comp1, phase1-comp2, phase1-comp3, ... , phase1-compN,
-    #  phase2-comp1, phase2-comp2, phase2-comp3, ... , phase2-compN, ...]
-set Model constant kWell = 60.0,  60.0,  60.0, DOUBLE ARRAY
-
-# Free energy well composition minima
-    # Has size num_phases * (num_comps-1)
-    # Written in order of phase, component
-    # [phase1-comp1, phase1-comp2, phase1-comp3, ... , phase1-compN,
-    #  phase2-comp1, phase2-comp2, phase2-comp3, ... , phase2-compN, ...]
-set Model constant cmin = 0.50,  0.95,  0.05,  DOUBLE ARRAY
-
-# Grain Mobility
-set Model constant L = 10.0, DOUBLE
-
-# Interface term
-set Model constant gamma = 1.5, DOUBLE
-
-# Interface width (m)
-set Model constant l_gb = 0.1, DOUBLE
-
-# Interface energy (J/m^3)
-set Model constant sigma = 0.666, DOUBLE
-
-# Length scale (m)
-set Model constant l0 = 1.0, DOUBLE
-
-# Component Mobility
-set Model constant D = 0.03, 0.03, 0.03, DOUBLE ARRAY
-
-# Volume Scale
-set Model constant Va = 1.0, DOUBLE
-
-# Initial Compositions
-set Model constant c0 = 0.50, 0.0, 0.0, DOUBLE ARRAY
-
-# =================================================================================
-# Set nucleation parameters
-# =================================================================================
-
-# Phase to nucleate
-# Nucleation parameters won't be read if this is NONE
-set Model constant nuc_phase = ALPHA, STRING
-
-# Nucleation constant 1
-set Model constant k1 = 50000.0, DOUBLE
-
-# Nucleation constant 2
-set Model constant k2 = 6.0, DOUBLE
-
-# Incubation time before nucleation
-set Model constant tau = 0.1, DOUBLE
-
-# Nucleation force
-set Model constant nuc_force = 50.0, DOUBLE
-
-# =================================================================================
-# Set the nucleation parameters
-# =================================================================================
-
-set Time steps between nucleation attempts = 50
-set Minimum allowed distance between nuclei = 1
-set Order parameter cutoff value = 0.5
-
-subsection Nucleation parameters: n1
-    set Nucleus semiaxes (x, y, z) = 0.06, 0.06, 0.06
-    set Freeze zone semiaxes (x, y, z) = 0.4, 0.4, 0.4
-    set Nucleus rotation in degrees (x, y, z) = 0, 0, 0
-    set Freeze time following nucleation = 0.002
-    #set Nucleation-free border thickness = 1.0
-end
-
-subsection Nucleation parameters: n2
-    set Nucleus semiaxes (x, y, z) = 0.06, 0.06, 0.06
-    set Freeze zone semiaxes (x, y, z) = 0.4, 0.4, 0.4
-    set Nucleus rotation in degrees (x, y, z) = 0, 0, 0
-    set Freeze time following nucleation = 0.002
-    #set Nucleation-free border thickness = 1.0
-end
+# Some constant K
+# set Model constant K = 3, INT
