@@ -1,6 +1,4 @@
 #include <map>
-#include <string>
-#include "json.hpp"
 #include "Phase.h"
 #include "../../include/variableAttributeLoader.h"
 
@@ -91,6 +89,8 @@ public:
                 loader->set_dependencies_gradient_term_RHS(var_index++, phase_names+','+grad_phase_names+','+comp_names+','+grad_comp_names);
             }
         }
+        std::cout << "Phase names: " << phase_names << "\n"
+                  << "Comp names: " << comp_names << "\n";
         std::cout << "Finished loadVariableAttributes\n";
     }
 

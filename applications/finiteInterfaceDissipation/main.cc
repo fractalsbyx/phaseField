@@ -73,56 +73,56 @@ int main (int argc, char **argv)
                         problem.solve();
                         break;
                     }
-                    //case(2):
-                    //{
-                    //    customPDE<2,2> problem(userInputs);
-                    //    problem.buildFields();
-                    //    problem.init ();
-                    //    problem.solve();
-                    //    break;
-                    //}
-                    //case(3):
-                    //{
-                    //    customPDE<2,3> problem(userInputs);
-                    //    problem.buildFields();
-                    //    problem.init ();
-                    //    problem.solve();
-                    //    break;
-                    //}
+                    case(2):
+                    {
+                        customPDE<2,2> problem(userInputs);
+                        problem.buildFields();
+                        problem.init ();
+                        problem.solve();
+                        break;
+                    }
+                    case(3):
+                    {
+                        customPDE<2,3> problem(userInputs);
+                        problem.buildFields();
+                        problem.init ();
+                        problem.solve();
+                        break;
+                    }
                 }
                 break;
             }
-            //case 3:
-            //{
-            //    userInputParameters<3> userInputs(input_file_reader,input_file_reader.parameter_handler,variable_attributes);
-            //    switch (userInputs.degree)
-            //    {
-            //        case(1):
-            //        {
-            //            customPDE<3,1> problem(userInputs);
-            //            problem.buildFields();
-            //            problem.init ();
-            //            problem.solve();
-            //            break;
-            //        }
-            //        case(2):
-            //        {
-            //            customPDE<3,2> problem(userInputs);
-            //            problem.buildFields();
-            //            problem.init ();
-            //            problem.solve();
-            //            break;
-            //        }
-            //        case(3):
-            //        {
-            //            customPDE<3,3> problem(userInputs);
-            //            problem.buildFields();
-            //            problem.init ();
-            //            problem.solve();
-            //            break;
-            //        }
-            //    }
-            //}
+            case 3:
+            {
+                userInputParameters<3> userInputs(input_file_reader,input_file_reader.parameter_handler,variable_attributes);
+                switch (userInputs.degree)
+                {
+                    case(1):
+                    {
+                        customPDE<3,1> problem(userInputs);
+                        problem.buildFields();
+                        problem.init ();
+                        problem.solve();
+                        break;
+                    }
+                    case(2):
+                    {
+                        customPDE<3,2> problem(userInputs);
+                        problem.buildFields();
+                        problem.init ();
+                        problem.solve();
+                        break;
+                    }
+                    case(3):
+                    {
+                        customPDE<3,3> problem(userInputs);
+                        problem.buildFields();
+                        problem.init ();
+                        problem.solve();
+                        break;
+                    }
+                }
+            }
             break;
         }
 

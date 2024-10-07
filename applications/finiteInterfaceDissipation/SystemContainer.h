@@ -1,12 +1,11 @@
 #include "PhaseFieldContainer.h"
-#include <map>
 
 
 template <int dim, int degree>
 class SystemContainer{
 public:
-    typedef dealii::VectorizedArray<double> scalarValue;
-    typedef dealii::Tensor<1, dim, dealii::VectorizedArray<double>> scalarGrad;
+    using scalarValue = dealii::VectorizedArray<double>;
+    using scalarGrad = dealii::Tensor<1, dim, dealii::VectorizedArray<double>>;
     #define constV(a) dealii::make_vectorized_array(a)
 
     const IsothermalSystem& isoSys;

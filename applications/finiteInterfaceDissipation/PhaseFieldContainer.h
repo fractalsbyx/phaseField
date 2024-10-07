@@ -2,7 +2,6 @@
 #include <deal.II/base/vectorization.h>
 #include "../../include/variableContainer.h"
 
-
 template <int dim>
 struct FieldContainer{
     dealii::VectorizedArray<double> val;
@@ -27,6 +26,7 @@ public:
     PhaseFieldContainer(const IsothermalSystem& isoSys, const std::string& phase_name,
                         const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields,
                         variableContainer<dim,degree,scalarValue>& variable_list) :
+                                    isoSys(isoSys),
                                     info(isoSys.phases.at(phase_name)),
                                     phase_fields(phase_fields),
                                     variable_list(variable_list){
