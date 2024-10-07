@@ -7,11 +7,9 @@ class ExamplePhase : public PhaseFieldContainer<dim, degree> {
 public:
     const typename PhaseFieldContainer<dim, degree>::scalarValue& x_CU;
     const typename PhaseFieldContainer<dim, degree>::scalarValue& x_SI;
-    const typename PhaseFieldContainer<dim, degree>::scalarValue& x_MG;
 
     typename PhaseFieldContainer<dim, degree>::scalarValue& dfdx_CU;
     typename PhaseFieldContainer<dim, degree>::scalarValue& dfdx_SI;
-    typename PhaseFieldContainer<dim, degree>::scalarValue& dfdx_MG;
 
 public:
     ExamplePhase(const IsothermalSystem& isoSys, const std::string& phase_name,
@@ -20,20 +18,17 @@ public:
         : PhaseFieldContainer<dim, degree>(isoSys, phase_name, phase_fields, variable_list),
           x_CU(this->comp_data.at("CU").x_data.val),
           x_SI(this->comp_data.at("SI").x_data.val),
-          x_MG(this->comp_data.at("MG").x_data.val),
           dfdx_CU(this->comp_data.at("CU").dfdx.val),
-          dfdx_SI(this->comp_data.at("SI").dfdx.val),
-          dfdx_MG(this->comp_data.at("MG").dfdx.val)
+          dfdx_SI(this->comp_data.at("SI").dfdx.val)
     {}
 
     void calculate_G() override {
-        this->phase_free_energy = (x_CU * log(x_CU) + x_SI * log(x_SI) + x_MG * log(x_MG)) + 2.5 * x_CU * x_MG;
+        this->phase_free_energy = (x_CU * log(x_CU) + x_SI * log(x_SI)) + 2.5 * x_CU * x_SI;
     }
 
     void calculate_dfdx() override {
-        dfdx_CU = (log(x_CU) + 1.0) + 2.5 * x_MG;
-        dfdx_SI = (log(x_SI) + 1.0);
-        dfdx_MG = (log(x_MG) + 1.0) + 2.5 * x_CU;
+        dfdx_CU = (log(x_CU) + 1.0) + 2.5 * x_SI;
+        dfdx_SI = (log(x_SI) + 1.0) + 2.5 * x_CU;
     }
 };
 
