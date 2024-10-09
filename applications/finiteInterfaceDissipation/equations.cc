@@ -62,10 +62,14 @@ void customPDE<dim,degree>::explicitEquationRHS([[maybe_unused]] variableContain
 				 [[maybe_unused]] dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
 
     // --- Get the values and derivatives of the model variables ---
+    // std::cout << "Equations Start...\n";
     SystemContainer<dim, degree> sysFields(Sys, variable_list);
     // Solve
+    // std::cout << "Initialize Fields Start...\n";
     sysFields.initialize_fields();
+    // std::cout << "Solve Start...\n";
     sysFields.solve();
+    // std::cout << "Submit Start...\n";
     sysFields.submit_fields(userInputs.dtValue);
 }
 

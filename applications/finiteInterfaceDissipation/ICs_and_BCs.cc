@@ -23,15 +23,17 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     double r2 = x*x+y*y+z*z;
 
     // TODO: make order parameters
+    double p1 = 0.5*(1.0+std::tanh(2.0*x/Sys.eta));
+    double p2 = 1.0 - p1;
+    scalar_IC = 0.5;
+    if (index == 0) {scalar_IC = p1;}
+    if (index == 3) {scalar_IC = p2;}
+
     
 
     // ===========================================================================
     // Submit fields
     // ===========================================================================
-    scalar_IC = 0.0*r2;
-    // for(unsigned int op_index = 0; op_index<num_ops; ++op_index){
-    //     if(index==op_index){scalar_IC = op_vals[op_index];}
-    // }
 }
 
 // ===========================================================================
