@@ -15,6 +15,7 @@ struct CompData{
     FieldContainer<dim> dxdt;
 };
 constexpr double PI = 3.141592653589793238;
+double epsilon = 1.0e-6;
 
 template <int dim, int degree>
 class PhaseFieldContainer{
@@ -61,7 +62,7 @@ public:
             // Spatial flux
             for(auto& [j, j_alpha] : comp_data){
                 i_alpha.dxdt.grad += isoSys.Vm*isoSys.Vm * M_ij(i,j) * j_alpha.dfdx.grad;
-                i_alpha.dxdt.val +=  isoSys.Vm*isoSys.Vm * M_ij(i,j) * phi.grad * j_alpha.dfdx.grad / phi.val;
+                i_alpha.dxdt.val +=  isoSys.Vm*isoSys.Vm * M_ij(i,j) * phi.grad * j_alpha.dfdx.grad / (phi.val+epsilon);
             }
             // Internal relaxation (eq. 16)
             scalarValue pairsum1 = constV(0.0);
@@ -84,7 +85,7 @@ public:
     // Equation 37
     scalarValue K_ab(const PhaseFieldContainer& beta){
         scalarValue mu_ab; //TODO
-        scalarValue symmetric_term = 4.0*(double)isoSys.N*isoSys.eta*(phi.val+beta.phi.val);
+        scalarValue symmetric_term = 4.0*(double)isoSys.N*isoSys.eta*(phi.val+beta.phi.val+epsilon);
         scalarValue denom_sum_term = constV(0.0);
         for (auto& [i, i_alpha] : comp_data){
             const CompData<dim>& i_beta = beta.comp_data.at(i);
@@ -103,7 +104,7 @@ public:
             sum_term += (phi.val*i_alpha.dfdx.val + beta.phi.val*i_beta.dfdx.val)*
                         (i_beta.x_data.val - i_alpha.x_data.val);
         }
-        sum_term /= phi.val + beta.phi.val;
+        sum_term /= phi.val + beta.phi.val + epsilon;
         return beta.phase_free_energy - phase_free_energy - sum_term;
     }
     // Equation 39
@@ -163,8 +164,8 @@ public:
 
 protected:
     // References to phase object
-    const Phase& info;
     const IsothermalSystem& isoSys;
+    const Phase& info;
     const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields;
     variableContainer<dim,degree,scalarValue>& variable_list;
 

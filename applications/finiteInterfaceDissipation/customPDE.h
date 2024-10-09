@@ -93,10 +93,6 @@ private:
         IsothermalSystem Sys;
         // File for system name
         std::string sysFile = "system.json";// userInputs.get_model_constant_string("sysFile");
-        // Number of order parameters
-        unsigned int num_ops = userInputs.get_model_constant_int("num_ops");
-        // Maps order parameter index to phase name
-        std::vector<std::string> op_phase_name; // TODO: change to pointer
 
         double T;
         double sigma;

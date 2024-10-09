@@ -91,7 +91,6 @@ public:
         }
         std::cout << "Phase names: " << phase_names << "\n"
                   << "Comp names: " << comp_names << "\n";
-        std::cout << "Finished loadVariableAttributes\n";
     }
 
 };
