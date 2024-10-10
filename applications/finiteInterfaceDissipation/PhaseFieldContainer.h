@@ -85,7 +85,7 @@ public:
     // Equation 37
     scalarValue K_ab(const PhaseFieldContainer& beta){
         scalarValue mu_ab; //TODO
-        scalarValue symmetric_term = 4.0*(double)isoSys.N*isoSys.eta*(phi.val+beta.phi.val+epsilon);
+        scalarValue symmetric_term = 4.0*(double)isoSys.N*isoSys.eta*(phi.val+beta.phi.val);
         scalarValue denom_sum_term = constV(0.0);
         for (auto& [i, i_alpha] : comp_data){
             const CompData<dim>& i_beta = beta.comp_data.at(i);
@@ -93,8 +93,8 @@ public:
                                 (i_alpha.x_data.val - i_beta.x_data.val)/
                                 isoSys.comp_info.at(i).P;
         }
-        scalarValue denominator = 1.0 + (mu_ab * PI*PI * denom_sum_term)/symmetric_term;
-        return mu_ab/denominator;
+        scalarValue denominator = symmetric_term + (mu_ab * PI*PI * denom_sum_term) + epsilon;
+        return symmetric_term*mu_ab/denominator;
     }
     // Equation 38
     scalarValue delta_G_phi_ab(const PhaseFieldContainer& beta){
