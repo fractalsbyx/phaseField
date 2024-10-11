@@ -98,6 +98,9 @@ private:
         double sigma;
         double l_gb;
 
+        // prm constants
+        double r0 = userInputs.get_model_constant_double("r0");
+
         // Zero vector
         scalargradType ZERO;
         // pi

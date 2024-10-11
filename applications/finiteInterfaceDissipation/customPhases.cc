@@ -57,7 +57,7 @@ public:
     {}
 
     void calculate_G() override {
-        this->phase_free_energy = (x_CU.val * log(x_CU.val) + x_SI.val * log(x_SI.val)) + 1.5 * x_CU.val * x_SI.val;
+        this->phase_free_energy = (x_CU.val * log(x_CU.val) + x_SI.val * log(x_SI.val)) + 1.5 * x_CU.val * x_SI.val +6.0;
     }
 
     void calculate_dfdx() override {

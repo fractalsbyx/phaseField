@@ -36,9 +36,10 @@ public:
             Phase phase;
             phase.name = phase_name;
             phase.sigma = phase_data.at("sigma").get<double>();
+            phase.mu = phase_data.at("mu").get<double>();
 
             for (const auto& [comp_name, comp_data] : phase_data.items()) {
-                if (comp_name != "sigma") {
+                if (comp_name != "sigma" && comp_name != "mu") {
                     PhaseCompInfo phaseCompInfo;
                     phaseCompInfo.M = comp_data.at("mobility").get<double>();
                     phase.comps[comp_name] = phaseCompInfo;

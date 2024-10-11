@@ -31,4 +31,5 @@ public:
     std::string name;
     std::map<std::string, PhaseCompInfo> comps;
     double sigma;
+    double mu;
 };

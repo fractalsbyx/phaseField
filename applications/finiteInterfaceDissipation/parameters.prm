@@ -35,8 +35,6 @@ set Min refinement level = 3
 # Set the number of time steps between remeshing operations
 set Steps between remeshing operations = 250
 
-
-
 # =================================================================================
 # Set the time step parameters
 # =================================================================================
@@ -45,7 +43,7 @@ set Time step = 0.2e-3
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
-set Number of time steps = 50
+set Number of time steps = 5000
 
 # =================================================================================
 # Set the output parameters
@@ -56,10 +54,10 @@ set Output condition = EQUAL_SPACING
 
 # Number of times the program outputs the fields (total number for "EQUAL_SPACING"
 # and "LOG_SPACING", number per decade for "N_PER_DECADE", ignored for "LIST")
-set Number of outputs = 10
+set Number of outputs = 100
 
 # The number of time steps between updates being printed to the screen
-set Skip print steps = 2
+set Skip print steps = 25
 
 # =================================================================================
 # Set the boundary conditions
@@ -101,3 +99,5 @@ set Number of checkpoints = 2
 
 # Some constant K
 # set Model constant K = 3, INT
+
+set Model constant r0 = 1.0, DOUBLE
