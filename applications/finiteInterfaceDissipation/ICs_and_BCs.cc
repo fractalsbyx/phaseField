@@ -23,7 +23,7 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     double r2 = x*x+y*y+z*z;
 
     // TODO: make order parameters
-    double p1 = 0.5*(1.0+std::tanh(2.0*x/Sys.eta));
+    double p1 = 0.5*(1.0+std::tanh(2.0*(0.5*(r0*r0-r2)/r0)/Sys.eta)); //0.5*(1.0+std::tanh(2.0*x/Sys.eta));
     double p2 = 1.0 - p1;
     scalar_IC = 0.5;
     if (index == 0) {scalar_IC = p1;}

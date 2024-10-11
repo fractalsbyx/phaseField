@@ -84,7 +84,7 @@ public:
     }
     // Equation 37
     scalarValue K_ab(const PhaseFieldContainer& beta){
-        scalarValue mu_ab; //TODO
+        double mu_ab = mu(*this, beta); //TODO
         scalarValue symmetric_term = 4.0*(double)isoSys.N*isoSys.eta*(phi.val+beta.phi.val);
         scalarValue denom_sum_term = constV(0.0);
         for (auto& [i, i_alpha] : comp_data){
@@ -143,6 +143,9 @@ public:
     }
     inline double M_ij(const std::string& i, const std::string& j){
         return 0.5*(info.comps.at(i).M + info.comps.at(j).M); // fast bad approximation
+    }
+    inline double mu(const PhaseFieldContainer<dim, degree>& alpha, const PhaseFieldContainer<dim, degree>& beta){
+        return 0.5*(alpha.info.mu + beta.info.mu); // fast bad approximation
     }
 
     void solve(){
