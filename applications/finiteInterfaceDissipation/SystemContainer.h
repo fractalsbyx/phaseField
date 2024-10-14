@@ -27,6 +27,12 @@ public:
         }
     }
 
+    void calculate_locals(){
+        for(auto& [key, phase_field] : phase_fields){
+            phase_field->calculate_locals();
+        }
+    }
+
     void solve(){
         for(auto& [key, phase_field] : phase_fields){
             phase_field->solve();
