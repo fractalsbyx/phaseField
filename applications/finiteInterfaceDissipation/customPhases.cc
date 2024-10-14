@@ -57,7 +57,7 @@ public:
     {}
 
     void calculate_G() override {
-        this->phase_free_energy = (x_CU.val * log(x_CU.val) + x_SI.val * log(x_SI.val)) + 1.5 * x_CU.val * x_SI.val +6.0;
+        this->phase_free_energy = (x_CU.val * log(x_CU.val) + x_SI.val * log(x_SI.val)) + 1.5 * x_CU.val * x_SI.val;
     }
 
     void calculate_dfdx() override {
@@ -76,8 +76,4 @@ SystemContainer<dim, degree>::SystemContainer(const IsothermalSystem& _isoSys, v
     // For all phase names
     phase_fields.insert({"Phase_A", new Phase_A<dim,degree>(isoSys, "Phase_A", phase_fields, variable_list)});
     phase_fields.insert({"Phase_B", new Phase_B<dim,degree>(isoSys, "Phase_B", phase_fields, variable_list)});
-    //phase_fields.insert({"FCC", new FCC<dim,degree>(isoSys, "FCC", phase_fields, variable_list)});
-    //phase_fields.insert({"BCC", new BCC<dim,degree>(isoSys, "BCC", phase_fields, variable_list)});
-    //phase_fields.insert({"HCP", new HCP<dim,degree>(isoSys, "HCP", phase_fields, variable_list)});
-    // etc.
 }
