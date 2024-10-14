@@ -60,13 +60,21 @@ void variableAttributeLoader::loadVariableAttributes(){
 template <int dim, int degree>
 void customPDE<dim,degree>::explicitEquationRHS([[maybe_unused]] variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
 				 [[maybe_unused]] dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
+    
 
+    //scalargradType tempG;
+    //std::cout << "Uninitialized:(" << tempG << "), ";
+    //tempG *= 0.0;
+    //std::cout << "Multiplied:(" << tempG << "), ";
+    //tempG = 0.0;
+    //std::cout << "Set:(" << tempG << "), ";
     // --- Get the values and derivatives of the model variables ---
     // std::cout << "Equations Start...\n";
     SystemContainer<dim, degree> sysFields(Sys, variable_list);
     // Solve
     // std::cout << "Initialize Fields Start...\n";
     sysFields.initialize_fields();
+    sysFields.calculate_locals();
     // std::cout << "Solve Start...\n";
     sysFields.solve();
     // std::cout << "Submit Start...\n";

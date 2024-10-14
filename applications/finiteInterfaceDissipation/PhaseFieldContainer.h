@@ -33,6 +33,9 @@ public:
                                     variable_list(variable_list){
     }
     virtual ~PhaseFieldContainer(){}
+    // defined in customPhases.cc
+    virtual void calculate_dfdx(){}
+    virtual void calculate_G(){}
 
     void initialize_fields(uint& var_index){
         // Phase Value
@@ -44,13 +47,11 @@ public:
             comp_data[comp_name].x_data.grad = variable_list.get_scalar_gradient(var_index++);
         }
     }
-
-    // Custom START
-    virtual void calculate_dfdx(){
+    // For eq 39
+    void calculate_I(){
+        I.val = phi.val*PI*PI/isoSys.eta;
+        I.grad = phi.grad;
     }
-    virtual void calculate_G(){
-    }
-    // Custom END
 
     void calculate_dxdt(){
         scalarGrad temp;
@@ -136,11 +137,6 @@ public:
         }
         dphidt.val /= (double)isoSys.N;
         dphidt.grad /= (double)isoSys.N;
-    }
-
-    void calculate_I(){
-        I.val = phi.val*PI*PI/isoSys.eta;
-        I.grad = phi.grad;
     }
 
     inline double sigma(const PhaseFieldContainer<dim, degree>& alpha, const PhaseFieldContainer<dim, degree>& beta){
