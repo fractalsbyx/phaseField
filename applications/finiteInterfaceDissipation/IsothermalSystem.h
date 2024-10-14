@@ -47,6 +47,7 @@ public:
             }
             phases[phase_name] = phase;
         }
+        N = phases.size();
     }
 
     void load_variables(variableAttributeLoader* loader){

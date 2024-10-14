@@ -25,7 +25,7 @@ set Subdivisions X = 1
 set Subdivisions Y = 1
 set Subdivisions Z = 1
 
-set Refine factor = 7
+set Refine factor = 4
 set Mesh adaptivity = false
 
 # Set the maximum and minimum level of refinement
@@ -39,11 +39,11 @@ set Steps between remeshing operations = 250
 # Set the time step parameters
 # =================================================================================
 # The size of the time step
-set Time step = 0.2e-3
+set Time step = 0.01e-12
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
-set Number of time steps = 5000
+set Number of time steps = 10
 
 # =================================================================================
 # Set the output parameters
@@ -54,10 +54,10 @@ set Output condition = EQUAL_SPACING
 
 # Number of times the program outputs the fields (total number for "EQUAL_SPACING"
 # and "LOG_SPACING", number per decade for "N_PER_DECADE", ignored for "LIST")
-set Number of outputs = 100
+set Number of outputs = 10
 
 # The number of time steps between updates being printed to the screen
-set Skip print steps = 25
+set Skip print steps = 1
 
 # =================================================================================
 # Set the boundary conditions

@@ -15,7 +15,7 @@ struct CompData{
     FieldContainer<dim> dxdt;
 };
 constexpr double PI = 3.141592653589793238;
-double epsilon = 1.0e-6;
+double epsilon = 1.0e-7;
 
 template <int dim, int degree>
 class PhaseFieldContainer{
@@ -105,12 +105,15 @@ public:
                         (i_beta.x_data.val - i_alpha.x_data.val);
         }
         sum_term /= phi.val + beta.phi.val + epsilon;
+        //std::cout << "dG: " << beta.phase_free_energy - phase_free_energy - sum_term << ", ";
         return beta.phase_free_energy - phase_free_energy - sum_term;
     }
     // Equation 39
     void calculate_dphidt(){
         dphidt.val = constV(0.0);
         dphidt.grad *= 0.0;
+        std::cout << "ZV: " << dphidt.val << ", ";
+        std::cout << "ZG: " << dphidt.grad << ", ";
         for(const auto& [beta_name, beta] : phase_fields){
             FieldContainer<dim> inner_sum_term;
             inner_sum_term.val = constV(0.0);
@@ -123,10 +126,12 @@ public:
             }
             dphidt.val += K_ab(*beta) * 
                         (sigma(*this, *beta)*(I.val - beta->I.val) +
-                        inner_sum_term.val);
+                        inner_sum_term.val + delta_G_phi_ab(*beta));
+            std::cout << "dphiV: " << dphidt.val << ", ";
             dphidt.grad += K_ab(*beta) * 
                         (sigma(*this, *beta)*(I.grad - beta->I.grad) +
                         inner_sum_term.grad);
+            std::cout << "dphiG: " << dphidt.grad << ", ";
                         
         }
         dphidt.val /= (double)isoSys.N;
@@ -157,6 +162,11 @@ public:
     }
 
     void submit_fields(uint& var_index, const double& dt){
+        //std::cout << "dt: " << dt << ", ";
+        std::cout << "Va: " << dphidt.val << ", ";
+        std::cout << "Gr: " << dphidt.grad << ", ";
+        //std::cout << "DphiV: " << phi.val + dt * dphidt.val << ", ";
+        //std::cout << "DphiG: " << - dt * dphidt.grad << ", ";
         variable_list.set_scalar_value_term_RHS(var_index, phi.val + dt * dphidt.val);
         variable_list.set_scalar_gradient_term_RHS(var_index++,    - dt * dphidt.grad);
         for (auto& [i, i_data] : comp_data){
