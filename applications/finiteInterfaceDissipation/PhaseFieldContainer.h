@@ -94,7 +94,8 @@ public:
                                 (i_alpha.x_data.val - i_beta.x_data.val)/
                                 isoSys.comp_info.at(i).P;
         }
-        scalarValue denominator = symmetric_term + (mu_ab * PI*PI * denom_sum_term) + epsilon;
+        scalarValue denominator = symmetric_term + (mu_ab * PI*PI * denom_sum_term) /*+ epsilon */;
+        //std::cout << "Sym: " << symmetric_term << ", N: " << isoSys.N << ", musum: " << (mu_ab * PI*PI * denom_sum_term) << ", ";
         return symmetric_term*mu_ab/denominator;
     }
     // Equation 38
@@ -116,24 +117,25 @@ public:
         //std::cout << "ZV: " << dphidt.val << ", ";
         //std::cout << "ZG: " << dphidt.grad << ", ";
         for(const auto& [beta_name, beta] : phase_fields){
-            FieldContainer<dim> inner_sum_term;
-            inner_sum_term.val = constV(0.0);
-            inner_sum_term.grad *= 0.0;
-            for(const auto& [gamma_name, gamma] : phase_fields){
-                if(gamma != this && gamma != beta){
-                    inner_sum_term.val += (sigma(*beta, *gamma) - sigma(*this, *gamma)) * gamma->I.val;
-                    inner_sum_term.grad += (sigma(*beta, *gamma) - sigma(*this, *gamma)) * gamma->I.grad;
+            if (beta != this){
+                FieldContainer<dim> inner_sum_term;
+                inner_sum_term.val = constV(0.0);
+                inner_sum_term.grad *= 0.0;
+                for(const auto& [gamma_name, gamma] : phase_fields){
+                    if(gamma != this && gamma != beta){
+                        inner_sum_term.val += (sigma(*beta, *gamma) - sigma(*this, *gamma)) * gamma->I.val;
+                        inner_sum_term.grad += (sigma(*beta, *gamma) - sigma(*this, *gamma)) * gamma->I.grad;
+                    }
                 }
+                dphidt.val += K_ab(*beta) * 
+                            (sigma(*this, *beta)*(I.val - beta->I.val) +
+                            inner_sum_term.val + 0.25*PI*PI*delta_G_phi_ab(*beta)/isoSys.eta);
+                //std::cout << "dphiV: " << dphidt.val << ", ";
+                dphidt.grad += K_ab(*beta) * 
+                            (sigma(*this, *beta)*(I.grad - beta->I.grad) +
+                            inner_sum_term.grad);
+                //std::cout << "dphiG: " << dphidt.grad << ", ";
             }
-            dphidt.val += K_ab(*beta) * 
-                        (sigma(*this, *beta)*(I.val - beta->I.val) +
-                        inner_sum_term.val + 0.25*PI*PI*delta_G_phi_ab(*beta)/isoSys.eta);
-            //std::cout << "dphiV: " << dphidt.val << ", ";
-            dphidt.grad += K_ab(*beta) * 
-                        (sigma(*this, *beta)*(I.grad - beta->I.grad) +
-                        inner_sum_term.grad);
-            //std::cout << "dphiG: " << dphidt.grad << ", ";
-                        
         }
         dphidt.val /= (double)isoSys.N;
         dphidt.grad /= (double)isoSys.N;
@@ -183,9 +185,6 @@ protected:
 
     std::map<std::string, CompData<dim>> comp_data;
     std::set<std::string> comp_names;
-    // std::unordered_map<std::string, FieldContainer<dim>> x_data;
-    // std::unordered_map<std::string, FieldContainer<dim>> dfdx;
-    // std::unordered_map<std::string, FieldContainer<dim>> dxdt;
 
     scalarValue phase_free_energy;
 
