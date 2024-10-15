@@ -47,7 +47,7 @@ public:
             comp_data[comp_name].x_data.grad = variable_list.get_scalar_gradient(var_index++);
         }
     }
-    // For eq 39
+    // Equation 33
     void calculate_I(){
         I.val = phi.val*PI*PI/isoSys.eta;
         I.grad = phi.grad;
@@ -181,7 +181,7 @@ protected:
     const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields;
     variableContainer<dim,degree,scalarValue>& variable_list;
 
-    std::unordered_map<std::string, CompData<dim>> comp_data;
+    std::map<std::string, CompData<dim>> comp_data;
     std::set<std::string> comp_names;
     // std::unordered_map<std::string, FieldContainer<dim>> x_data;
     // std::unordered_map<std::string, FieldContainer<dim>> dfdx;

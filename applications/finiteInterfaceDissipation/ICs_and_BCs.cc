@@ -27,7 +27,11 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     double p2 = 1.0 - p1;
     scalar_IC = 0.5;
     if (index == 0) {scalar_IC = p1;}
+    if (index == 1) {scalar_IC = 0.4;}
+    if (index == 2) {scalar_IC = 0.6;}
     if (index == 3) {scalar_IC = p2;}
+    if (index == 4) {scalar_IC = 0.6;}
+    if (index == 5) {scalar_IC = 0.4;}
 
     
 
