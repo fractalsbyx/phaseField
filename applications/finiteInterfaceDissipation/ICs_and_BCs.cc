@@ -18,7 +18,7 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     double center[3] = {0.5*userInputs.domain_size[0],0.5*userInputs.domain_size[1],(dim>2)*userInputs.domain_size[2]};
     double x = p[0] - center[0];
     double y = p[1] - center[1];
-    double z = p[2] - center[2];
+    double z;// = p[2] - center[2];
     if(dim<3){z=0;}
     double r2 = x*x+y*y+z*z;
 
