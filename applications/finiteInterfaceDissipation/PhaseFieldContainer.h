@@ -15,7 +15,7 @@ struct CompData{
     FieldContainer<dim> dxdt;
 };
 constexpr double PI = 3.141592653589793238;
-double epsilon = 1.0e-7;
+double epsilon = 1.0e-10;
 
 template <int dim, int degree>
 class PhaseFieldContainer{
@@ -84,19 +84,34 @@ public:
         }
     }
     // Equation 37
-    scalarValue K_ab(const PhaseFieldContainer& beta){
+    FieldContainer<dim> K(const PhaseFieldContainer& beta){
         double mu_ab = mu(*this, beta); //TODO
-        scalarValue symmetric_term = 4.0*(double)isoSys.N*isoSys.eta*(phi.val+beta.phi.val);
-        scalarValue denom_sum_term = constV(0.0);
+        FieldContainer<dim> symmetric_term;
+        symmetric_term.val = 4.0*(double)isoSys.N*isoSys.eta*(phi.val+beta.phi.val);
+        symmetric_term.grad = 4.0*(double)isoSys.N*isoSys.eta*(phi.grad+beta.phi.grad);
+        FieldContainer<dim> denom_sum_term;
+        denom_sum_term.val = constV(0.0);
+        denom_sum_term.grad *= 0.0;
         for (auto& [i, i_alpha] : comp_data){
             const CompData<dim>& i_beta = beta.comp_data.at(i);
-            denom_sum_term +=   (i_alpha.x_data.val - i_beta.x_data.val)*
-                                (i_alpha.x_data.val - i_beta.x_data.val)/
-                                isoSys.comp_info.at(i).P;
+            denom_sum_term.val +=   (i_alpha.x_data.val - i_beta.x_data.val)*
+                                    (i_alpha.x_data.val - i_beta.x_data.val)/
+                                    isoSys.comp_info.at(i).P;
+            denom_sum_term.grad +=  2.0 * 
+                                    (i_alpha.x_data.val - i_beta.x_data.val)*
+                                    (i_alpha.x_data.grad - i_beta.x_data.grad)/
+                                    isoSys.comp_info.at(i).P;
         }
-        scalarValue denominator = symmetric_term + (mu_ab * PI*PI * denom_sum_term) /*+ epsilon */;
+        FieldContainer<dim> denominator;
+        denominator.val = symmetric_term.val + (mu_ab * PI*PI * denom_sum_term.val) /*+ epsilon */;
+        denominator.grad = symmetric_term.grad + (mu_ab * PI*PI * denom_sum_term.grad);
+        FieldContainer<dim> K_out;
+        K_out.val = mu_ab*symmetric_term.val/denominator.val;
+        K_out.grad = mu_ab*((symmetric_term.grad * denominator.val) - 
+                                (symmetric_term.val * denominator.grad))/
+                                (denominator.val * denominator.val);
         //std::cout << "Sym: " << symmetric_term << ", N: " << isoSys.N << ", musum: " << (mu_ab * PI*PI * denom_sum_term) << ", ";
-        return symmetric_term*mu_ab/denominator;
+        return K_out;
     }
     // Equation 38
     scalarValue delta_G_phi_ab(const PhaseFieldContainer& beta){
@@ -127,11 +142,15 @@ public:
                         inner_sum_term.grad += (sigma(*beta, *gamma) - sigma(*this, *gamma)) * gamma->I.grad;
                     }
                 }
-                dphidt.val += K_ab(*beta) * 
+                FieldContainer<dim> K_ab = K(*beta);
+                dphidt.val += K_ab.val * 
                             (sigma(*this, *beta)*(I.val - beta->I.val) +
                             inner_sum_term.val + 0.25*PI*PI*delta_G_phi_ab(*beta)/isoSys.eta);
                 //std::cout << "dphiV: " << dphidt.val << ", ";
-                dphidt.grad += K_ab(*beta) * 
+                dphidt.grad += K_ab.val * 
+                            (sigma(*this, *beta)*(I.grad - beta->I.grad) +
+                            inner_sum_term.grad);
+                dphidt.val -= K_ab.grad * 
                             (sigma(*this, *beta)*(I.grad - beta->I.grad) +
                             inner_sum_term.grad);
                 //std::cout << "dphiG: " << dphidt.grad << ", ";

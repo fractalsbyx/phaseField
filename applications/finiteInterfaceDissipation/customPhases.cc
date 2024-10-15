@@ -23,15 +23,16 @@ public:
     {}
 
     void calculate_G() override {
-        this->phase_free_energy = (x_CU.val * log(x_CU.val) + x_SI.val * log(x_SI.val)) + 2.5 * x_CU.val * x_SI.val;
+        // this->phase_free_energy = (x_CU.val * log(x_CU.val) + x_SI.val * log(x_SI.val)) + 2.5 * x_CU.val * x_SI.val;
+        this->phase_free_energy = (x_CU.val * x_CU.val) + 0.5 * x_SI.val;
     }
 
     void calculate_dfdx() override {
-        dfdx_CU.val = (log(x_CU.val) + 1.0) + 2.5 * x_SI.val;
-        dfdx_SI.val = (log(x_SI.val) + 1.0) + 2.5 * x_CU.val;
+        dfdx_CU.val = (2.0*x_CU.val);
+        dfdx_SI.val = 0.5;
 
-        dfdx_CU.grad = (1.0/(x_CU.val))*x_CU.grad + (2.5)*x_SI.grad;
-        dfdx_SI.grad = (2.5)*x_CU.grad + (1.0/(x_SI.val))*x_SI.grad;
+        dfdx_CU.grad = (2.0)*x_CU.grad + (0.0)*x_SI.grad;
+        dfdx_SI.grad = (0.0)*x_CU.grad + (0.0)*x_SI.grad;
     }
 };
 
@@ -57,15 +58,21 @@ public:
     {}
 
     void calculate_G() override {
-        this->phase_free_energy = (x_CU.val * log(x_CU.val) + x_SI.val * log(x_SI.val)) + 1.5 * x_CU.val * x_SI.val;
+        // this->phase_free_energy = (x_CU.val * log(x_CU.val) + x_SI.val * log(x_SI.val)) + 1.5 * x_CU.val * x_SI.val;
+        this->phase_free_energy = (x_SI.val * x_SI.val) + 0.5 * x_CU.val;
     }
 
     void calculate_dfdx() override {
-        dfdx_CU.val = (log(x_CU.val) + 1.0) + 1.5 * x_SI.val;
-        dfdx_SI.val = (log(x_SI.val) + 1.0) + 1.5 * x_CU.val;
+        //dfdx_CU.val = (log(x_CU.val) + 1.0) + 1.5 * x_SI.val;
+        //dfdx_SI.val = (log(x_SI.val) + 1.0) + 1.5 * x_CU.val;
 
-        dfdx_CU.grad = (1.0/(x_CU.val))*x_CU.grad + (1.5)*x_SI.grad;
-        dfdx_SI.grad = (1.5)*x_CU.grad + (1.0/(x_SI.val))*x_SI.grad;
+        //dfdx_CU.grad = (1.0/(x_CU.val))*x_CU.grad + (1.5)*x_SI.grad;
+        //dfdx_SI.grad = (1.5)*x_CU.grad + (1.0/(x_SI.val))*x_SI.grad;
+        dfdx_CU.val = 0.5;
+        dfdx_SI.val = (2.0*x_SI.val);
+
+        dfdx_CU.grad = (0.0)*x_CU.grad + (0.0)*x_SI.grad;
+        dfdx_SI.grad = (0.0)*x_CU.grad + (2.0)*x_SI.grad;
     }
 };
 
