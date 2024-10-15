@@ -15,20 +15,20 @@
             "sigma" : 1.0,
             "mu" : 0.3,
             "CU" : {
-                "mobility" : 0.0
+                "mobility" : 0.1
             },
             "SI" : {
-                "mobility" : 0.0
+                "mobility" : 0.1
             }
         },
         "Phase_B": {
             "sigma" : 1.0,
             "mu" : 0.3,
             "CU" : {
-                "mobility" : 0.0
+                "mobility" : 0.1
             },
             "SI" : {
-                "mobility" : 0.0
+                "mobility" : 0.1
             }
         }
     }

@@ -71,16 +71,16 @@ public:
             pairsum2.val = constV(0.0);
             pairsum2.grad *= 0.0;
             for (const auto& [beta_name, beta] : phase_fields){
-                const CompData<dim>& i_beta = beta->comp_data.at(i);
-                pairsum1 += beta->phi.val * (i_beta.dfdx.val - i_alpha.dfdx.val);
-                pairsum2.val += phi.val * (i_beta.x_data.val - i_alpha.x_data.val) * beta->dphidt.val;
-                pairsum2.val += (phi.val * (i_beta.x_data.grad - i_alpha.x_data.grad)
-                                +phi.grad * (i_beta.x_data.val - i_alpha.x_data.val)
-                                ) * beta->dphidt.grad;
-                pairsum2.grad -= phi.val * (i_beta.x_data.val - i_alpha.x_data.val) * beta->dphidt.grad;
+                if (beta != this){ // Technically unnecessary 
+                    const CompData<dim>& i_beta = beta->comp_data.at(i);
+                    pairsum1 += beta->phi.val * (i_beta.dfdx.val - i_alpha.dfdx.val);
+                    pairsum2.val += (i_beta.x_data.val - i_alpha.x_data.val) * beta->dphidt.val;
+                    pairsum2.val -= (i_beta.x_data.grad - i_alpha.x_data.grad) * beta->dphidt.grad;
+                    pairsum2.grad += (i_beta.x_data.val - i_alpha.x_data.val) * beta->dphidt.grad;
+                }
             }
-            i_alpha.dxdt.val += isoSys.comp_info.at(i).P * phi.val * pairsum1 + pairsum2.val;
-            i_alpha.dxdt.grad += pairsum2.grad;
+            i_alpha.dxdt.val += isoSys.comp_info.at(i).P * pairsum1 - pairsum2.val;
+            i_alpha.dxdt.grad += - pairsum2.grad;
         }
     }
     // Equation 37
