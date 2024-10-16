@@ -20,8 +20,8 @@ double epsilon = 1.0e-10;
 template <int dim, int degree>
 class PhaseFieldContainer{
 public:
-    typedef dealii::VectorizedArray<double> scalarValue;
-    typedef dealii::Tensor<1, dim, dealii::VectorizedArray<double>> scalarGrad;
+    using scalarValue = dealii::VectorizedArray<double>;
+    using scalarGrad =  dealii::Tensor<1, dim, dealii::VectorizedArray<double>>;
     #define constV(a) dealii::make_vectorized_array(a)
 
     PhaseFieldContainer(const IsothermalSystem& isoSys, const std::string& phase_name,
@@ -54,16 +54,13 @@ public:
     }
 
     void calculate_dxdt(){
-        scalarGrad temp;
-        temp *= 0.0;
-        const scalarValue VAL_ZERO = constV(0.0);
-        const scalarGrad VEC_ZERO = temp;
-
         for(auto& [i, i_alpha] : comp_data){
+            i_alpha.dxdt.val = constV(0.0);
+            i_alpha.dxdt.grad *= 0.0;
             // Spatial flux
             for(auto& [j, j_alpha] : comp_data){
                 i_alpha.dxdt.grad += isoSys.Vm*isoSys.Vm * M_ij(i,j) * j_alpha.dfdx.grad;
-                i_alpha.dxdt.val +=  isoSys.Vm*isoSys.Vm * M_ij(i,j) * phi.grad * j_alpha.dfdx.grad / (phi.val+epsilon);
+                i_alpha.dxdt.val -= -isoSys.Vm*isoSys.Vm * M_ij(i,j) * j_alpha.dfdx.grad * phi.grad / abs(phi.val+epsilon);
             }
             // Internal relaxation (eq. 16)
             scalarValue pairsum1 = constV(0.0);
@@ -75,8 +72,8 @@ public:
                     const CompData<dim>& i_beta = beta->comp_data.at(i);
                     pairsum1 += beta->phi.val * (i_beta.dfdx.val - i_alpha.dfdx.val);
                     pairsum2.val += (i_beta.x_data.val - i_alpha.x_data.val) * beta->dphidt.val;
-                    pairsum2.val -= (i_beta.x_data.grad - i_alpha.x_data.grad) * beta->dphidt.grad;
                     pairsum2.grad += (i_beta.x_data.val - i_alpha.x_data.val) * beta->dphidt.grad;
+                    pairsum2.val -= (i_beta.x_data.grad - i_alpha.x_data.grad) * beta->dphidt.grad;
                 }
             }
             i_alpha.dxdt.val += isoSys.comp_info.at(i).P * pairsum1 - pairsum2.val;
@@ -116,12 +113,12 @@ public:
     // Equation 38
     scalarValue delta_G_phi_ab(const PhaseFieldContainer& beta){
         scalarValue sum_term = constV(0.0);
-        for (auto& [i, i_alpha] : comp_data){
+        for (const auto& [i, i_alpha] : comp_data){
             const CompData<dim>& i_beta = beta.comp_data.at(i);
             sum_term += (phi.val*i_alpha.dfdx.val + beta.phi.val*i_beta.dfdx.val)*
                         (i_beta.x_data.val - i_alpha.x_data.val);
         }
-        //sum_term /= phi.val + beta.phi.val + epsilon;
+        sum_term /= phi.val + beta.phi.val /*+ epsilon*/;
         //std::cout << "dG: " << beta.phase_free_energy - phase_free_energy - sum_term << ", ";
         return beta.phase_free_energy - phase_free_energy - sum_term;
     }

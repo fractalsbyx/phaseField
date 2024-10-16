@@ -9,7 +9,7 @@
         }
     },
     "Vm" : 1.0,
-    "eta" : 0.25,
+    "eta" : 0.2,
     "phases" : {
         "Phase_A": {
             "sigma" : 1.0,
