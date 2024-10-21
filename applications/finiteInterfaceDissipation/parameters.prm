@@ -25,11 +25,11 @@ set Subdivisions X = 1
 set Subdivisions Y = 1
 set Subdivisions Z = 1
 
-set Refine factor = 8
+set Refine factor = 7
 set Mesh adaptivity = true
 
 # Set the maximum and minimum level of refinement
-set Max refinement level = 8
+set Max refinement level = 7
 set Min refinement level = 3
 
 # Set the number of time steps between remeshing operations

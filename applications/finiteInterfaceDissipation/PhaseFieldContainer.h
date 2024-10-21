@@ -2,11 +2,45 @@
 #include <deal.II/base/vectorization.h>
 #include "../../include/variableContainer.h"
 
+#include <deal.II/base/exceptions.h>
+
+#ifndef PHASEFIELDCONTAINER_H
+#define PHASEFIELDCONTAINER_H
+
+void check_finite_values(const dealii::VectorizedArray<double> &values, const std::string message)
+{
+    for (unsigned int i = 0; i < dealii::VectorizedArray<double>::size(); ++i)
+    {
+        // Ensure that each value in the VectorizedArray is finite.
+        if(!dealii::numbers::is_finite(values[i])){
+            std::cout << "Nan at: " << message << ": "<< values[i] << ", ";
+        }
+        //else{
+        //    std::cout << "Not! " << values[i] << ", ";
+        //}
+        AssertIsFinite(values[i]);
+    }
+}
+template <int dim>
+void check_finite_tensor(const dealii::Tensor<1, dim, dealii::VectorizedArray<double>> &tensor, const std::string message)
+{
+    for (unsigned int d = 0; d < dim; ++d)
+    {
+        check_finite_values(tensor[d], message);
+    }
+}
+
 template <int dim>
 struct FieldContainer{
     dealii::VectorizedArray<double> val;
     dealii::Tensor<1, dim, dealii::VectorizedArray<double>> grad;
 };
+
+template <int dim>
+void check_finite_field(const FieldContainer<dim>& field, const std::string message){
+    check_finite_values(field.val, message + " val");
+    check_finite_tensor(field.grad, message + " grad");
+}
 
 template <int dim>
 struct CompData{
@@ -34,23 +68,26 @@ public:
     }
     virtual ~PhaseFieldContainer(){}
     // defined in customPhases.cc
-    virtual void calculate_dfdx(){}
-    virtual void calculate_G(){}
+    virtual void calculate_dfdx(){std::cout << "you suck at coding!"; std::abort();}
+    virtual void calculate_G(){std::cout << "you suck at coding!"; std::abort();}
 
     void initialize_fields(uint& var_index){
         // Phase Value
         phi.val = variable_list.get_scalar_value(var_index);
         phi.grad = variable_list.get_scalar_gradient(var_index++);
+        check_finite_field(phi, "Ini phi");
         // Components Value
         for (const auto& [comp_name, comp_info] : info.comps){
             comp_data[comp_name].x_data.val = variable_list.get_scalar_value(var_index);
             comp_data[comp_name].x_data.grad = variable_list.get_scalar_gradient(var_index++);
+            check_finite_field(comp_data[comp_name].x_data, "initial x");
         }
     }
     // Equation 33
     void calculate_I(){
         I.val = phi.val*PI*PI/isoSys.eta;
         I.grad = phi.grad;
+        check_finite_field(I, "I");
     }
 
     void calculate_dxdt(){
@@ -102,12 +139,15 @@ public:
         FieldContainer<dim> denominator;
         denominator.val = symmetric_term.val + (mu_ab * PI*PI * denom_sum_term.val) /*+ epsilon */;
         denominator.grad = symmetric_term.grad + (mu_ab * PI*PI * denom_sum_term.grad);
+        check_finite_field(denominator, "k_denominator");
+        check_finite_field(symmetric_term, "symmetric_term");
         FieldContainer<dim> K_out;
         K_out.val = mu_ab*symmetric_term.val/denominator.val;
         K_out.grad = mu_ab*((symmetric_term.grad * denominator.val) - 
                                 (symmetric_term.val * denominator.grad))/
                                 (denominator.val * denominator.val);
         //std::cout << "Sym: " << symmetric_term << ", N: " << isoSys.N << ", musum: " << (mu_ab * PI*PI * denom_sum_term) << ", ";
+        check_finite_field(K_out, "K_ab");
         return K_out;
     }
     // Equation 38
@@ -184,9 +224,15 @@ public:
         //std::cout << "Gr: " << dphidt.grad << ", ";
         //std::cout << "DphiV: " << phi.val + dt * dphidt.val << ", ";
         //std::cout << "DphiG: " << - dt * dphidt.grad << ", ";
+        //check_finite_values(dphidt.val, "dphidt val");
+        //check_finite_tensor(dphidt.grad, "dphidt grad");
+        check_finite_field(dphidt, "dphidt");
         variable_list.set_scalar_value_term_RHS(var_index, phi.val + dt * dphidt.val);
         variable_list.set_scalar_gradient_term_RHS(var_index++,    - dt * dphidt.grad);
         for (auto& [i, i_data] : comp_data){
+            //check_finite_values(i_data.dxdt.val, "d"+info.name+"_"+i+"dt val");
+            //check_finite_tensor(i_data.dxdt.grad, "d"+info.name+"_"+i+"dt grad");
+            check_finite_field(i_data.dxdt, "d"+info.name+"_"+i+"dt");
             variable_list.set_scalar_value_term_RHS(var_index, i_data.x_data.val + dt * i_data.dxdt.val);
             variable_list.set_scalar_gradient_term_RHS(var_index++,              - dt * i_data.dxdt.grad);
         }
@@ -208,3 +254,5 @@ protected:
     FieldContainer<dim> dphidt;
     FieldContainer<dim> I;
 };
+
+#endif

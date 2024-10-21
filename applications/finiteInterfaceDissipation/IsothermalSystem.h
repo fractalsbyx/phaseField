@@ -17,6 +17,7 @@ public:
     IsothermalSystem(){}
     IsothermalSystem(const nlohmann::json& TCSystem){
         from_json(TCSystem);
+        std::cout << "Eta: " << eta << ", N: " << N << "\n";
     }
 
     void from_json(const nlohmann::json& j) {
