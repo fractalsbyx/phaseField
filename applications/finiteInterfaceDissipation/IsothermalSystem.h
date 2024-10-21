@@ -4,6 +4,7 @@
 #include <map>
 #include "Phase.h"
 #include "../../include/variableAttributeLoader.h"
+#include "json.hpp"
 
 struct CompInfo{
     double P; // permeability
@@ -16,7 +17,6 @@ public:
     uint N;
     double Vm;
     double eta;
-    double Temperature;
     IsothermalSystem(){}
     IsothermalSystem(const nlohmann::json& TCSystem){
         from_json(TCSystem);
@@ -83,7 +83,8 @@ public:
             // loader->set_allowed_to_nucleate			(var_index, (phase_index>0));
             loader->set_need_value_nucleation		(var_index, true);
             loader->set_dependencies_value_term_RHS (var_index, phase_names+','+grad_phase_names+','+comp_names+','+grad_comp_names);
-            loader->set_dependencies_gradient_term_RHS(var_index++, phase_names+','+grad_phase_names+','+comp_names+','+grad_comp_names);
+            loader->set_dependencies_gradient_term_RHS(var_index, phase_names+','+grad_phase_names+','+comp_names+','+grad_comp_names);
+            var_index++;
             for (const auto& [comp, info] : comp_info){
                 std::string var_name = phase_name + '_' + comp;
                 loader->set_variable_name				(var_index, var_name);
@@ -91,7 +92,8 @@ public:
                 loader->set_variable_equation_type		(var_index, EXPLICIT_TIME_DEPENDENT);
                 loader->set_need_value_nucleation		(var_index, true);
                 loader->set_dependencies_value_term_RHS (var_index, phase_names+','+grad_phase_names+','+comp_names+','+grad_comp_names);
-                loader->set_dependencies_gradient_term_RHS(var_index++, phase_names+','+grad_phase_names+','+comp_names+','+grad_comp_names);
+                loader->set_dependencies_gradient_term_RHS(var_index, phase_names+','+grad_phase_names+','+comp_names+','+grad_comp_names);
+                var_index++;
             }
         }
         std::cout << "Phase names: " << phase_names << "\n"

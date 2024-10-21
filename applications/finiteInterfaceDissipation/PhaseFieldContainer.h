@@ -42,11 +42,13 @@ public:
     void initialize_fields(uint& var_index){
         // Phase Value
         phi.val = variable_list.get_scalar_value(var_index);
-        phi.grad = variable_list.get_scalar_gradient(var_index++);
+        phi.grad = variable_list.get_scalar_gradient(var_index);
+        var_index++;
         // Components Value
         for (const auto& [comp_name, comp_info] : info.comps){
             comp_data[comp_name].x_data.val = variable_list.get_scalar_value(var_index);
-            comp_data[comp_name].x_data.grad = variable_list.get_scalar_gradient(var_index++);
+            comp_data[comp_name].x_data.grad = variable_list.get_scalar_gradient(var_index);
+            var_index++;
         }
     }
     // Equation 33
@@ -186,10 +188,12 @@ public:
         //std::cout << "DphiV: " << phi.val + dt * dphidt.val << ", ";
         //std::cout << "DphiG: " << - dt * dphidt.grad << ", ";
         variable_list.set_scalar_value_term_RHS(var_index, phi.val + dt * dphidt.val);
-        variable_list.set_scalar_gradient_term_RHS(var_index++,    - dt * dphidt.grad);
+        variable_list.set_scalar_gradient_term_RHS(var_index,    - dt * dphidt.grad);
+        var_index++;
         for (auto& [i, i_data] : comp_data){
             variable_list.set_scalar_value_term_RHS(var_index, i_data.x_data.val + dt * i_data.dxdt.val);
-            variable_list.set_scalar_gradient_term_RHS(var_index++,              - dt * i_data.dxdt.grad);
+            variable_list.set_scalar_gradient_term_RHS(var_index,              - dt * i_data.dxdt.grad);
+            var_index++;
         }
     }
 
@@ -200,9 +204,10 @@ protected:
     const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields;
     variableContainer<dim,degree,scalarValue>& variable_list;
 
+    // Object containing values for components of this phase
     std::map<std::string, CompData<dim>> comp_data;
     std::set<std::string> comp_names;
-
+    // Free energy G for this phase at its composition
     scalarValue phase_free_energy;
 
     FieldContainer<dim> phi;

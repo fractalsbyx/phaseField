@@ -5,13 +5,12 @@
 #include <set>
 #include <vector>
 #include <string>
-#include "json.hpp"
 
 struct PhaseCompInfo{
     double M;
 };
 
-class Phase {
+struct Phase {
 public:
     Phase(){}
     /*
