@@ -1,6 +1,7 @@
 #include "../../include/matrixFreePDE.h"
 #include <random>
-#include "customPhases.cc"
+//#include "customPhases.cc"
+#include "SystemContainer.h"
 
 template <int dim, int degree>
 class customPDE: public MatrixFreePDE<dim,degree>

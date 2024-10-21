@@ -36,6 +36,8 @@ ADD_CUSTOM_TARGET(run COMMAND main
   COMMENT "Run with ${CMAKE_BUILD_TYPE} configuration"
   )
 
+include_directories(${CMAKE_SOURCE_DIR})
+
 PROJECT(myapp)
 if (${CMAKE_BUILD_TYPE} MATCHES DebugRelease)
 	SET(CMAKE_BUILD_TYPE Debug)
@@ -57,7 +59,7 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
         #set(DEAL_II_CXX_FLAGS_RELEASE "${DEAL_II_CXX_FLAGS_RELEASE} -Wno-maybe-uninitialized -Wno-deprecated-declarations -Wno-comment -Wno-unused-parameter -Wno-unused-variable -Wno-unused-but-set-variable")
 endif()
 
-ADD_EXECUTABLE(main main.cc )
+ADD_EXECUTABLE(main main.cc customPhases.cc)
 
 DEAL_II_SETUP_TARGET(main)
 

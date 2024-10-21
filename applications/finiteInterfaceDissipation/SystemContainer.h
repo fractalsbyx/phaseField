@@ -1,3 +1,7 @@
+#ifndef SYSTEMCONTAINER_H
+#define SYSTEMCONTAINER_H
+
+
 #include "PhaseFieldContainer.h"
 
 
@@ -13,7 +17,6 @@ public:
     std::map<std::string, PhaseFieldContainer<dim, degree>*> phase_fields;
     SystemContainer(const IsothermalSystem& _isoSys,
                     variableContainer<dim,degree,scalarValue>& _variable_list);
-public:
     ~SystemContainer(){
         for(auto& [key, phase_field] : phase_fields){
             delete phase_field;
@@ -48,3 +51,12 @@ public:
 };
 
 //#include"customPhases.cc"
+
+template class SystemContainer<2,1>;
+template class SystemContainer<2,2>;
+template class SystemContainer<2,3>;
+template class SystemContainer<3,1>;
+template class SystemContainer<3,2>;
+template class SystemContainer<3,3>;
+
+#endif

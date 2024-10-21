@@ -1,3 +1,7 @@
+#ifndef PHASE_H
+#define PHASE_H
+
+
 #include <set>
 #include <vector>
 #include <string>
@@ -33,3 +37,5 @@ public:
     double sigma;
     double mu;
 };
+
+#endif
