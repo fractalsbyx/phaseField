@@ -37,8 +37,7 @@ public:
     }
     virtual ~PhaseFieldContainer(){}
     // defined in customPhases.cc
-    virtual void calculate_dfdx(){}
-    virtual void calculate_G(){}
+    virtual void calculate_free_energy(){}
 
     void initialize_fields(uint& var_index){
         // Phase Value
@@ -108,8 +107,8 @@ public:
         FieldContainer<dim> K_out;
         K_out.val = mu_ab*symmetric_term.val/denominator.val;
         K_out.grad = mu_ab*((symmetric_term.grad * denominator.val) - 
-                                (symmetric_term.val * denominator.grad))/
-                                (denominator.val * denominator.val);
+                            (symmetric_term.val * denominator.grad))/
+                            (denominator.val * denominator.val);
         //std::cout << "Sym: " << symmetric_term << ", N: " << isoSys.N << ", musum: " << (mu_ab * PI*PI * denom_sum_term) << ", ";
         return K_out;
     }
@@ -171,8 +170,7 @@ public:
     }
 
     void calculate_locals(){
-        calculate_G();
-        calculate_dfdx();
+        calculate_free_energy();
         calculate_I();
     }
 
