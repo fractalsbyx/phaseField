@@ -5,29 +5,21 @@
 template <int dim, int degree>
 class Phase_A : public PhaseFieldContainer<dim, degree> {
 public:
-    const FieldContainer<dim>& x_CU;
-    const FieldContainer<dim>& x_SI;
-
-    FieldContainer<dim>& dfdx_CU;
-    FieldContainer<dim>& dfdx_SI;
-
-public:
     Phase_A(const IsothermalSystem& isoSys, const std::string& phase_name,
                  const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields,
                  variableContainer<dim, degree, typename PhaseFieldContainer<dim, degree>::scalarValue>& variable_list) 
-        : PhaseFieldContainer<dim, degree>(isoSys, phase_name, phase_fields, variable_list),
-          x_CU(this->comp_data["CU"].x_data),
-          x_SI(this->comp_data["SI"].x_data),
-          dfdx_CU(this->comp_data["CU"].dfdx),
-          dfdx_SI(this->comp_data["SI"].dfdx)
+        : PhaseFieldContainer<dim, degree>(isoSys, phase_name, phase_fields, variable_list)
     {}
 
-    void calculate_G() override {
-        // this->phase_free_energy = (x_CU.val * log(x_CU.val) + x_SI.val * log(x_SI.val)) + 2.5 * x_CU.val * x_SI.val;
-        this->phase_free_energy = (x_CU.val * x_CU.val) + 0.5 * x_SI.val;
-    }
+    void calculate_free_energy() override {
+        const FieldContainer<dim>& x_CU = this->comp_data["CU"].x_data;
+        const FieldContainer<dim>& x_SI = this->comp_data["SI"].x_data;
 
-    void calculate_dfdx() override {
+        FieldContainer<dim>& dfdx_CU = this->comp_data["CU"].dfdx;
+        FieldContainer<dim>& dfdx_SI = this->comp_data["SI"].dfdx;
+
+        this->phase_free_energy = (x_CU.val * x_CU.val) + 0.5 * x_SI.val;
+
         dfdx_CU.val = (2.0*x_CU.val);
         dfdx_SI.val = 0.5;
 
@@ -40,34 +32,21 @@ public:
 template <int dim, int degree>
 class Phase_B : public PhaseFieldContainer<dim, degree> {
 public:
-    const FieldContainer<dim>& x_CU;
-    const FieldContainer<dim>& x_SI;
-
-    FieldContainer<dim>& dfdx_CU;
-    FieldContainer<dim>& dfdx_SI;
-
-public:
     Phase_B(const IsothermalSystem& isoSys, const std::string& phase_name,
                  const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields,
                  variableContainer<dim, degree, typename PhaseFieldContainer<dim, degree>::scalarValue>& variable_list) 
-        : PhaseFieldContainer<dim, degree>(isoSys, phase_name, phase_fields, variable_list),
-          x_CU(this->comp_data["CU"].x_data),
-          x_SI(this->comp_data["SI"].x_data),
-          dfdx_CU(this->comp_data["CU"].dfdx),
-          dfdx_SI(this->comp_data["SI"].dfdx)
+        : PhaseFieldContainer<dim, degree>(isoSys, phase_name, phase_fields, variable_list)
     {}
 
-    void calculate_G() override {
-        // this->phase_free_energy = (x_CU.val * log(x_CU.val) + x_SI.val * log(x_SI.val)) + 1.5 * x_CU.val * x_SI.val;
+    void calculate_free_energy() override {
+        const FieldContainer<dim>& x_CU = this->comp_data["CU"].x_data;
+        const FieldContainer<dim>& x_SI = this->comp_data["SI"].x_data;
+
+        FieldContainer<dim>& dfdx_CU = this->comp_data["CU"].dfdx;
+        FieldContainer<dim>& dfdx_SI = this->comp_data["SI"].dfdx;
+
         this->phase_free_energy = (x_SI.val * x_SI.val) + 0.5 * x_CU.val;
-    }
 
-    void calculate_dfdx() override {
-        //dfdx_CU.val = (log(x_CU.val) + 1.0) + 1.5 * x_SI.val;
-        //dfdx_SI.val = (log(x_SI.val) + 1.0) + 1.5 * x_CU.val;
-
-        //dfdx_CU.grad = (1.0/(x_CU.val))*x_CU.grad + (1.5)*x_SI.grad;
-        //dfdx_SI.grad = (1.5)*x_CU.grad + (1.0/(x_SI.val))*x_SI.grad;
         dfdx_CU.val = 0.5;
         dfdx_SI.val = (2.0*x_SI.val);
 
