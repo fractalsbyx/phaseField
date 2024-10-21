@@ -64,7 +64,7 @@ public:
             // Spatial flux
             for(auto& [j, j_alpha] : comp_data){
                 i_alpha.dxdt.grad += isoSys.Vm*isoSys.Vm * M_ij(i,j) * j_alpha.dfdx.grad;
-                i_alpha.dxdt.val -= -isoSys.Vm*isoSys.Vm * M_ij(i,j) * j_alpha.dfdx.grad * phi.grad / abs(phi.val+epsilon_loc);
+                i_alpha.dxdt.val -= -isoSys.Vm*isoSys.Vm * M_ij(i,j) * j_alpha.dfdx.grad * phi.grad / std::abs(phi.val+epsilon_loc);
             }
             // Internal relaxation (eq. 16)
             scalarValue pairsum1 = constV(0.0);
