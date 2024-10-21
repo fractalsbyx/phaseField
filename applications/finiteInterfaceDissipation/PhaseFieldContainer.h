@@ -1,3 +1,6 @@
+#ifndef PHASEFIELDCONTAINER_H
+#define PHASEFIELDCONTAINER_H
+
 #include "IsothermalSystem.h"
 #include <deal.II/base/vectorization.h>
 #include "../../include/variableContainer.h"
@@ -15,7 +18,6 @@ struct CompData{
     FieldContainer<dim> dxdt;
 };
 constexpr double PI = 3.141592653589793238;
-double epsilon = 1.0e-10;
 
 template <int dim, int degree>
 class PhaseFieldContainer{
@@ -23,6 +25,7 @@ public:
     using scalarValue = dealii::VectorizedArray<double>;
     using scalarGrad =  dealii::Tensor<1, dim, dealii::VectorizedArray<double>>;
     #define constV(a) dealii::make_vectorized_array(a)
+    double epsilon_loc = 1.0e-10;
 
     PhaseFieldContainer(const IsothermalSystem& isoSys, const std::string& phase_name,
                         const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields,
@@ -60,7 +63,7 @@ public:
             // Spatial flux
             for(auto& [j, j_alpha] : comp_data){
                 i_alpha.dxdt.grad += isoSys.Vm*isoSys.Vm * M_ij(i,j) * j_alpha.dfdx.grad;
-                i_alpha.dxdt.val -= -isoSys.Vm*isoSys.Vm * M_ij(i,j) * j_alpha.dfdx.grad * phi.grad / abs(phi.val+epsilon);
+                i_alpha.dxdt.val -= -isoSys.Vm*isoSys.Vm * M_ij(i,j) * j_alpha.dfdx.grad * phi.grad / abs(phi.val+epsilon_loc);
             }
             // Internal relaxation (eq. 16)
             scalarValue pairsum1 = constV(0.0);
@@ -208,3 +211,5 @@ protected:
     FieldContainer<dim> dphidt;
     FieldContainer<dim> I;
 };
+
+#endif

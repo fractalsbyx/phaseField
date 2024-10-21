@@ -78,7 +78,7 @@ public:
 
 // 
 template <int dim, int degree>
-SystemContainer<dim, degree>::SystemContainer(const IsothermalSystem& _isoSys, variableContainer<dim,degree,scalarValue>& _variable_list) :
+inline SystemContainer<dim, degree>::SystemContainer(const IsothermalSystem& _isoSys, variableContainer<dim,degree,scalarValue>& _variable_list) :
         isoSys(_isoSys), variable_list(_variable_list){
     // For all phase names
     phase_fields.insert({"Phase_A", new Phase_A<dim,degree>(isoSys, "Phase_A", phase_fields, variable_list)});

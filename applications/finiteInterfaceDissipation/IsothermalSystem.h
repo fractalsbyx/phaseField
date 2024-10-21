@@ -1,3 +1,6 @@
+#ifndef ISOTHERMALSYSTEM_H
+#define ISOTHERMALSYSTEM_H
+
 #include <map>
 #include "Phase.h"
 #include "../../include/variableAttributeLoader.h"
@@ -95,3 +98,5 @@ public:
                   << "Comp names: " << comp_names << "\n";
     }
 };
+
+#endif
