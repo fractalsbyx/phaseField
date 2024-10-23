@@ -86,10 +86,10 @@ public:
     }
     // Equation 37
     FieldContainer<dim> K(const PhaseFieldContainer& beta){
-        double mu_ab = mu(*this, beta); //TODO
+        double mu_ab = mu(*this, beta);
         FieldContainer<dim> symmetric_term;
-        symmetric_term.val = 4.0*(double)isoSys.N*isoSys.eta*(phi.val+beta.phi.val);
-        symmetric_term.grad = 4.0*(double)isoSys.N*isoSys.eta*(phi.grad+beta.phi.grad);
+        symmetric_term.val = 4.0*((double)(isoSys.N))*isoSys.eta*(phi.val+beta.phi.val);
+        symmetric_term.grad = 4.0*((double)(isoSys.N))*isoSys.eta*(phi.grad+beta.phi.grad);
         FieldContainer<dim> denom_sum_term;
         denom_sum_term.val = constV(0.0);
         denom_sum_term.grad *= 0.0;
@@ -157,8 +157,8 @@ public:
                 //std::cout << "dphiG: " << dphidt.grad << ", ";
             }
         }
-        dphidt.val /= (double)isoSys.N;
-        dphidt.grad /= (double)isoSys.N;
+        dphidt.val /= (double)(isoSys.N);
+        dphidt.grad /= (double)(isoSys.N);
     }
 
     inline double sigma(const PhaseFieldContainer<dim, degree>& alpha, const PhaseFieldContainer<dim, degree>& beta){
@@ -187,12 +187,12 @@ public:
         //std::cout << "Gr: " << dphidt.grad << ", ";
         //std::cout << "DphiV: " << phi.val + dt * dphidt.val << ", ";
         //std::cout << "DphiG: " << - dt * dphidt.grad << ", ";
-        variable_list.set_scalar_value_term_RHS(var_index, phi.val + dt * dphidt.val);
-        variable_list.set_scalar_gradient_term_RHS(var_index,    - dt * dphidt.grad);
+        variable_list.set_scalar_value_term_RHS   (var_index, phi.val + dt * dphidt.val);
+        variable_list.set_scalar_gradient_term_RHS(var_index,         - dt * dphidt.grad);
         var_index++;
         for (auto& [i, i_data] : comp_data){
-            variable_list.set_scalar_value_term_RHS(var_index, i_data.x_data.val + dt * i_data.dxdt.val);
-            variable_list.set_scalar_gradient_term_RHS(var_index,              - dt * i_data.dxdt.grad);
+            variable_list.set_scalar_value_term_RHS   (var_index, i_data.x_data.val + dt * i_data.dxdt.val);
+            variable_list.set_scalar_gradient_term_RHS(var_index,                   - dt * i_data.dxdt.grad);
             var_index++;
         }
     }
