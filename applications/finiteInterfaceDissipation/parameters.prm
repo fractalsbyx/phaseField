@@ -85,7 +85,7 @@ set Checkpoint condition = EQUAL_SPACING
 
 # Number of times the creates checkpoints (total number for "EQUAL_SPACING"
 # and "LOG_SPACING", number per decade for "N_PER_DECADE", ignored for "LIST")
-set Number of checkpoints = 2
+set Number of checkpoints = 0
 
 # =================================================================================
 # Set the model constants

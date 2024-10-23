@@ -11,7 +11,7 @@ public:
         : PhaseFieldContainer<dim, degree>(isoSys, phase_name, phase_fields, variable_list)
     {}
 
-    void calculate_free_energy() override {
+    inline void calculate_free_energy() override {
         const FieldContainer<dim>& x_CU = this->comp_data["CU"].x_data;
         const FieldContainer<dim>& x_SI = this->comp_data["SI"].x_data;
 
@@ -38,7 +38,7 @@ public:
         : PhaseFieldContainer<dim, degree>(isoSys, phase_name, phase_fields, variable_list)
     {}
 
-    void calculate_free_energy() override {
+    inline void calculate_free_energy() override {
         const FieldContainer<dim>& x_CU = this->comp_data["CU"].x_data;
         const FieldContainer<dim>& x_SI = this->comp_data["SI"].x_data;
 
