@@ -1,12 +1,17 @@
 #ifndef ISOTHERMALSYSTEM_H
 #define ISOTHERMALSYSTEM_H
 
-#include <map>
-#include "Phase.h"
 #include "../../include/variableAttributeLoader.h"
+
+#include "Phase.h"
 #include "json.hpp"
 
+#include <map> //
+#include <string> //
+#include <iostream>
+
 struct CompInfo{
+    double _P; // permeability
     double P; // permeability
 };
 
@@ -15,22 +20,28 @@ public:
     std::map<std::string, Phase> phases;
     std::map<std::string, CompInfo> comp_info;
     uint N;
-    double Vm;
-    double eta;
+    double length_scale, time_scale, energy_scale;
+    double _Vm, Vm;
+    double _eta, eta;
     IsothermalSystem(){}
     IsothermalSystem(const nlohmann::json& TCSystem){
         from_json(TCSystem);
     }
 
     void from_json(const nlohmann::json& j) {
+        // Parse Dimensions
+        length_scale = j.at("dimensions").at("length_scale").get<double>();
+        time_scale = j.at("dimensions").at("time_scale").get<double>();
+        energy_scale = j.at("dimensions").at("energy_density_scale").get<double>();
+
         // Parse Vm and eta
-        Vm = j.at("Vm").get<double>();
-        eta = j.at("eta").get<double>();
+        _Vm = j.at("Vm").get<double>();
+        _eta = j.at("eta").get<double>();
 
         // Parse components
         for (const auto& [comp_name, comp_data] : j.at("components").items()) {
             CompInfo compInfo;
-            compInfo.P = comp_data.at("permeability").get<double>();
+            compInfo._P = comp_data.at("permeability").get<double>();
             comp_info[comp_name] = compInfo;
         }
 
@@ -38,19 +49,35 @@ public:
         for (const auto& [phase_name, phase_data] : j.at("phases").items()) {
             Phase phase;
             phase.name = phase_name;
-            phase.sigma = phase_data.at("sigma").get<double>();
-            phase.mu = phase_data.at("mu").get<double>();
+            phase._sigma = phase_data.at("sigma").get<double>();
+            phase._mu = phase_data.at("mu").get<double>();
 
             for (const auto& [comp_name, comp_data] : phase_data.items()) {
                 if (comp_name != "sigma" && comp_name != "mu") {
                     PhaseCompInfo phaseCompInfo;
-                    phaseCompInfo.M = comp_data.at("mobility").get<double>();
+                    phaseCompInfo._M = comp_data.at("mobility").get<double>();
                     phase.comps[comp_name] = phaseCompInfo;
                 }
             }
             phases[phase_name] = phase;
         }
         N = phases.size();
+        nondimensionalize();
+    }
+
+    void nondimensionalize(){
+        Vm = _Vm;
+        eta = _eta;
+        for (auto& [phase_name, phase] : phases){
+            phase.mu = phase._mu;
+            phase.sigma = phase._sigma;
+            for (auto& [comp_name, comp] : phase.comps){
+                comp.M = comp._M;
+            }
+        }
+        for (auto& [comp_name, comp] : comp_info){
+            comp.P = comp._P;
+        }
     }
 
     void load_variables(variableAttributeLoader* loader){

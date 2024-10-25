@@ -4,6 +4,8 @@
 
 #include "PhaseFieldContainer.h"
 
+#include <map> //
+#include <string> //
 
 template <int dim, int degree>
 class SystemContainer{
@@ -49,12 +51,5 @@ public:
         }
     }
 };
-
-template class SystemContainer<2,1>;
-template class SystemContainer<2,2>;
-template class SystemContainer<2,3>;
-template class SystemContainer<3,1>;
-template class SystemContainer<3,2>;
-template class SystemContainer<3,3>;
 
 #endif
