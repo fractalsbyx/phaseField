@@ -63,3 +63,9 @@ inline SystemContainer<dim, degree>::SystemContainer(const IsothermalSystem& _is
     phase_fields.insert({"Phase_A", new Phase_A<dim,degree>(isoSys, "Phase_A", phase_fields, variable_list)});
     phase_fields.insert({"Phase_B", new Phase_B<dim,degree>(isoSys, "Phase_B", phase_fields, variable_list)});
 }
+template class SystemContainer<2,1>;
+template class SystemContainer<2,2>;
+template class SystemContainer<2,3>;
+template class SystemContainer<3,1>;
+template class SystemContainer<3,2>;
+template class SystemContainer<3,3>;

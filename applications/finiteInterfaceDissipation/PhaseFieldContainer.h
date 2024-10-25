@@ -1,9 +1,15 @@
 #ifndef PHASEFIELDCONTAINER_H
 #define PHASEFIELDCONTAINER_H
 
-#include "IsothermalSystem.h"
-#include <deal.II/base/vectorization.h>
 #include "../../include/variableContainer.h"
+
+#include "IsothermalSystem.h"
+
+#include <deal.II/base/vectorization.h>
+
+#include <set>
+#include <map> //
+#include <string> //
 
 template <int dim>
 struct FieldContainer{

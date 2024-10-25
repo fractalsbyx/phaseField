@@ -1,4 +1,9 @@
 {   
+    "dimensions" : {
+        "length_scale" : 1.0,
+        "time_scale" : 1.0,
+        "energy_density_scale" : 1.0
+    },
     "solution_component" : "AL",
     "components" : {
         "CU" : {
