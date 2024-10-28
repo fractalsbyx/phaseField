@@ -3,55 +3,55 @@
 
 // Individual phases are derived classes of PhaseFieldContainer
 template <int dim, int degree>
-class Phase_A : public PhaseFieldContainer<dim, degree> {
+class ALPHA : public PhaseFieldContainer<dim, degree> {
 public:
-    Phase_A(const IsothermalSystem& isoSys, const std::string& phase_name,
+    ALPHA(const IsothermalSystem& isoSys, const std::string& phase_name,
                  const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields,
                  variableContainer<dim, degree, typename PhaseFieldContainer<dim, degree>::scalarValue>& variable_list) 
         : PhaseFieldContainer<dim, degree>(isoSys, phase_name, phase_fields, variable_list)
     {}
-
+    #define constV(a) dealii::make_vectorized_array(a)
     inline void calculate_free_energy() override {
-        const FieldContainer<dim>& x_CU = this->comp_data["CU"].x_data;
-        const FieldContainer<dim>& x_SI = this->comp_data["SI"].x_data;
+        const FieldContainer<dim>& x_AA = this->comp_data["AA"].x_data;
+        const FieldContainer<dim>& x_BB = this->comp_data["BB"].x_data;
 
-        FieldContainer<dim>& dfdx_CU = this->comp_data["CU"].dfdx;
-        FieldContainer<dim>& dfdx_SI = this->comp_data["SI"].dfdx;
+        FieldContainer<dim>& dfdx_AA = this->comp_data["AA"].dfdx;
+        FieldContainer<dim>& dfdx_BB = this->comp_data["BB"].dfdx;
 
-        this->phase_free_energy = (x_CU.val * x_CU.val) + 0.5 * x_SI.val;
+        this->phase_free_energy = (x_BB.val * x_BB.val);
 
-        dfdx_CU.val = (2.0*x_CU.val);
-        dfdx_SI.val = 0.5;
+        dfdx_AA.val = constV(0.);
+        dfdx_BB.val = 2.0*x_BB.val;
 
-        dfdx_CU.grad = (2.0)*x_CU.grad + (0.0)*x_SI.grad;
-        dfdx_SI.grad = (0.0)*x_CU.grad + (0.0)*x_SI.grad;
+        dfdx_AA.grad = (0.0)*x_AA.grad + (0.0)*x_BB.grad;
+        dfdx_BB.grad = (0.0)*x_AA.grad + (2.0)*x_BB.grad;
     }
 };
 
 // Individual phases are derived classes of PhaseFieldContainer
 template <int dim, int degree>
-class Phase_B : public PhaseFieldContainer<dim, degree> {
+class LIQUID : public PhaseFieldContainer<dim, degree> {
 public:
-    Phase_B(const IsothermalSystem& isoSys, const std::string& phase_name,
+    LIQUID(const IsothermalSystem& isoSys, const std::string& phase_name,
                  const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields,
                  variableContainer<dim, degree, typename PhaseFieldContainer<dim, degree>::scalarValue>& variable_list) 
         : PhaseFieldContainer<dim, degree>(isoSys, phase_name, phase_fields, variable_list)
     {}
-
+    #define constV(a) dealii::make_vectorized_array(a)
     inline void calculate_free_energy() override {
-        const FieldContainer<dim>& x_CU = this->comp_data["CU"].x_data;
-        const FieldContainer<dim>& x_SI = this->comp_data["SI"].x_data;
+        const FieldContainer<dim>& x_AA = this->comp_data["AA"].x_data;
+        const FieldContainer<dim>& x_BB = this->comp_data["BB"].x_data;
 
-        FieldContainer<dim>& dfdx_CU = this->comp_data["CU"].dfdx;
-        FieldContainer<dim>& dfdx_SI = this->comp_data["SI"].dfdx;
+        FieldContainer<dim>& dfdx_AA = this->comp_data["AA"].dfdx;
+        FieldContainer<dim>& dfdx_BB = this->comp_data["BB"].dfdx;
 
-        this->phase_free_energy = (x_SI.val * x_SI.val) + 0.5 * x_CU.val;
+        this->phase_free_energy = (x_AA.val * x_AA.val) + constV(0.1);
 
-        dfdx_CU.val = 0.5;
-        dfdx_SI.val = (2.0*x_SI.val);
+        dfdx_AA.val = 2.0*x_AA.val;
+        dfdx_BB.val = constV(0.);
 
-        dfdx_CU.grad = (0.0)*x_CU.grad + (0.0)*x_SI.grad;
-        dfdx_SI.grad = (0.0)*x_CU.grad + (2.0)*x_SI.grad;
+        dfdx_AA.grad = (2.0)*x_AA.grad + (0.0)*x_BB.grad;
+        dfdx_BB.grad = (0.0)*x_AA.grad + (0.0)*x_BB.grad;
     }
 };
 
@@ -64,8 +64,8 @@ inline SystemContainer<dim, degree>::SystemContainer(const IsothermalSystem& _is
                                                     variable_list(_variable_list),
                                                     userInputs(_userInputs){
     // For all phase names
-    phase_fields.insert({"Phase_A", new Phase_A<dim,degree>(isoSys, "Phase_A", phase_fields, variable_list)});
-    phase_fields.insert({"Phase_B", new Phase_B<dim,degree>(isoSys, "Phase_B", phase_fields, variable_list)});
+    phase_fields.insert({"ALPHA", new ALPHA<dim,degree>(isoSys, "ALPHA", phase_fields, variable_list)});
+    phase_fields.insert({"LIQUID", new LIQUID<dim,degree>(isoSys, "LIQUID", phase_fields, variable_list)});
 }
 template class SystemContainer<2,1>;
 template class SystemContainer<2,2>;
