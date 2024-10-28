@@ -57,8 +57,12 @@ public:
 
 // 
 template <int dim, int degree>
-inline SystemContainer<dim, degree>::SystemContainer(const IsothermalSystem& _isoSys, variableContainer<dim,degree,scalarValue>& _variable_list) :
-        isoSys(_isoSys), variable_list(_variable_list){
+inline SystemContainer<dim, degree>::SystemContainer(const IsothermalSystem& _isoSys,
+                                                    variableContainer<dim,degree,scalarValue>& _variable_list,
+                                                    const userInputParameters<dim>& _userInputs) :
+                                                    isoSys(_isoSys),
+                                                    variable_list(_variable_list),
+                                                    userInputs(_userInputs){
     // For all phase names
     phase_fields.insert({"Phase_A", new Phase_A<dim,degree>(isoSys, "Phase_A", phase_fields, variable_list)});
     phase_fields.insert({"Phase_B", new Phase_B<dim,degree>(isoSys, "Phase_B", phase_fields, variable_list)});

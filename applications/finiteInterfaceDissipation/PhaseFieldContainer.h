@@ -167,6 +167,17 @@ public:
         dphidt.grad /= (double)(isoSys.N);
     }
 
+    void constrain_dphidt(const double& dt){
+        for (unsigned int i = 0; i < dphidt.val.size(); ++i){
+            if (phi.val[i] + dphidt.val[i] * dt > 1.){
+                dphidt.val[i] = (1. - phi.val[i]) / dt;
+            }
+            else if (phi.val[i] + dphidt.val[i] * dt < 0.){
+                dphidt.val[i] = (0. - phi.val[i]) / dt;
+            }
+        }
+    }
+
     inline double sigma(const PhaseFieldContainer<dim, degree>& alpha, const PhaseFieldContainer<dim, degree>& beta){
         return 0.5*(alpha.info.sigma + beta.info.sigma);
     }
