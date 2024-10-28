@@ -70,7 +70,7 @@ void customPDE<dim,degree>::explicitEquationRHS([[maybe_unused]] variableContain
     //std::cout << "Set:(" << tempG << "), ";
     // --- Get the values and derivatives of the model variables ---
     // std::cout << "Equations Start...\n";
-    SystemContainer<dim, degree> sysFields(Sys, variable_list);
+    SystemContainer<dim, degree> sysFields(Sys, variable_list, userInputs);
     // Solve
     // std::cout << "Initialize Fields Start...\n";
     sysFields.initialize_fields();
@@ -78,7 +78,7 @@ void customPDE<dim,degree>::explicitEquationRHS([[maybe_unused]] variableContain
     // std::cout << "Solve Start...\n";
     sysFields.solve();
     // std::cout << "Submit Start...\n";
-    sysFields.submit_fields(userInputs.dtValue);
+    sysFields.submit_fields();
 }
 
 // =============================================================================================

@@ -4,6 +4,8 @@
 
 #include "PhaseFieldContainer.h"
 
+#include "../../include/userInputParameters.h"
+
 #include <map> //
 #include <string> //
 
@@ -16,9 +18,11 @@ public:
 
     const IsothermalSystem& isoSys;
     variableContainer<dim,degree,scalarValue>& variable_list;
+    const userInputParameters<dim>& userInputs;
     std::map<std::string, PhaseFieldContainer<dim, degree>*> phase_fields;
     SystemContainer(const IsothermalSystem& _isoSys,
-                    variableContainer<dim,degree,scalarValue>& _variable_list);
+                    variableContainer<dim,degree,scalarValue>& _variable_list,
+                    const userInputParameters<dim>& _userInputs);
     ~SystemContainer(){
         for(auto& [key, phase_field] : phase_fields){
             delete phase_field;
@@ -40,14 +44,20 @@ public:
 
     void solve(){
         for(auto& [key, phase_field] : phase_fields){
-            phase_field->solve();
+            phase_field->calculate_dphidt();
+        }
+        for(auto& [key, phase_field] : phase_fields){
+            phase_field->constrain_dphidt(userInputs.dtValue);
+        }
+        for(auto& [key, phase_field] : phase_fields){
+            phase_field->calculate_dxdt();
         }
     }
 
-    void submit_fields(const double& dt){
+    void submit_fields(){
         uint var_index = 0;
         for(auto& [key, phase_field] : phase_fields){
-            phase_field->submit_fields(var_index, dt);
+            phase_field->submit_fields(var_index, userInputs.dtValue);
         }
     }
 };
