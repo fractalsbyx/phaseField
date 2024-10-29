@@ -97,7 +97,5 @@ set Number of checkpoints = 0
 # BOOL ARRAY, STRING ARRAY, TENSOR, and [symmetry] ELASTIC CONSTANTS
 # where [symmetry] is ISOTROPIC, TRANSVERSE, ORTHOTROPIC, or ANISOTROPIC.
 
-# Some constant K
-# set Model constant K = 3, INT
-
+# Particle radius
 set Model constant r0 = 1.0, DOUBLE

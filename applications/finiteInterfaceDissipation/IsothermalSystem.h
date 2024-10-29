@@ -66,17 +66,20 @@ public:
     }
 
     void nondimensionalize(){
-        Vm = _Vm;
-        eta = _eta;
+        const double& l0 = length_scale;
+        const double& t0 = time_scale;
+        const double& E0 = energy_scale; // density
+        Vm = _Vm/(l0*l0*l0);
+        eta = _eta/(l0);
         for (auto& [phase_name, phase] : phases){
-            phase.mu = phase._mu;
-            phase.sigma = phase._sigma;
+            phase.mu = phase._mu*(E0*t0);
+            phase.sigma = phase._sigma/(E0*l0);
             for (auto& [comp_name, comp] : phase.comps){
-                comp.M = comp._M;
+                comp.M = comp._M*(E0*l0*t0);
             }
         }
         for (auto& [comp_name, comp] : comp_info){
-            comp.P = comp._P;
+            comp.P = comp._P*(E0*t0);
         }
     }
 
