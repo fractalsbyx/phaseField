@@ -110,14 +110,13 @@ public:
                                     isoSys.comp_info.at(i).P;
         }
         FieldContainer<dim> denominator;
-        denominator.val = symmetric_term.val + (mu_ab * PI*PI * denom_sum_term.val) /*+ epsilon */;
+        denominator.val = symmetric_term.val + (mu_ab * PI*PI * denom_sum_term.val);
         denominator.grad = symmetric_term.grad + (mu_ab * PI*PI * denom_sum_term.grad);
         FieldContainer<dim> K_out;
         K_out.val = mu_ab*symmetric_term.val/denominator.val;
         K_out.grad = mu_ab*((symmetric_term.grad * denominator.val) - 
                             (symmetric_term.val * denominator.grad))/
                             (denominator.val * denominator.val);
-        //std::cout << "Sym: " << symmetric_term << ", N: " << isoSys.N << ", musum: " << (mu_ab * PI*PI * denom_sum_term) << ", ";
         return K_out;
     }
     // Equation 38
@@ -128,16 +127,13 @@ public:
             sum_term += (phi.val*i_alpha.dfdx.val + beta.phi.val*i_beta.dfdx.val)*
                         (i_beta.x_data.val - i_alpha.x_data.val);
         }
-        sum_term /= phi.val + beta.phi.val /*+ epsilon*/;
-        //std::cout << "dG: " << beta.phase_free_energy - phase_free_energy - sum_term << ", ";
+        sum_term /= phi.val + beta.phi.val;
         return beta.phase_free_energy - phase_free_energy - sum_term;
     }
     // Equation 39
     void calculate_dphidt(){
         dphidt.val = constV(0.0);
         dphidt.grad *= 0.0;
-        //std::cout << "ZV: " << dphidt.val << ", ";
-        //std::cout << "ZG: " << dphidt.grad << ", ";
         for(const auto& [beta_name, beta] : phase_fields){
             if (beta != this){
                 FieldContainer<dim> inner_sum_term;
@@ -153,14 +149,12 @@ public:
                 dphidt.val += K_ab.val * 
                             (sigma(*this, *beta)*(I.val - beta->I.val) +
                             inner_sum_term.val + 0.25*PI*PI*delta_G_phi_ab(*beta)/isoSys.eta);
-                //std::cout << "dphiV: " << dphidt.val << ", ";
                 dphidt.grad += K_ab.val * 
                             (sigma(*this, *beta)*(I.grad - beta->I.grad) +
                             inner_sum_term.grad);
                 dphidt.val -= K_ab.grad * 
                             (sigma(*this, *beta)*(I.grad - beta->I.grad) +
                             inner_sum_term.grad);
-                //std::cout << "dphiG: " << dphidt.grad << ", ";
             }
         }
         dphidt.val /= (double)(isoSys.N);
@@ -193,17 +187,7 @@ public:
         calculate_I();
     }
 
-    void solve(){
-        calculate_dphidt();
-        calculate_dxdt();
-    }
-
     void submit_fields(uint& var_index, const double& dt){
-        //std::cout << "dt: " << dt << ", ";
-        //std::cout << "Va: " << dphidt.val << ", ";
-        //std::cout << "Gr: " << dphidt.grad << ", ";
-        //std::cout << "DphiV: " << phi.val + dt * dphidt.val << ", ";
-        //std::cout << "DphiG: " << - dt * dphidt.grad << ", ";
         variable_list.set_scalar_value_term_RHS   (var_index, phi.val + dt * dphidt.val);
         variable_list.set_scalar_gradient_term_RHS(var_index,         - dt * dphidt.grad);
         var_index++;
