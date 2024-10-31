@@ -34,18 +34,16 @@ public:
     double epsilon_loc = 1.0e-10;
 
     PhaseFieldContainer(const IsothermalSystem& isoSys, const std::string& phase_name,
-                        const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields,
-                        variableContainer<dim,degree,scalarValue>& variable_list) :
+                        const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields) :
                                     isoSys(isoSys),
                                     info(isoSys.phases.at(phase_name)),
-                                    phase_fields(phase_fields),
-                                    variable_list(variable_list){
+                                    phase_fields(phase_fields){
     }
     virtual ~PhaseFieldContainer(){}
     // defined in customPhases.cc
     virtual void calculate_free_energy(){}
 
-    void initialize_fields(uint& var_index){
+    void initialize_fields(uint& var_index, const variableContainer<dim,degree,scalarValue>& variable_list){
         // Phase Value
         phi.val = variable_list.get_scalar_value(var_index);
         phi.grad = variable_list.get_scalar_gradient(var_index);
@@ -187,7 +185,7 @@ public:
         calculate_I();
     }
 
-    void submit_fields(uint& var_index, const double& dt){
+    void submit_fields(uint& var_index, variableContainer<dim,degree,scalarValue>& variable_list, const double& dt){
         variable_list.set_scalar_value_term_RHS   (var_index, phi.val + dt * dphidt.val);
         variable_list.set_scalar_gradient_term_RHS(var_index,         - dt * dphidt.grad);
         var_index++;
@@ -198,12 +196,11 @@ public:
         }
     }
 
-protected:
+//protected:
     // References to phase object
     const IsothermalSystem& isoSys;
     const Phase& info;
     const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields;
-    variableContainer<dim,degree,scalarValue>& variable_list;
 
     // Object containing values for components of this phase
     std::map<std::string, CompData<dim>> comp_data;

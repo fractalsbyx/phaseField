@@ -17,11 +17,9 @@ public:
     #define constV(a) dealii::make_vectorized_array(a)
 
     const IsothermalSystem& isoSys;
-    variableContainer<dim,degree,scalarValue>& variable_list;
     const userInputParameters<dim>& userInputs;
     std::map<std::string, PhaseFieldContainer<dim, degree>*> phase_fields;
     SystemContainer(const IsothermalSystem& _isoSys,
-                    variableContainer<dim,degree,scalarValue>& _variable_list,
                     const userInputParameters<dim>& _userInputs);
     ~SystemContainer(){
         for(auto& [key, phase_field] : phase_fields){
@@ -29,10 +27,10 @@ public:
         }
     }
 
-    void initialize_fields(){
+    void initialize_fields(const variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list){
         uint var_index = 0;
         for(auto& [key, phase_field] : phase_fields){
-            phase_field->initialize_fields(var_index);
+            phase_field->initialize_fields(var_index, variable_list);
         }
     }
 
@@ -54,10 +52,23 @@ public:
         }
     }
 
-    void submit_fields(){
+    void submit_fields(variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list){
         uint var_index = 0;
         for(auto& [key, phase_field] : phase_fields){
-            phase_field->submit_fields(var_index, userInputs.dtValue);
+            phase_field->submit_fields(var_index, variable_list, userInputs.dtValue);
+        }
+    }
+
+    void submit_pp_fields(variableContainer<dim,degree,dealii::VectorizedArray<double> > & pp_variable_list){
+        uint var_index = 0;
+        scalarValue pp_comp;
+        for(const auto& [comp_name, other] : isoSys.comp_info){
+            pp_comp = constV(0.);
+            for(auto& [key, phase_field] : phase_fields){
+                pp_comp += phase_field->phi.val * phase_field->comp_data[comp_name].x_data.val;
+            }
+            pp_variable_list.set_scalar_value_term_RHS(var_index, pp_comp);
+            ++var_index;
         }
     }
 };
