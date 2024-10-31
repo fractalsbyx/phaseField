@@ -9,7 +9,36 @@
 // domain. Note: this function is not a member of customPDE.
 
 void variableAttributeLoader::loadPostProcessorVariableAttributes(){
-    
+    #include "IsothermalSystem.h"
+    std::cout << "Starting loadPostProcessorVariableAttributes...\n";
+    // Open file ------------------------------------------------------------------------
+    // Different scope from customPDE, must initialize identical system
+    std::string sysFile = "system.json";
+    // Create an input file stream
+    std::ifstream inputFile(sysFile);
+    // Check if the file was successfully opened
+    if (!inputFile.is_open()) {
+        std::cerr << "Could not open the file: " << sysFile << std::endl;
+        std::exit(1);
+    }
+    // Parse the JSON file into a JSON object
+    nlohmann::json TCSystem;
+    try {
+        inputFile >> TCSystem;
+    } catch (nlohmann::json::parse_error& e) {
+        std::cerr << "JSON parse error: " << e.what() << std::endl;
+        std::exit(1);
+    }
+    // Close the file -------------------------------------------------------------------
+    inputFile.close();
+
+    // Make System object
+    IsothermalSystem Sys(TCSystem);
+
+    // Load Variable Attributes
+    Sys.load_pp_variables(this);
+
+    std::cout << "Finished loadPostProcessorVariableAttributes\n";
 }
 
 // =============================================================================================
@@ -28,5 +57,10 @@ void customPDE<dim,degree>::postProcessedFields(const variableContainer<dim,degr
 				variableContainer<dim,degree,dealii::VectorizedArray<double> > & pp_variable_list,
 												const dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
     // --- Getting the values and derivatives of the model variables ---
+	SystemContainer<dim, degree> sysFields(Sys, userInputs);
+    // Solve
+    // std::cout << "Initialize Fields Start...\n";
+    sysFields.initialize_fields(variable_list);
+	sysFields.submit_pp_fields(pp_variable_list);
 
 }
