@@ -6,9 +6,8 @@ template <int dim, int degree>
 class Phase_A : public PhaseFieldContainer<dim, degree> {
 public:
     Phase_A(const IsothermalSystem& isoSys, const std::string& phase_name,
-                 const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields,
-                 variableContainer<dim, degree, typename PhaseFieldContainer<dim, degree>::scalarValue>& variable_list) 
-        : PhaseFieldContainer<dim, degree>(isoSys, phase_name, phase_fields, variable_list)
+                 const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields) 
+        : PhaseFieldContainer<dim, degree>(isoSys, phase_name, phase_fields)
     {}
 
     inline void calculate_free_energy() override {
@@ -33,9 +32,8 @@ template <int dim, int degree>
 class Phase_B : public PhaseFieldContainer<dim, degree> {
 public:
     Phase_B(const IsothermalSystem& isoSys, const std::string& phase_name,
-                 const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields,
-                 variableContainer<dim, degree, typename PhaseFieldContainer<dim, degree>::scalarValue>& variable_list) 
-        : PhaseFieldContainer<dim, degree>(isoSys, phase_name, phase_fields, variable_list)
+                 const std::map<std::string, PhaseFieldContainer<dim, degree>*>& phase_fields) 
+        : PhaseFieldContainer<dim, degree>(isoSys, phase_name, phase_fields)
     {}
 
     inline void calculate_free_energy() override {
@@ -58,14 +56,12 @@ public:
 // 
 template <int dim, int degree>
 inline SystemContainer<dim, degree>::SystemContainer(const IsothermalSystem& _isoSys,
-                                                    variableContainer<dim,degree,scalarValue>& _variable_list,
                                                     const userInputParameters<dim>& _userInputs) :
                                                     isoSys(_isoSys),
-                                                    variable_list(_variable_list),
                                                     userInputs(_userInputs){
     // For all phase names
-    phase_fields.insert({"Phase_A", new Phase_A<dim,degree>(isoSys, "Phase_A", phase_fields, variable_list)});
-    phase_fields.insert({"Phase_B", new Phase_B<dim,degree>(isoSys, "Phase_B", phase_fields, variable_list)});
+    phase_fields.insert({"Phase_A", new Phase_A<dim,degree>(isoSys, "Phase_A", phase_fields)});
+    phase_fields.insert({"Phase_B", new Phase_B<dim,degree>(isoSys, "Phase_B", phase_fields)});
 }
 template class SystemContainer<2,1>;
 template class SystemContainer<2,2>;
