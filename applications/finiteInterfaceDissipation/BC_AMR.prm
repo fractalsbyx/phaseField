@@ -11,9 +11,25 @@ subsection Refinement criterion: Phase_A
     set Value lower bound = 0.01
     set Value upper bound = 0.99
 end
-
 subsection Refinement criterion: Phase_B
     set Criterion type = VALUE
     set Value lower bound = 0.01
     set Value upper bound = 0.99
+end
+
+subsection Refinement criterion: Phase_A_CU
+    set Criterion type = GRADIENT
+    set Gradient magnitude lower bound = 0.1
+end
+subsection Refinement criterion: Phase_A_SI
+    set Criterion type = GRADIENT
+    set Gradient magnitude lower bound = 0.1
+end
+subsection Refinement criterion: Phase_B_CU
+    set Criterion type = GRADIENT
+    set Gradient magnitude lower bound = 0.1
+end
+subsection Refinement criterion: Phase_B_SI
+    set Criterion type = GRADIENT
+    set Gradient magnitude lower bound = 0.1
 end

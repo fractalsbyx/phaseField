@@ -7,18 +7,18 @@
     "solution_component" : "AL",
     "components" : {
         "CU" : {
-            "permeability" : 1.0
+            "permeability" : 20.0
         },
         "SI" : {
-            "permeability" : 1.0
+            "permeability" : 20.0
         }
     },
     "Vm" : 1.0,
     "eta" : 0.2,
     "phases" : {
         "Phase_A": {
-            "sigma" : 1.0,
-            "mu" : 0.3,
+            "sigma" : 3.0,
+            "mu" : 0.8,
             "CU" : {
                 "mobility" : 0.1
             },
@@ -27,8 +27,8 @@
             }
         },
         "Phase_B": {
-            "sigma" : 1.0,
-            "mu" : 0.3,
+            "sigma" : 3.0,
+            "mu" : 0.8,
             "CU" : {
                 "mobility" : 0.1
             },
