@@ -3,8 +3,10 @@ set Boundary condition for variable ALPHA = NATURAL
 set Boundary condition for variable LIQUID = NATURAL
 set Boundary condition for variable ALPHA_AA = NATURAL
 set Boundary condition for variable ALPHA_BB = NATURAL
+set Boundary condition for variable ALPHA_CC = NATURAL
 set Boundary condition for variable LIQUID_AA = NATURAL
 set Boundary condition for variable LIQUID_BB = NATURAL
+set Boundary condition for variable LIQUID_CC = NATURAL
 
 subsection Refinement criterion: ALPHA
     set Criterion type = VALUE
@@ -16,4 +18,29 @@ subsection Refinement criterion: LIQUID
     set Criterion type = VALUE
     set Value lower bound = 0.01
     set Value upper bound = 0.99
+end
+
+subsection Refinement criterion: ALPHA_AA
+    set Criterion type = GRADIENT
+    set Gradient magnitude lower bound = 0.001
+end
+subsection Refinement criterion: ALPHA_BB
+    set Criterion type = GRADIENT
+    set Gradient magnitude lower bound = 0.001
+end
+subsection Refinement criterion: ALPHA_CC
+    set Criterion type = GRADIENT
+    set Gradient magnitude lower bound = 0.001
+end
+subsection Refinement criterion: LIQUID_AA
+    set Criterion type = GRADIENT
+    set Gradient magnitude lower bound = 0.001
+end
+subsection Refinement criterion: LIQUID_BB
+    set Criterion type = GRADIENT
+    set Gradient magnitude lower bound = 0.001
+end
+subsection Refinement criterion: LIQUID_CC
+    set Criterion type = GRADIENT
+    set Gradient magnitude lower bound = 0.001
 end

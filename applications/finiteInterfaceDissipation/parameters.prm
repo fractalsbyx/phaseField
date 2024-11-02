@@ -39,11 +39,11 @@ set Steps between remeshing operations = 25
 # Set the time step parameters
 # =================================================================================
 # The size of the time step
-set Time step = 1.0e-5
+set Time step = 1.0e-6
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
-set Number of time steps = 2000
+set Number of time steps = 20000
 
 # =================================================================================
 # Set the output parameters

@@ -20,17 +20,21 @@ void customPDE<dim,degree>::setInitialCondition(const dealii::Point<dim> &p, con
     double y = p[1] - center[1];
     double z = (dim<3) ? 0.0 : p[2] - center[2];
     double r2 = x*x+y*y+z*z;
+    r2 = r2+0;
 
     // TODO: make order parameters
-    double p1 = 0.5*(1.0+std::tanh(2.0*(0.5*(r0*r0-r2)/r0)/Sys.eta)); //0.5*(1.0+std::tanh(2.0*x/Sys.eta));
+    //double p1 = 0.5*(1.0+std::tanh(1.0*(x+0.01*std::sin(10.7*y)+0.02*std::sin(7.7*y))/Sys.eta)); //0.5*(1.0+std::tanh(2.0*(0.5*(r0*r0-r2)/r0)/Sys.eta));
+    double p1 = interface((x+0.01*std::sin(10.7*y)+0.02*std::sin(7.7*y))/(2.*Sys.eta));
     double p2 = 1.0 - p1;
     scalar_IC = 0.5;
     if (index == 0) {scalar_IC = p1;}
     if (index == 1) {scalar_IC = 0.5;}
-    if (index == 2) {scalar_IC = 0.0;}
-    if (index == 3) {scalar_IC = p2;}
-    if (index == 4) {scalar_IC = 0.0;}
-    if (index == 5) {scalar_IC = 1.0;}
+    if (index == 2) {scalar_IC = 0.5;}
+    if (index == 3) {scalar_IC = 0.0;}
+    if (index == 4) {scalar_IC = p2;}
+    if (index == 5) {scalar_IC = 0.0;}
+    if (index == 6) {scalar_IC = 0.0;}
+    if (index == 7) {scalar_IC = 1.0;}
 
     
 

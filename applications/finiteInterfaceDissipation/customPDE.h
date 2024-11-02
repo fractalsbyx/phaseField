@@ -88,6 +88,10 @@ private:
         Sys = IsothermalSystem(TCSystem);
     }
 
+    inline double interface(const double x){
+        return std::sin(0.5*pi*std::max(0., std::min(1., x)));
+    }
+
 	// ================================================================
 	// Model constants specific to this subclass
 	// ================================================================

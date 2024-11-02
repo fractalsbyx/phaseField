@@ -4,36 +4,45 @@
         "time_scale": 1.0,
         "energy_density_scale": 1.0
     },
-    "solution_component": "CC",
+    "solution_component": "VV",
     "components": {
         "AA": {
-            "permeability": 1.0
+            "permeability": 30.0
         },
         "BB": {
-            "permeability": 1.0
+            "permeability": 30.0
+        },
+        "CC": {
+            "permeability": 30.0
         }
     },
     "Vm": 1.0,
-    "eta": 0.2,
+    "eta": 0.06,
     "phases": {
         "ALPHA": {
-            "sigma": 20.0,
-            "mu": 0.3,
+            "sigma": 2.0,
+            "mu": 12.0,
             "AA": {
-                "mobility": 0.1
+                "mobility": 0.9
             },
             "BB": {
-                "mobility": 0.1
+                "mobility": 0.9
+            },
+            "CC": {
+                "mobility": 0.9
             }
         },
         "LIQUID": {
-            "sigma": 20.0,
-            "mu": 0.3,
+            "sigma": 2.0,
+            "mu": 12.0,
             "AA": {
-                "mobility": 0.1
+                "mobility": 0.9
             },
             "BB": {
-                "mobility": 0.1
+                "mobility": 0.9
+            },
+            "CC": {
+                "mobility": 0.9
             }
         }
     }
