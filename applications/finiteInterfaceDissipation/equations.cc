@@ -13,37 +13,43 @@
 // that can nucleate and whether the value of the field is needed for nucleation
 // rate calculations.
 
-void variableAttributeLoader::loadVariableAttributes(){
-    #include "IsothermalSystem.h"
-    std::cout << "Starting loadVariableAttributes...\n";
-    // Open file ------------------------------------------------------------------------
-    // Different scope from customPDE, must initialize identical system
-    std::string sysFile = "system.json";
-    // Create an input file stream
-    std::ifstream inputFile(sysFile);
-    // Check if the file was successfully opened
-    if (!inputFile.is_open()) {
-        std::cerr << "Could not open the file: " << sysFile << std::endl;
-        std::exit(1);
+void
+variableAttributeLoader::loadVariableAttributes()
+{
+#include "IsothermalSystem.h"
+  std::cout << "Starting loadVariableAttributes...\n";
+  // Open file ------------------------------------------------------------------------
+  // Different scope from customPDE, must initialize identical system
+  std::string sysFile = "system.json";
+  // Create an input file stream
+  std::ifstream inputFile(sysFile);
+  // Check if the file was successfully opened
+  if (!inputFile.is_open())
+    {
+      std::cerr << "Could not open the file: " << sysFile << std::endl;
+      std::exit(1);
     }
-    // Parse the JSON file into a JSON object
-    nlohmann::json TCSystem;
-    try {
-        inputFile >> TCSystem;
-    } catch (nlohmann::json::parse_error& e) {
-        std::cerr << "JSON parse error: " << e.what() << std::endl;
-        std::exit(1);
+  // Parse the JSON file into a JSON object
+  nlohmann::json TCSystem;
+  try
+    {
+      inputFile >> TCSystem;
     }
-    // Close the file -------------------------------------------------------------------
-    inputFile.close();
+  catch (nlohmann::json::parse_error &e)
+    {
+      std::cerr << "JSON parse error: " << e.what() << std::endl;
+      std::exit(1);
+    }
+  // Close the file -------------------------------------------------------------------
+  inputFile.close();
 
-    // Make System object
-    IsothermalSystem Sys(TCSystem);
+  // Make System object
+  IsothermalSystem Sys(TCSystem);
 
-    // Load Variable Attributes
-    Sys.load_variables(this);
+  // Load Variable Attributes
+  Sys.load_variables(this);
 
-    std::cout << "Finished loadVariableAttributes\n";
+  std::cout << "Finished loadVariableAttributes\n";
 }
 
 // =============================================================================================
@@ -58,24 +64,28 @@ void variableAttributeLoader::loadVariableAttributes(){
 // each variable in this list corresponds to the index given at the top of this file.
 
 template <int dim, int degree>
-void customPDE<dim,degree>::explicitEquationRHS([[maybe_unused]] variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
-				 [[maybe_unused]] dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
-    
-    // --- Get the values and derivatives of the model variables ---
-    // std::cout << "Equations Start...\n";
-    SystemContainer<dim, degree> sysFields(Sys, userInputs);
-    // Solve
-    // std::cout << "Initialize Fields Start...\n";
-    sysFields.initialize_fields(variable_list);
-    sysFields.calculate_locals();
-    // std::cout << "Solve Start...\n";
-    sysFields.solve();
-    // std::cout << "Submit Start...\n";
-    sysFields.submit_fields(variable_list);
+void
+customPDE<dim, degree>::explicitEquationRHS(
+  [[maybe_unused]] variableContainer<dim, degree, VectorizedArray<double>> &variable_list,
+  [[maybe_unused]] const Point<dim, VectorizedArray<double>>                q_point_loc,
+  [[maybe_unused]] const VectorizedArray<double> element_volume) const
+{
+  // --- Get the values and derivatives of the model variables ---
+  // std::cout << "Equations Start...\n";
+  SystemContainer<dim, degree> sysFields(Sys, userInputs);
+  // Solve
+  // std::cout << "Initialize Fields Start...\n";
+  sysFields.initialize_fields(variable_list);
+  sysFields.calculate_locals();
+  // std::cout << "Solve Start...\n";
+  sysFields.solve();
+  // std::cout << "Submit Start...\n";
+  sysFields.submit_fields(variable_list);
 }
 
 // =============================================================================================
-// nonExplicitEquationRHS (needed only if one or more equation is time independent or auxiliary)
+// nonExplicitEquationRHS (needed only if one or more equation is time independent or
+// auxiliary)
 // =============================================================================================
 // This function calculates the right-hand-side of all of the equations that are not
 // explicit time-dependent equations. It takes "variable_list" as an input, which is
@@ -87,9 +97,12 @@ void customPDE<dim,degree>::explicitEquationRHS([[maybe_unused]] variableContain
 // this file.
 
 template <int dim, int degree>
-void customPDE<dim,degree>::nonExplicitEquationRHS([[maybe_unused]] variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
-				 [[maybe_unused]] dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
-}
+void
+customPDE<dim, degree>::nonExplicitEquationRHS(
+  [[maybe_unused]] variableContainer<dim, degree, VectorizedArray<double>> &variable_list,
+  [[maybe_unused]] const Point<dim, VectorizedArray<double>>                q_point_loc,
+  [[maybe_unused]] const VectorizedArray<double> element_volume) const
+{}
 
 // =============================================================================================
 // equationLHS (needed only if at least one equation is time independent)
@@ -106,6 +119,9 @@ void customPDE<dim,degree>::nonExplicitEquationRHS([[maybe_unused]] variableCont
 // being solved can be accessed by "this->currentFieldIndex".
 
 template <int dim, int degree>
-void customPDE<dim,degree>::equationLHS([[maybe_unused]] variableContainer<dim,degree,dealii::VectorizedArray<double> > & variable_list,
-		[[maybe_unused]] dealii::Point<dim, dealii::VectorizedArray<double> > q_point_loc) const {
-}
+void
+customPDE<dim, degree>::equationLHS(
+  [[maybe_unused]] variableContainer<dim, degree, VectorizedArray<double>> &variable_list,
+  [[maybe_unused]] const Point<dim, VectorizedArray<double>>                q_point_loc,
+  [[maybe_unused]] const VectorizedArray<double> element_volume) const
+{}
