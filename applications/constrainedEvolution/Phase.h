@@ -19,6 +19,7 @@ public:
   double                               _mu;
   double                               sigma;
   double                               mu;
+  double                               m0, kappa;
 };
 
 #endif

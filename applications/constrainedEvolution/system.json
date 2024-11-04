@@ -1,0 +1,40 @@
+{
+    "dimensions": {
+        "length_scale": 1.0,
+        "time_scale": 1.0,
+        "energy_density_scale": 1.0
+    },
+    "solution_component": "AL",
+    "components": {
+        "CU": {
+            "permeability": 20.0
+        },
+        "SI": {
+            "permeability": 20.0
+        }
+    },
+    "Vm": 1.0,
+    "l_gb": 0.3,
+    "phases": {
+        "Phase_A": {
+            "sigma": 10.0,
+            "mu": 0.8,
+            "CU": {
+                "mobility": 0.1
+            },
+            "SI": {
+                "mobility": 0.1
+            }
+        },
+        "Phase_B": {
+            "sigma": 10.0,
+            "mu": 0.8,
+            "CU": {
+                "mobility": 0.1
+            },
+            "SI": {
+                "mobility": 0.1
+            }
+        }
+    }
+}

@@ -9,7 +9,6 @@
 #include <map>    //
 #include <string> //
 
-
 struct CompInfo
 {
   double _P; // permeability
@@ -24,10 +23,9 @@ public:
   uint                            N;
   double                          length_scale, time_scale, energy_scale;
   double                          _Vm, Vm;
-  double                          _eta, eta;
+  double                          _l_gb, l_gb;
 
-  IsothermalSystem()
-  {}
+  IsothermalSystem() = default;
 
   IsothermalSystem(const nlohmann::json &TCSystem)
   {
@@ -42,9 +40,9 @@ public:
     time_scale   = j.at("dimensions").at("time_scale").get<double>();
     energy_scale = j.at("dimensions").at("energy_density_scale").get<double>();
 
-    // Parse Vm and eta
-    _Vm  = j.at("Vm").get<double>();
-    _eta = j.at("eta").get<double>();
+    // Parse Vm and l_gb
+    _Vm   = j.at("Vm").get<double>();
+    _l_gb = j.at("l_gb").get<double>();
 
     // Parse components
     for (const auto &[comp_name, comp_data] : j.at("components").items())
@@ -84,11 +82,13 @@ public:
     const double &t0 = time_scale;
     const double &E0 = energy_scale; // density
     Vm               = _Vm / (l0 * l0 * l0);
-    eta              = _eta / (l0);
+    l_gb             = _l_gb / (l0);
     for (auto &[phase_name, phase] : phases)
       {
         phase.mu    = phase._mu * (E0 * t0);
         phase.sigma = phase._sigma / (E0 * l0);
+        phase.kappa = (3. / 4.) * phase.sigma * l_gb;
+        phase.m0    = 6. * phase.sigma / l_gb;
         for (auto &[comp_name, comp] : phase.comps)
           {
             comp.M = comp._M * (E0 * l0 * t0);

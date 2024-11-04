@@ -31,12 +31,12 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
 
   // TODO: make order parameters
   double p1 = 0.5 * (1.0 + std::tanh(2.0 * (0.5 * (r0 * r0 - r2) / r0) /
-                                     Sys.eta)); // 0.5*(1.0+std::tanh(2.0*x/Sys.eta));
+                                     Sys.l_gb)); // 0.5*(1.0+std::tanh(2.0*x/Sys.l_gb));
   double p2 = 1.0 - p1;
   scalar_IC = 0.5;
   if (index == 0)
     {
-      scalar_IC = p1;
+      scalar_IC = std::sqrt(p1);
     }
   if (index == 1)
     {
@@ -48,7 +48,7 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
     }
   if (index == 3)
     {
-      scalar_IC = p2;
+      scalar_IC = std::sqrt(p2);
     }
   if (index == 4)
     {

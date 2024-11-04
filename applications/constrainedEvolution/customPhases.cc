@@ -13,7 +13,7 @@ public:
   {}
 
   inline void
-  calculate_free_energy() override
+  calculate_chem_energy() override
   {
     const FieldContainer<dim> &x_CU = this->comp_data["CU"].x_data;
     const FieldContainer<dim> &x_SI = this->comp_data["SI"].x_data;
@@ -21,7 +21,7 @@ public:
     FieldContainer<dim> &dfdx_CU = this->comp_data["CU"].dfdx;
     FieldContainer<dim> &dfdx_SI = this->comp_data["SI"].dfdx;
 
-    this->phase_free_energy = (x_CU.val * x_CU.val) + 0.5 * x_SI.val;
+    this->phase_free_energy = constV(0.0); //(x_CU.val * x_CU.val) + 0.5 * x_SI.val;
 
     dfdx_CU.val = (2.0 * x_CU.val);
     dfdx_SI.val = 0.5;
@@ -43,7 +43,7 @@ public:
   {}
 
   inline void
-  calculate_free_energy() override
+  calculate_chem_energy() override
   {
     const FieldContainer<dim> &x_CU = this->comp_data["CU"].x_data;
     const FieldContainer<dim> &x_SI = this->comp_data["SI"].x_data;
@@ -51,7 +51,7 @@ public:
     FieldContainer<dim> &dfdx_CU = this->comp_data["CU"].dfdx;
     FieldContainer<dim> &dfdx_SI = this->comp_data["SI"].dfdx;
 
-    this->phase_free_energy = (x_SI.val * x_SI.val) + 0.5 * x_CU.val;
+    this->phase_free_energy = constV(0.0); //(x_SI.val * x_SI.val) + 0.5 * x_CU.val;
 
     dfdx_CU.val = 0.5;
     dfdx_SI.val = (2.0 * x_SI.val);
