@@ -19,17 +19,17 @@ end
 
 subsection Refinement criterion: Phase_A_CU
     set Criterion type = GRADIENT
-    set Gradient magnitude lower bound = 0.1
+    set Gradient magnitude lower bound = 0.2
 end
 subsection Refinement criterion: Phase_A_SI
     set Criterion type = GRADIENT
-    set Gradient magnitude lower bound = 0.1
+    set Gradient magnitude lower bound = 0.2
 end
 subsection Refinement criterion: Phase_B_CU
     set Criterion type = GRADIENT
-    set Gradient magnitude lower bound = 0.1
+    set Gradient magnitude lower bound = 0.2
 end
 subsection Refinement criterion: Phase_B_SI
     set Criterion type = GRADIENT
-    set Gradient magnitude lower bound = 0.1
+    set Gradient magnitude lower bound = 0.2
 end
