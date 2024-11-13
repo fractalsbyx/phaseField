@@ -10,7 +10,6 @@
 #include <set>
 #include <string> //
 
-
 template <int dim>
 struct FieldContainer
 {
@@ -35,7 +34,7 @@ public:
   using scalarValue = dealii::VectorizedArray<double>;
   using scalarGrad  = dealii::Tensor<1, dim, dealii::VectorizedArray<double>>;
 #define constV(a) dealii::make_vectorized_array(a)
-  double epsilon_loc = 1.0e-10;
+  double epsilon = 1.0e-7;
 
   PhaseFieldContainer(
     const IsothermalSystem                                          &isoSys,
@@ -91,7 +90,7 @@ public:
           {
             i_alpha.dxdt.grad += isoSys.Vm * isoSys.Vm * M_ij(i, j) * j_alpha.dfdx.grad;
             i_alpha.dxdt.val -= -isoSys.Vm * isoSys.Vm * M_ij(i, j) * j_alpha.dfdx.grad *
-                                phi.grad / std::abs(phi.val + epsilon_loc);
+                                phi.grad / (phi.val + epsilon);
           }
         // Internal relaxation (eq. 16)
         scalarValue         pairsum1 = constV(0.0);
