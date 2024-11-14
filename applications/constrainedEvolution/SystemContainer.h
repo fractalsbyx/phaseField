@@ -1,6 +1,7 @@
 #ifndef SYSTEMCONTAINER_H
 #define SYSTEMCONTAINER_H
 
+#include "FieldContainer.h"
 #include "PhaseFieldContainer.h"
 
 #include "../../include/userInputParameters.h"
@@ -19,6 +20,7 @@ public:
   const IsothermalSystem                                   &isoSys;
   const userInputParameters<dim>                           &userInputs;
   std::map<std::string, PhaseFieldContainer<dim, degree> *> phase_fields;
+  FieldContainer<dim>                                       sum_sq_psi;
 
   SystemContainer(const IsothermalSystem         &_isoSys,
                   const userInputParameters<dim> &_userInputs);
@@ -35,11 +37,25 @@ public:
   initialize_fields(
     const variableContainer<dim, degree, dealii::VectorizedArray<double>> &variable_list)
   {
+    sum_sq_psi.val = constV(0.);
+    sum_sq_psi.grad *= 0.;
     uint var_index = 0;
     for (auto &[key, phase_field] : phase_fields)
       {
         phase_field->initialize_fields(var_index, variable_list);
+        sum_sq_psi += phase_field->phi;
       }
+    scalarValue magnitude = sqrt(sum_sq_psi.val);
+    for (auto &[key, phase_field] : phase_fields)
+      {
+        phase_field->psi.val /= magnitude;
+        phase_field->psi.grad /= magnitude;
+        phase_field->phi.val /= sum_sq_psi.val;
+        phase_field->phi.grad /= sum_sq_psi.val;
+      }
+    magnitude /= magnitude;
+    sum_sq_psi.val = constV(1.);
+    sum_sq_psi.grad *= 0.;
   }
 
   void
@@ -54,15 +70,9 @@ public:
   void
   solve()
   {
-    FieldContainer<dim> constraint_term, sum_sq_psi;
+    FieldContainer<dim> constraint_term;
     constraint_term.val *= 0.;
     constraint_term.grad *= 0.;
-    sum_sq_psi.val *= 0.;
-    sum_sq_psi.grad *= 0.;
-    for (auto &[key, phase_field] : phase_fields)
-      {
-        sum_sq_psi.val += phase_field->psi.val * phase_field->psi.val;
-      }
     for (auto &[key, phase_field] : phase_fields)
       {
         phase_field->calculate_dfdpsi(sum_sq_psi.val);

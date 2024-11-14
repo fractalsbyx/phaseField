@@ -107,10 +107,9 @@ public:
   void
   calculate_dfdpsi(const scalarValue &sum_sq_psi)
   {
-    dfdpsi.val =
-      info.m0 * ((psi.val * psi.val * psi.val - psi.val) +
-                 3. * psi.val * (/*sum_sq_psi*/ constV(1.) - psi.val * psi.val)) +
-      2. * psi.val * phase_free_energy;
+    dfdpsi.val = info.m0 * ((psi.val * psi.val * psi.val - psi.val) +
+                            3. * psi.val * (sum_sq_psi - psi.val * psi.val)) +
+                 2. * psi.val * phase_free_energy;
     dfdpsi.grad = info.kappa * -psi.grad;
   }
 
