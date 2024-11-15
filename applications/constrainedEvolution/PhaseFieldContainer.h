@@ -54,9 +54,8 @@ public:
                     const variableContainer<dim, degree, scalarValue> &variable_list)
   {
     // Phase Value
-    psi.val  = variable_list.get_scalar_value(var_index);
-    psi.grad = variable_list.get_scalar_gradient(var_index);
-    phi      = field_x_field(psi, psi);
+    phi.val  = variable_list.get_scalar_value(var_index);
+    phi.grad = variable_list.get_scalar_gradient(var_index);
     var_index++;
     // Components Value
     for (const auto &[comp_name, comp_info] : info.comps)
@@ -68,17 +67,44 @@ public:
   }
 
   void
+  calculate_dfdphi(const scalarValue &sum_sq_phi)
+  {
+    dfdphi.val = info.m0 * ((phi.val * phi.val * phi.val - phi.val) +
+                            3. * phi.val * (sum_sq_phi - phi.val * phi.val)) +
+                 2. * phi.val * phase_free_energy;
+    dfdphi.grad = info.kappa * -phi.grad;
+  }
+
+  void
+  calculate_dphidt(const FieldContainer<dim> &backflux_term)
+  {
+    dphidt = info.mu * (-dfdphi - field_x_variation(phi, backflux_term));
+  }
+
+  void
   calculate_dxdt()
   {
+    FieldContainer<dim> sum_M_x, sum_minus_M_dfdx;
+    sum_minus_M_dfdx *= 0.;
+    sum_M_x *= 0.;
     for (auto &[i, i_alpha] : comp_data)
       {
-        i_alpha.dxdt.val = constV(0.0);
-        i_alpha.dxdt.grad *= 0.0;
+        sum_M_x += info.comps.at(i).M * i_alpha.x_data;
+        sum_minus_M_dfdx -= info.comps.at(i).M * i_alpha.dfdx;
+      }
+    FieldContainer<dim> backflux_term =
+      field_x_field(sum_M_x.inverse(), sum_minus_M_dfdx);
+    for (auto &[i, i_alpha] : comp_data)
+      {
+        i_alpha.dxdt *= 0.0;
         // Spatial flux
         i_alpha.dxdt.grad +=
-          isoSys.Vm * isoSys.Vm * info.comps.at(i).M * i_alpha.dfdx.grad;
-        i_alpha.dxdt.val -= -isoSys.Vm * isoSys.Vm * info.comps.at(i).M *
-                            i_alpha.dfdx.grad * phi.grad / (phi.val + epsilon);
+          info.comps.at(i).M *
+          (-i_alpha.dfdx.grad - (i_alpha.x_data.val * backflux_term.grad));
+        i_alpha.dxdt.val -=
+          info.comps.at(i).M *
+          (-i_alpha.dfdx.grad - (i_alpha.x_data.val * backflux_term.grad)) * -phi.grad /
+          (phi.val + epsilon);
 
         // Internal relaxation (eq. 16)
         scalarValue         pairsum1 = constV(0.0);
@@ -105,34 +131,12 @@ public:
   }
 
   void
-  calculate_dfdpsi(const scalarValue &sum_sq_psi)
-  {
-    dfdpsi.val = info.m0 * ((psi.val * psi.val * psi.val - psi.val) +
-                            3. * psi.val * (sum_sq_psi - psi.val * psi.val)) +
-                 2. * psi.val * phase_free_energy;
-    dfdpsi.grad = info.kappa * -psi.grad;
-  }
-
-  void
-  calculate_dpsidt(const FieldContainer<dim> &constraint_term)
-  {
-    dpsidt = (-info.mu * dfdpsi) - field_x_variation(psi, constraint_term);
-    dphidt = field_x_variation(2. * psi, dpsidt);
-  }
-
-  void
-  calculate_locals()
-  {
-    calculate_chem_energy();
-  }
-
-  void
   submit_fields(uint                                        &var_index,
                 variableContainer<dim, degree, scalarValue> &variable_list,
                 const double                                &dt)
   {
-    variable_list.set_scalar_value_term_RHS(var_index, psi.val + dt * dpsidt.val);
-    variable_list.set_scalar_gradient_term_RHS(var_index, -dt * dpsidt.grad);
+    variable_list.set_scalar_value_term_RHS(var_index, phi.val + dt * dphidt.val);
+    variable_list.set_scalar_gradient_term_RHS(var_index, -dt * dphidt.grad);
     var_index++;
     for (auto &[i, i_data] : comp_data)
       {
@@ -155,11 +159,8 @@ public:
   // Free energy G for this phase at its composition
   scalarValue phase_free_energy;
 
-  FieldContainer<dim> psi;
-  FieldContainer<dim> dfdpsi;
-  FieldContainer<dim> dpsidt;
-
   FieldContainer<dim> phi;
+  FieldContainer<dim> dfdphi;
   FieldContainer<dim> dphidt;
 };
 

@@ -12,23 +12,35 @@ struct FieldContainer
   dealii::Tensor<1, dim, dealii::VectorizedArray<double>> grad;
 
   inline FieldContainer<dim>
-  operator*(const double &other)
+  operator*(const double &other) const
   {
     return FieldContainer<dim> {other * val, other * grad};
   }
 
   // Use with caution
   inline FieldContainer<dim>
-  operator+(const FieldContainer<dim> &other)
+  operator+(const FieldContainer<dim> &other) const
   {
     return FieldContainer<dim> {val + other.val, grad + other.grad};
   }
 
   // Use with caution
   inline FieldContainer<dim>
-  operator-(const FieldContainer<dim> &other)
+  operator-(const FieldContainer<dim> &other) const
   {
     return FieldContainer<dim> {val - other.val, grad - other.grad};
+  }
+
+  inline FieldContainer<dim>
+  operator+() const
+  {
+    return FieldContainer<dim> {val, grad};
+  }
+
+  inline FieldContainer<dim>
+  operator-() const
+  {
+    return FieldContainer<dim> {-val, -grad};
   }
 
   inline void
@@ -43,6 +55,20 @@ struct FieldContainer
   {
     val -= other.val;
     grad -= other.grad;
+  }
+
+  inline void
+  operator*=(const double &other)
+  {
+    val *= other;
+    grad *= other;
+  }
+
+  inline FieldContainer<dim>
+  inverse() const
+  {
+    return FieldContainer<dim> {dealii::make_vectorized_array(1.) / val,
+                                -grad / (val * val)};
   }
 };
 

@@ -20,7 +20,8 @@ public:
   const IsothermalSystem                                   &isoSys;
   const userInputParameters<dim>                           &userInputs;
   std::map<std::string, PhaseFieldContainer<dim, degree> *> phase_fields;
-  FieldContainer<dim>                                       sum_sq_psi;
+
+  FieldContainer<dim> sum_sq_phi, sum_mu_phi, sum_minus_mu_dfdphi;
 
   SystemContainer(const IsothermalSystem         &_isoSys,
                   const userInputParameters<dim> &_userInputs);
@@ -37,25 +38,18 @@ public:
   initialize_fields(
     const variableContainer<dim, degree, dealii::VectorizedArray<double>> &variable_list)
   {
-    sum_sq_psi.val = constV(0.);
-    sum_sq_psi.grad *= 0.;
+    // Zero the uninitialized globals
+    sum_sq_phi          = 0. * sum_sq_phi;
+    sum_mu_phi          = sum_sq_phi;
+    sum_minus_mu_dfdphi = sum_sq_phi;
+
+    // Get solution fields
     uint var_index = 0;
     for (auto &[key, phase_field] : phase_fields)
       {
         phase_field->initialize_fields(var_index, variable_list);
-        sum_sq_psi += phase_field->phi;
+        sum_sq_phi += field_x_field(phase_field->phi, phase_field->phi);
       }
-    scalarValue magnitude = sqrt(sum_sq_psi.val);
-    for (auto &[key, phase_field] : phase_fields)
-      {
-        phase_field->psi.val /= magnitude;
-        phase_field->psi.grad /= magnitude;
-        phase_field->phi.val /= sum_sq_psi.val;
-        phase_field->phi.grad /= sum_sq_psi.val;
-      }
-    magnitude /= magnitude;
-    sum_sq_psi.val = constV(1.);
-    sum_sq_psi.grad *= 0.;
   }
 
   void
@@ -63,27 +57,29 @@ public:
   {
     for (auto &[key, phase_field] : phase_fields)
       {
-        phase_field->calculate_locals();
+        phase_field->calculate_chem_energy();
+      }
+    sum_mu_phi.val = constV(0.);
+    sum_mu_phi.grad *= 0.;
+    for (auto &[key, phase_field] : phase_fields)
+      {
+        phase_field->calculate_dfdphi(sum_sq_phi.val);
       }
   }
 
   void
   solve()
   {
-    FieldContainer<dim> constraint_term;
-    constraint_term.val *= 0.;
-    constraint_term.grad *= 0.;
     for (auto &[key, phase_field] : phase_fields)
       {
-        phase_field->calculate_dfdpsi(sum_sq_psi.val);
-        constraint_term += field_x_variation(phase_field->psi,
-                                             -phase_field->info.mu * phase_field->dfdpsi);
+        sum_mu_phi += phase_field->info.mu * phase_field->phi;
+        sum_minus_mu_dfdphi -= phase_field->info.mu * phase_field->dfdphi;
       }
+    FieldContainer<dim> backflux_term =
+      field_x_variation(sum_mu_phi.inverse(), sum_minus_mu_dfdphi);
     for (auto &[key, phase_field] : phase_fields)
       {
-        phase_field->calculate_dpsidt(constraint_term);
-        // phase_field->calculate_dpsidt(FieldContainer<dim> {constV(0.), 0. *
-        // constraint_term.grad});
+        phase_field->calculate_dphidt(backflux_term);
       }
     for (auto &[key, phase_field] : phase_fields)
       {
@@ -114,7 +110,7 @@ public:
         for (auto &[key, phase_field] : phase_fields)
           {
             pp_comp +=
-              phase_field->psi.val * phase_field->comp_data[comp_name].x_data.val;
+              phase_field->phi.val * phase_field->comp_data[comp_name].x_data.val;
           }
         pp_variable_list.set_scalar_value_term_RHS(var_index, pp_comp);
         ++var_index;

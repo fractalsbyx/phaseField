@@ -18,7 +18,7 @@
     "phases": {
         "Phase_A": {
             "sigma": 10.0,
-            "mu": 0.8,
+            "mu": 1.6,
             "CU": {
                 "mobility": 0.1
             },
