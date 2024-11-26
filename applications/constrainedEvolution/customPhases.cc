@@ -21,12 +21,12 @@ public:
     FieldContainer<dim> &dfdx_CU = this->comp_data["CU"].dfdx;
     FieldContainer<dim> &dfdx_SI = this->comp_data["SI"].dfdx;
 
-    this->phase_free_energy = constV(0.0); //(x_CU.val * x_CU.val) + 0.5 * x_SI.val;
+    this->phase_free_energy = constV(0.0);
 
-    dfdx_CU.val = (2.0 * x_CU.val);
-    dfdx_SI.val = 0.5;
+    dfdx_CU.val = constV(0.0);
+    dfdx_SI.val = constV(0.0); //(2.0 * x_SI.val);
 
-    dfdx_CU.grad = (2.0) * x_CU.grad + (0.0) * x_SI.grad;
+    dfdx_CU.grad = (0.0) * x_CU.grad + (0.0) * x_SI.grad;
     dfdx_SI.grad = (0.0) * x_CU.grad + (0.0) * x_SI.grad;
   }
 };
@@ -51,13 +51,13 @@ public:
     FieldContainer<dim> &dfdx_CU = this->comp_data["CU"].dfdx;
     FieldContainer<dim> &dfdx_SI = this->comp_data["SI"].dfdx;
 
-    this->phase_free_energy = constV(0.0); //(x_SI.val * x_SI.val) + 0.5 * x_CU.val;
+    this->phase_free_energy = constV(0.0);
 
-    dfdx_CU.val = 0.5;
-    dfdx_SI.val = (2.0 * x_SI.val);
+    dfdx_CU.val = constV(0.0);
+    dfdx_SI.val = constV(0.0); //(2.0 * x_SI.val);
 
     dfdx_CU.grad = (0.0) * x_CU.grad + (0.0) * x_SI.grad;
-    dfdx_SI.grad = (0.0) * x_CU.grad + (2.0) * x_SI.grad;
+    dfdx_SI.grad = (0.0) * x_CU.grad + (0.0) * x_SI.grad;
   }
 };
 
