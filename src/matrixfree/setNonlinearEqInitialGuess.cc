@@ -3,6 +3,7 @@
 #include <deal.II/matrix_free/evaluation_flags.h>
 
 #include "../../include/matrixFreePDE.h"
+#include <cmath>
 
 // solve each time increment
 template <int dim, int degree>
@@ -12,12 +13,12 @@ MatrixFreePDE<dim, degree>::setNonlinearEqInitialGuess()
   // log time
   computing_timer.enter_subsection("matrixFreePDE: setNonlinearEqInitialGuess");
   Timer time;
-  char  buffer[200];
+  time.start();
+  char buffer[200];
 
-  for (unsigned int fieldIndex = 0; fieldIndex < fields.size(); fieldIndex++)
+  for (const auto &[fieldIndex, variable] : var_attributes.attributes)
     {
-      if ((userInputs.var_eq_type[fieldIndex] == TIME_INDEPENDENT) &&
-          userInputs.var_nonlinear[fieldIndex] &&
+      if ((variable.eq_type == TIME_INDEPENDENT) && variable.is_nonlinear &&
           userInputs.nonlinear_solver_parameters.getLaplaceInitializationFlag(fieldIndex))
         {
           currentFieldIndex = fieldIndex; // Used in computeLaplaceLHS()
@@ -33,7 +34,7 @@ MatrixFreePDE<dim, degree>::setNonlinearEqInitialGuess()
             }
 
           // solver controls
-          double tol_value;
+          double tol_value = NAN;
           if (userInputs.linear_solver_parameters.getToleranceType(fieldIndex) ==
               ABSOLUTE_RESIDUAL)
             {
@@ -93,7 +94,7 @@ MatrixFreePDE<dim, degree>::setNonlinearEqInitialGuess()
 
           if (currentIncrement % userInputs.skip_print_steps == 0)
             {
-              double dU_norm;
+              double dU_norm = NAN;
               if (fields[fieldIndex].type == SCALAR)
                 {
                   dU_norm = dU_scalar.l2_norm();
@@ -114,8 +115,7 @@ MatrixFreePDE<dim, degree>::setNonlinearEqInitialGuess()
                        solver_control.tolerance(),
                        solutionSet[fieldIndex]->l2_norm(),
                        dU_norm);
-              pcout << buffer;
-              pcout << std::endl;
+              pcout << buffer << "\n";
             }
         }
     }
@@ -199,5 +199,3 @@ MatrixFreePDE<dim, degree>::getLaplaceLHS(
       mat.distribute_local_to_global(dst);
     }
 }
-
-#include "../../include/matrixFreePDE_template_instantiations.h"

@@ -22,7 +22,7 @@ MatrixFreePDE<dim, degree>::applyNeumannBCs()
   unsigned int starting_BC_list_index = 0;
   for (unsigned int i = 0; i < currentFieldIndex; i++)
     {
-      if (userInputs.var_type[i] == SCALAR)
+      if (var_attributes.attributes.at(i).var_type == SCALAR)
         {
           starting_BC_list_index++;
         }
@@ -32,7 +32,7 @@ MatrixFreePDE<dim, degree>::applyNeumannBCs()
         }
     }
 
-  if (userInputs.var_type[currentFieldIndex] == SCALAR)
+  if (var_attributes.attributes.at(currentFieldIndex).var_type == SCALAR)
     {
       for (unsigned int direction = 0; direction < 2 * dim; direction++)
         {
@@ -44,9 +44,9 @@ MatrixFreePDE<dim, degree>::applyNeumannBCs()
               FEFaceValues<dim>      fe_face_values(*fe,
                                                face_quadrature_formula,
                                                update_values | update_JxW_values);
-              const unsigned int     n_face_q_points = face_quadrature_formula.size(),
-                                 dofs_per_cell       = fe->dofs_per_cell;
-              Vector<double>                       cell_rhs(dofs_per_cell);
+              const unsigned int     n_face_q_points = face_quadrature_formula.size();
+              const unsigned int     dofs_per_cell   = fe->dofs_per_cell;
+              Vector<double>         cell_rhs(dofs_per_cell);
               std::vector<types::global_dof_index> local_dof_indices(dofs_per_cell);
 
               // Loop over each face on a boundary
@@ -102,7 +102,7 @@ MatrixFreePDE<dim, degree>::applyDirichletBCs()
 
   for (unsigned int i = 0; i < currentFieldIndex; i++)
     {
-      if (userInputs.var_type[i] == SCALAR)
+      if (var_attributes.attributes.at(i).var_type == SCALAR)
         {
           starting_BC_list_index++;
         }
@@ -112,7 +112,7 @@ MatrixFreePDE<dim, degree>::applyDirichletBCs()
         }
     }
 
-  if (userInputs.var_type[currentFieldIndex] == SCALAR)
+  if (var_attributes.attributes.at(currentFieldIndex).var_type == SCALAR)
     {
       for (unsigned int direction = 0; direction < 2 * dim; direction++)
         {
@@ -225,7 +225,7 @@ MatrixFreePDE<dim, degree>::setPeriodicity()
               periodic_pair = true;
             }
         }
-      if (periodic_pair == true)
+      if (periodic_pair)
         {
           GridTools::collect_periodic_faces(triangulation,
                                             /*b_id1*/ 2 * i,
@@ -250,7 +250,7 @@ MatrixFreePDE<dim, degree>::setPeriodicityConstraints(
   unsigned int starting_BC_list_index = 0;
   for (unsigned int i = 0; i < currentFieldIndex; i++)
     {
-      if (userInputs.var_type[i] == SCALAR)
+      if (var_attributes.attributes.at(i).var_type == SCALAR)
         {
           starting_BC_list_index++;
         }
@@ -291,8 +291,8 @@ MatrixFreePDE<dim, degree>::set_rigid_body_mode_constraints(
   // Determine the number of components in the field. For a scalar field this is 1, for a
   // vector dim, etc.
   unsigned int n_components = 0;
-  userInputs.var_type[currentFieldIndex] == VECTOR ? n_components = dim
-                                                   : n_components = 1;
+  var_attributes.attributes.at(currentFieldIndex).var_type == VECTOR ? n_components = dim
+                                                                     : n_components = 1;
 
   // Loop over each locally owned cell
   for (const auto &cell : dof_handler->active_cell_iterators())
@@ -316,5 +316,3 @@ MatrixFreePDE<dim, degree>::set_rigid_body_mode_constraints(
         }
     }
 }
-
-#include "../../include/matrixFreePDE_template_instantiations.h"

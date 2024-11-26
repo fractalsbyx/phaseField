@@ -1,8 +1,6 @@
 // Calls the unit tests for the PRISMS-PF code
 // Orignal author: Stephen DeWitt (stvdwtt@umich.edu)
 
-#include "boundaryConditions.cc"
-#include "initialConditions.cc"
 #include "unitTest.h"
 #include "unit_test_inputs.cc"
 
@@ -11,6 +9,7 @@
 #include "../../include/vectorBCFunction.h"
 #include "../../src/userInputParameters/userInputParameters.cc"
 #include "../../src/utilities/vectorBCFunction.cc"
+#include "../../src/variableAttributes/variableAttributes.cc"
 #include <iostream>
 
 int
@@ -117,28 +116,6 @@ main(int argc, char **argv)
   total_tests++;
   unitTest<2, double> NonlinearSolverParameters_tester;
   pass = NonlinearSolverParameters_tester.test_NonlinearSolverParameters();
-  tests_passed += pass;
-
-  // Unit tests for the "parseDependences" method in the "UserInputParameters"
-  // class
-  total_tests++;
-  unitTest<2, double> EquationDependencyParser_tester1;
-  pass = EquationDependencyParser_tester1
-           .test_EquationDependencyParser_variables_and_residuals_needed();
-  tests_passed += pass;
-
-  // Unit tests for the "parseDependences" method in the "UserInputParameters"
-  // class
-  total_tests++;
-  unitTest<2, double> EquationDependencyParser_tester2;
-  pass = EquationDependencyParser_tester2.test_EquationDependencyParser_nonlinear();
-  tests_passed += pass;
-
-  // Unit tests for the "parseDependences" method in the "UserInputParameters"
-  // class
-  total_tests++;
-  unitTest<2, double> EquationDependencyParser_tester3;
-  pass = EquationDependencyParser_tester3.test_EquationDependencyParser_postprocessing();
   tests_passed += pass;
 
   // Unit tests for the FloodFiller class

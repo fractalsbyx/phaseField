@@ -3,6 +3,7 @@
 #include <deal.II/numerics/data_out.h>
 
 #include "../../include/matrixFreePDE.h"
+#include <cmath>
 
 // output results
 template <int dim, int degree>
@@ -84,48 +85,41 @@ MatrixFreePDE<dim, degree>::outputResults()
               output_file << currentTime;
             }
 
-          for (unsigned int i = 0; i < userInputs.pp_number_of_variables; i++)
+          for (const auto &[pp_index, pp_variable] : var_attributes.pp_attributes)
             {
-              if (userInputs.pp_calc_integral[i])
+              if (pp_variable.calc_integral)
                 {
-                  double integrated_field;
-                  computeIntegral(integrated_field, i, postProcessedSet);
-                  pcout << "Integrated value of "
-                        << userInputs.pp_var_name[userInputs.integrated_field_indices[i]]
-                        << ": " << integrated_field << std::endl;
+                  double integrated_field = NAN;
+                  computeIntegral(integrated_field, pp_index, postProcessedSet);
+                  pcout << "Integrated value of " << pp_variable.name << ": "
+                        << integrated_field << std::endl;
                   if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) == 0)
                     {
-                      output_file
-                        << "\t"
-                        << userInputs.pp_var_name[userInputs.integrated_field_indices[i]]
-                        << "\t" << integrated_field;
+                      output_file << "\t" << pp_variable.name << "\t" << integrated_field;
                     }
                   integrated_postprocessed_fields.at(
-                    userInputs.integrated_field_indices[i]) = integrated_field;
+                    userInputs.integrated_field_indices[pp_index]) = integrated_field;
                 }
             }
           if (Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) == 0)
             {
-              output_file << std::endl;
+              output_file << "\n";
             }
           output_file.close();
           first_integrated_var_output_complete = true;
         }
 
       // Add the postprocessed fields to data_out
-      for (unsigned int fieldIndex = 0; fieldIndex < userInputs.pp_number_of_variables;
-           fieldIndex++)
+      for (const auto &[fieldIndex, pp_variable] : var_attributes.pp_attributes)
         {
           // mark field as scalar/vector
-          unsigned int components;
+          unsigned int components = 0;
           if (userInputs.pp_varInfoList[fieldIndex].is_scalar)
             {
               components = 1;
               std::vector<DataComponentInterpretation::DataComponentInterpretation>
                 dataType(components, DataComponentInterpretation::component_is_scalar);
-              std::vector<std::string> solutionNames(
-                components,
-                userInputs.pp_var_name[fieldIndex].c_str());
+              std::vector<std::string> solutionNames(components, pp_variable.name);
               // add field to data_out
               data_out.add_data_vector(*dofHandlersSet[0],
                                        *postProcessedSet[fieldIndex],
@@ -138,9 +132,7 @@ MatrixFreePDE<dim, degree>::outputResults()
               std::vector<DataComponentInterpretation::DataComponentInterpretation>
                                        dataType(components,
                          DataComponentInterpretation::component_is_part_of_vector);
-              std::vector<std::string> solutionNames(
-                components,
-                userInputs.pp_var_name[fieldIndex].c_str());
+              std::vector<std::string> solutionNames(components, pp_variable.name);
               // add field to data_out
               data_out.add_data_vector(*dofHandlersSet[0],
                                        *postProcessedSet[fieldIndex],
@@ -152,26 +144,26 @@ MatrixFreePDE<dim, degree>::outputResults()
 
   data_out.build_patches(degree);
 
-  // Defining snprintf with no warnings because we don't can about truncation
-#define snprintf_nowarn(...) (snprintf(__VA_ARGS__) < 0 ? abort() : (void) 0)
-
   // write to results file
   // file name
   std::ostringstream cycleAsString;
   cycleAsString << std::setw(std::floor(std::log10(userInputs.totalIncrements)) + 1)
                 << std::setfill('0') << currentIncrement;
-  char baseFileName[100], vtuFileName[100];
-  snprintf_nowarn(baseFileName,
-                  sizeof(baseFileName),
-                  "%s-%s",
-                  userInputs.output_file_name.c_str(),
-                  cycleAsString.str().c_str());
-  snprintf_nowarn(vtuFileName,
-                  sizeof(vtuFileName),
-                  "%s.%u.%s",
-                  baseFileName,
-                  Utilities::MPI::this_mpi_process(MPI_COMM_WORLD),
-                  userInputs.output_file_type.c_str());
+
+  char baseFileName[100];
+  char vtuFileName[100];
+
+  snprintf(baseFileName,
+           sizeof(baseFileName),
+           "%s-%s",
+           userInputs.output_file_name.c_str(),
+           cycleAsString.str().c_str());
+  snprintf(vtuFileName,
+           sizeof(vtuFileName),
+           "%s.%u.%s",
+           baseFileName,
+           Utilities::MPI::this_mpi_process(MPI_COMM_WORLD),
+           userInputs.output_file_type.c_str());
 
   // Write to file in either vtu or vtk format
   if (userInputs.output_file_type == "vtu")
@@ -199,21 +191,21 @@ MatrixFreePDE<dim, degree>::outputResults()
                    ++i)
                 {
                   char vtuProcFileName[100];
-                  snprintf_nowarn(vtuProcFileName,
-                                  sizeof(vtuProcFileName),
-                                  "%s-%s.%u.%s",
-                                  userInputs.output_file_name.c_str(),
-                                  cycleAsString.str().c_str(),
-                                  i,
-                                  userInputs.output_file_type.c_str());
+                  snprintf(vtuProcFileName,
+                           sizeof(vtuProcFileName),
+                           "%s-%s.%u.%s",
+                           userInputs.output_file_name.c_str(),
+                           cycleAsString.str().c_str(),
+                           i,
+                           userInputs.output_file_type.c_str());
                   filenames.emplace_back(vtuProcFileName);
                 }
               char pvtuFileName[100];
-              snprintf_nowarn(pvtuFileName,
-                              sizeof(pvtuFileName),
-                              "%s.p%s",
-                              baseFileName,
-                              userInputs.output_file_type.c_str());
+              snprintf(pvtuFileName,
+                       sizeof(pvtuFileName),
+                       "%s.p%s",
+                       baseFileName,
+                       userInputs.output_file_type.c_str());
               std::ofstream master_output(pvtuFileName);
 
               data_out.write_pvtu_record(master_output, filenames);
@@ -224,11 +216,11 @@ MatrixFreePDE<dim, degree>::outputResults()
         {
           // Write the results to a file shared between all processes
           char svtuFileName[100];
-          snprintf_nowarn(svtuFileName,
-                          sizeof(svtuFileName),
-                          "%s.%s",
-                          baseFileName,
-                          userInputs.output_file_type.c_str());
+          snprintf(svtuFileName,
+                   sizeof(svtuFileName),
+                   "%s.%s",
+                   baseFileName,
+                   userInputs.output_file_type.c_str());
           data_out.write_vtu_in_parallel(svtuFileName, MPI_COMM_WORLD);
           pcout << "Output written to:" << svtuFileName << "\n\n";
         }
@@ -243,13 +235,10 @@ MatrixFreePDE<dim, degree>::outputResults()
   else
     {
       std::cerr << "PRISMS-PF Error: The parameter 'outputFileType' must be "
-                   "either \"vtu\" or \"vtk\""
-                << std::endl;
+                   "either \"vtu\" or \"vtk\"\n";
       abort();
     }
 
   // log time
   computing_timer.leave_subsection("matrixFreePDE: output");
 }
-
-#include "../../include/matrixFreePDE_template_instantiations.h"

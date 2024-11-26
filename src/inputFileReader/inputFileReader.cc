@@ -1,32 +1,16 @@
-// Methods for the inputFileReader class
 #include "../../include/inputFileReader.h"
 
 #include <deal.II/base/mpi.h>
 #include <deal.II/base/utilities.h>
 
-#include "../../include/EquationDependencyParser.h"
 #include "../../include/RefinementCriterion.h"
-#include "../../include/sortIndexEntryPairList.h"
 #include <iostream>
 
-// Constructor
 inputFileReader::inputFileReader(const std::string       &input_file_name,
-                                 variableAttributeLoader &variable_attributes)
+                                 variableAttributeLoader &_variable_attributes)
+  : variable_attributes(_variable_attributes)
+  , num_pp_vars(_variable_attributes.pp_attributes.size())
 {
-  // Extract an ordered vector of the variable types from variable_attributes
-  unsigned int number_of_variables = variable_attributes.var_name_list.size();
-  var_types                        = variable_attributes.var_type;
-  var_eq_types                     = variable_attributes.var_eq_type;
-  var_names                        = variable_attributes.var_name;
-
-  var_nonlinear = variable_attributes.var_nonlinear;
-
-  var_nucleates = sortIndexEntryPairList(variable_attributes.nucleating_variable_list,
-                                         number_of_variables,
-                                         false);
-
-  num_pp_vars = variable_attributes.var_name_list_PP.size();
-
   num_constants = get_number_of_entries(input_file_name, "set", "Model constant");
 
   model_constant_names =
@@ -34,16 +18,12 @@ inputFileReader::inputFileReader(const std::string       &input_file_name,
 
   if (dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) == 0)
     {
-      std::cout << "Number of constants: " << num_constants << std::endl;
-      std::cout << "Number of post-processing variables: " << num_pp_vars << std::endl;
+      std::cout << "Number of constants: " << num_constants << "\n";
+      std::cout << "Number of post-processing variables: " << num_pp_vars << "\n";
     }
 
   // Read in all of the parameters now
-  declare_parameters(parameter_handler,
-                     var_types,
-                     var_eq_types,
-                     num_constants,
-                     var_nucleates);
+  declare_parameters(parameter_handler, num_constants);
 #if (DEAL_II_VERSION_MAJOR < 9 && DEAL_II_VERSION_MINOR < 5)
   parameter_handler.read_input(input_file_name);
 #else
@@ -52,73 +32,102 @@ inputFileReader::inputFileReader(const std::string       &input_file_name,
   number_of_dimensions = parameter_handler.get_integer("Number of dimensions");
 }
 
-// Method to parse a single line to find a target key value pair
+void
+inputFileReader::strip_spaces(std::string &line)
+{
+  while ((!line.empty()) && (line[0] == ' ' || line[0] == '\t'))
+    {
+      line.erase(0, 1);
+    }
+  while ((!line.empty()) &&
+         (line[line.size() - 1] == ' ' || line[line.size() - 1] == '\t'))
+    {
+      line.erase(line.size() - 1, std::string::npos);
+    }
+}
+
+bool
+inputFileReader::check_keyword_match(std::string &line, const std::string &keyword)
+{
+  // Early return if the line is less than the keyword size
+  if (line.size() < keyword.size())
+    {
+      return false;
+    }
+
+  // Check that the line begins with the keyword
+  for (unsigned int i = 0; i < keyword.size(); i++)
+    {
+      if (line[i] != keyword[i])
+        {
+          return false;
+        }
+    }
+
+  return true;
+}
+
 bool
 inputFileReader::parse_line(std::string        line,
                             const std::string &keyword,
                             const std::string &entry_name,
                             std::string       &out_string,
-                            const bool         expect_equals_sign) const
+                            const bool         expect_equals_sign)
 {
-  // Strip spaces at the front and back
-  while ((line.size() > 0) && (line[0] == ' ' || line[0] == '\t'))
-    line.erase(0, 1);
-  while ((line.size() > 0) &&
-         (line[line.size() - 1] == ' ' || line[line.size() - 1] == '\t'))
-    line.erase(line.size() - 1, std::string::npos);
+  // Remove spaces from the front and back
+  strip_spaces(line);
 
-  // now see whether the line starts with 'keyword' followed by multiple spaces
-  // if not, try next line (if the entry is "", then zero spaces after the
-  // keyword is ok)
-  if (line.size() < keyword.size())
-    return false;
-
-  for (unsigned int i = 0; i < keyword.size(); i++)
+  // Check whether the line starts with 'keyword'. If not, try next line (if the entry is
+  // "", then zero spaces after the keyword is ok)
+  if (!check_keyword_match(line, keyword))
     {
-      if (line[i] != keyword[i])
-        return false;
-    }
-  if (entry_name.size() > 0)
-    {
-      if (!(line[keyword.size()] == ' ' || line[keyword.size()] == '\t'))
-        return false;
+      return false;
     }
 
-  // delete the "keyword" and then delete more spaces if present
+  if (!entry_name.empty())
+    {
+      if (line[keyword.size()] != ' ' && line[keyword.size()] != '\t')
+        {
+          return false;
+        }
+    }
+
+  // Delete the "keyword" and any more spaces, if present
   line.erase(0, keyword.size());
-  while ((line.size() > 0) && (line[0] == ' ' || line[0] == '\t'))
-    line.erase(0, 1);
+  strip_spaces(line);
+
   // now see whether the next word is the word we look for
   if (line.find(entry_name) != 0)
-    return false;
+    {
+      return false;
+    }
 
   line.erase(0, entry_name.size());
-  while ((line.size() > 0) && (line[0] == ' ' || line[0] == '\t'))
-    line.erase(0, 1);
+  strip_spaces(line);
 
   // we'd expect an equals size here if expect_equals_sign is true
   if (expect_equals_sign)
     {
-      if ((line.size() < 1) || (line[0] != '='))
-        return false;
+      if ((line.empty()) || (line[0] != '='))
+        {
+          return false;
+        }
     }
 
   // remove comment
-  std::string::size_type pos = line.find('#');
+  const std::string::size_type pos = line.find('#');
   if (pos != std::string::npos)
-    line.erase(pos);
+    {
+      line.erase(pos);
+    }
 
   // trim the equals sign at the beginning and possibly following spaces
   // as well as spaces at the end
   if (expect_equals_sign)
-    line.erase(0, 1);
-
-  while ((line.size() > 0) && (line[0] == ' ' || line[0] == '\t'))
-    line.erase(0, 1);
-
-  while ((line.size() > 0) &&
-         (line[line.size() - 1] == ' ' || line[line.size() - 1] == '\t'))
-    line.erase(line.size() - 1, std::string::npos);
+    {
+      line.erase(0, 1);
+    }
+  strip_spaces(line);
 
   out_string = line;
   return true;
@@ -130,15 +139,17 @@ std::vector<std::string>
 inputFileReader::get_subsection_entry_list(const std::string &parameters_file_name,
                                            const std::string &subsec_name,
                                            const std::string &entry_name,
-                                           const std::string &default_entry) const
+                                           const std::string &default_entry)
 {
   std::ifstream input_file;
   input_file.open(parameters_file_name);
 
-  std::string               line, entry;
-  bool                      in_subsection = false;
-  bool                      found_entry, desired_entry_found;
-  unsigned int              subsection_index;
+  std::string               line;
+  std::string               entry;
+  bool                      in_subsection       = false;
+  bool                      found_entry         = false;
+  bool                      desired_entry_found = false;
+  unsigned int              subsection_index    = 0;
   std::vector<std::string>  entry_list;
   std::vector<unsigned int> index_list;
 
@@ -203,13 +214,14 @@ inputFileReader::get_subsection_entry_list(const std::string &parameters_file_na
 unsigned int
 inputFileReader::get_number_of_entries(const std::string &parameters_file_name,
                                        const std::string &keyword,
-                                       const std::string &entry_name) const
+                                       const std::string &entry_name)
 {
   std::ifstream input_file;
   input_file.open(parameters_file_name);
 
-  std::string line, entry;
-  bool        found_entry;
+  std::string line;
+  std::string entry;
+  bool        found_entry = false;
 
   unsigned int count = 0;
 
@@ -218,7 +230,9 @@ inputFileReader::get_number_of_entries(const std::string &parameters_file_name,
     {
       found_entry = parse_line(line, keyword, entry_name, entry, false);
       if (found_entry)
-        count++;
+        {
+          count++;
+        }
     }
   return count;
 }
@@ -228,13 +242,14 @@ inputFileReader::get_number_of_entries(const std::string &parameters_file_name,
 std::vector<std::string>
 inputFileReader::get_entry_name_ending_list(const std::string &parameters_file_name,
                                             const std::string &keyword,
-                                            const std::string &entry_name_begining) const
+                                            const std::string &entry_name_begining)
 {
   std::ifstream input_file;
   input_file.open(parameters_file_name);
 
-  std::string line, entry;
-  bool        found_entry;
+  std::string line;
+  std::string entry;
+  bool        found_entry = false;
 
   std::vector<std::string> entry_name_end_list;
 
@@ -248,20 +263,26 @@ inputFileReader::get_entry_name_ending_list(const std::string &parameters_file_n
           // sign
 
           // Strip whitespace at the beginning
-          while ((entry.size() > 0) && (entry[0] == ' ' || entry[0] == '\t'))
-            entry.erase(0, 1);
+          while ((!entry.empty()) && (entry[0] == ' ' || entry[0] == '\t'))
+            {
+              entry.erase(0, 1);
+            }
 
           // Strip everything up to the equals sign
-          while ((entry.size() > 0) && (entry[entry.size() - 1] != '='))
-            entry.erase(entry.size() - 1, std::string::npos);
+          while ((!entry.empty()) && (entry[entry.size() - 1] != '='))
+            {
+              entry.erase(entry.size() - 1, std::string::npos);
+            }
 
           // Strip the equals sign
           entry.erase(entry.size() - 1, std::string::npos);
 
           // Strip whitespace between the entry name and the equals sign
-          while ((entry.size() > 0) &&
+          while ((!entry.empty()) &&
                  (entry[entry.size() - 1] == ' ' || entry[entry.size() - 1] == '\t'))
-            entry.erase(entry.size() - 1, std::string::npos);
+            {
+              entry.erase(entry.size() - 1, std::string::npos);
+            }
 
           // Add it to the list
           entry_name_end_list.push_back(entry);
@@ -271,11 +292,8 @@ inputFileReader::get_entry_name_ending_list(const std::string &parameters_file_n
 }
 
 void
-inputFileReader::declare_parameters(dealii::ParameterHandler     &parameter_handler,
-                                    const std::vector<fieldType> &var_types,
-                                    const std::vector<PDEType>   &var_eq_types,
-                                    const unsigned int            num_of_constants,
-                                    const std::vector<bool>      &var_nucleates) const
+inputFileReader::declare_parameters(dealii::ParameterHandler &parameter_handler,
+                                    const unsigned int        num_of_constants) const
 {
   // Declare all of the entries
   parameter_handler.declare_entry("Number of dimensions",
@@ -335,10 +353,10 @@ inputFileReader::declare_parameters(dealii::ParameterHandler     &parameter_hand
     dealii::Patterns::Integer(),
     "The number of time steps between mesh refinement operations.");
 
-  for (unsigned int i = 0; i < var_types.size(); i++)
+  for (const auto &[index, variable] : variable_attributes.attributes)
     {
       std::string subsection_text = "Refinement criterion: ";
-      subsection_text.append(var_names.at(i));
+      subsection_text.append(variable.name);
       parameter_handler.enter_subsection(subsection_text);
       {
         parameter_handler.declare_entry(
@@ -385,13 +403,13 @@ inputFileReader::declare_parameters(dealii::ParameterHandler     &parameter_hand
     dealii::Patterns::Double(),
     "The value of simulated time where the simulation ends.");
 
-  for (unsigned int i = 0; i < var_types.size(); i++)
+  for (const auto &[index, variable] : variable_attributes.attributes)
     {
-      if (var_eq_types.at(i) == TIME_INDEPENDENT ||
-          var_eq_types.at(i) == IMPLICIT_TIME_DEPENDENT)
+      if (variable.eq_type == TIME_INDEPENDENT ||
+          variable.eq_type == IMPLICIT_TIME_DEPENDENT)
         {
           std::string subsection_text = "Linear solver parameters: ";
-          subsection_text.append(var_names.at(i));
+          subsection_text.append(variable.name);
           parameter_handler.enter_subsection(subsection_text);
           {
             parameter_handler.declare_entry("Tolerance type",
@@ -420,12 +438,12 @@ inputFileReader::declare_parameters(dealii::ParameterHandler     &parameter_hand
                                   "The maximum number of nonlinear solver "
                                   "iterations before the loop is stopped.");
 
-  for (unsigned int i = 0; i < var_types.size(); i++)
+  for (const auto &[index, variable] : variable_attributes.attributes)
     {
-      if (var_nonlinear.at(i))
+      if (variable.is_nonlinear)
         {
           std::string subsection_text = "Nonlinear solver parameters: ";
-          subsection_text.append(var_names.at(i));
+          subsection_text.append(variable.name);
           parameter_handler.enter_subsection(subsection_text);
           {
             parameter_handler.declare_entry(
@@ -563,12 +581,12 @@ inputFileReader::declare_parameters(dealii::ParameterHandler     &parameter_hand
   /*----------------------
   |  Boundary conditions
   -----------------------*/
-  for (unsigned int i = 0; i < var_types.size(); i++)
+  for (const auto &[index, variable] : variable_attributes.attributes)
     {
-      if (var_types[i] == SCALAR)
+      if (variable.var_type == SCALAR)
         {
           std::string bc_text = "Boundary condition for variable ";
-          bc_text.append(var_names.at(i));
+          bc_text.append(variable.name);
           parameter_handler.declare_entry(
             bc_text,
             "",
@@ -578,7 +596,7 @@ inputFileReader::declare_parameters(dealii::ParameterHandler     &parameter_hand
       else
         {
           std::string bc_text = "Boundary condition for variable ";
-          bc_text.append(var_names.at(i));
+          bc_text.append(variable.name);
           bc_text.append(", x component");
           parameter_handler.declare_entry(
             bc_text,
@@ -587,7 +605,7 @@ inputFileReader::declare_parameters(dealii::ParameterHandler     &parameter_hand
             "The boundary conditions for one of the governing equations).");
 
           bc_text = "Boundary condition for variable ";
-          bc_text.append(var_names.at(i));
+          bc_text.append(variable.name);
           bc_text.append(", y component");
           parameter_handler.declare_entry(
             bc_text,
@@ -596,7 +614,7 @@ inputFileReader::declare_parameters(dealii::ParameterHandler     &parameter_hand
             "The boundary conditions for one of the governing equations).");
 
           bc_text = "Boundary condition for variable ";
-          bc_text.append(var_names.at(i));
+          bc_text.append(variable.name);
           bc_text.append(", z component");
           parameter_handler.declare_entry(
             bc_text,
@@ -609,10 +627,10 @@ inputFileReader::declare_parameters(dealii::ParameterHandler     &parameter_hand
   /*----------------------
   |  Pinning point
   -----------------------*/
-  for (unsigned int i = 0; i < var_types.size(); i++)
+  for (const auto &[index, variable] : variable_attributes.attributes)
     {
       std::string pinning_text = "Pinning point: ";
-      pinning_text.append(var_names.at(i));
+      pinning_text.append(variable.name);
       parameter_handler.enter_subsection(pinning_text);
       {
         parameter_handler.declare_entry("x",
@@ -666,12 +684,12 @@ inputFileReader::declare_parameters(dealii::ParameterHandler     &parameter_hand
                                   dealii::Patterns::Double(),
                                   "The time after which no nucleation occurs.");
 
-  for (unsigned int i = 0; i < var_types.size(); i++)
+  for (const auto &[index, variable] : variable_attributes.attributes)
     {
-      if (var_nucleates.at(i))
+      if (variable.nucleating_variable)
         {
           std::string nucleation_text = "Nucleation parameters: ";
-          nucleation_text.append(var_names.at(i));
+          nucleation_text.append(variable.name);
           parameter_handler.enter_subsection(nucleation_text);
           {
             parameter_handler.declare_entry(
@@ -749,6 +767,16 @@ inputFileReader::declare_parameters(dealii::ParameterHandler     &parameter_hand
                                   "false",
                                   dealii::Patterns::Bool(),
                                   "Whether to load a grain structure in from file.");
+
+  parameter_handler.declare_entry(
+    "vtk file type",
+    "UNSTRUCTURED",
+    dealii::Patterns::Anything(),
+    "Whether to load an unstructured file for grain structure."); // reads the type of
+                                                                  // file from the input
+                                                                  // parameters.prm file,
+                                                                  // deafault setting is
+                                                                  // unstructured mesh
 
   parameter_handler.declare_entry(
     "Grain structure filename",
