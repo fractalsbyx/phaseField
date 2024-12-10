@@ -18,8 +18,6 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
 
   // Precalculating everything makes writing initial conditions easier. May take slightly
   // more runtime.
-  /*container defs*/
-
   // Custom coordinate system
   double center[3] = {0.5 * userInputs.domain_size[0],
                       0.5 * userInputs.domain_size[1],
@@ -30,7 +28,7 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
   double r2        = x * x + y * y + z * z;
 
   // TODO: make order parameters
-  double p1 = interface(0.75 * (0.5 * (r0 * r0 - r2) / r0) / Sys.eta);
+  double p1 = interface(0.75 * (0.5 * (r0 * r0 - x * x) / r0) / Sys.eta);
   double p2 = 1.0 - p1;
   scalar_IC = 0.5;
   if (index == 0)
@@ -39,11 +37,11 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
     }
   if (index == 1)
     {
-      scalar_IC = 0.25;
+      scalar_IC = 0.10;
     }
   if (index == 2)
     {
-      scalar_IC = 0.75;
+      scalar_IC = 0.30;
     }
   if (index == 3)
     {
@@ -51,11 +49,11 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
     }
   if (index == 4)
     {
-      scalar_IC = 0.75;
+      scalar_IC = 0.90;
     }
   if (index == 5)
     {
-      scalar_IC = 0.25;
+      scalar_IC = 0.05;
     }
 
   // ===========================================================================

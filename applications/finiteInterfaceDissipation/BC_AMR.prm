@@ -1,35 +1,35 @@
 
-set Boundary condition for variable Phase_A = NATURAL
-set Boundary condition for variable Phase_B = NATURAL
-set Boundary condition for variable Phase_A_CU = NATURAL
-set Boundary condition for variable Phase_A_SI = NATURAL
-set Boundary condition for variable Phase_B_CU = NATURAL
-set Boundary condition for variable Phase_B_SI = NATURAL
+set Boundary condition for variable SOLID = NATURAL
+set Boundary condition for variable LIQUID = NATURAL
+set Boundary condition for variable SOLID_A = NATURAL
+set Boundary condition for variable SOLID_B = NATURAL
+set Boundary condition for variable LIQUID_A = NATURAL
+set Boundary condition for variable LIQUID_B = NATURAL
 
-subsection Refinement criterion: Phase_A
+subsection Refinement criterion: SOLID
     set Criterion type = VALUE
     set Value lower bound = 0.01
     set Value upper bound = 0.99
 end
-subsection Refinement criterion: Phase_B
+subsection Refinement criterion: LIQUID
     set Criterion type = VALUE
     set Value lower bound = 0.01
     set Value upper bound = 0.99
 end
 
-subsection Refinement criterion: Phase_A_CU
+subsection Refinement criterion: SOLID_A
     set Criterion type = GRADIENT
     set Gradient magnitude lower bound = 0.2
 end
-subsection Refinement criterion: Phase_A_SI
+subsection Refinement criterion: SOLID_B
     set Criterion type = GRADIENT
     set Gradient magnitude lower bound = 0.2
 end
-subsection Refinement criterion: Phase_B_CU
+subsection Refinement criterion: LIQUID_A
     set Criterion type = GRADIENT
     set Gradient magnitude lower bound = 0.2
 end
-subsection Refinement criterion: Phase_B_SI
+subsection Refinement criterion: LIQUID_B
     set Criterion type = GRADIENT
     set Gradient magnitude lower bound = 0.2
 end
