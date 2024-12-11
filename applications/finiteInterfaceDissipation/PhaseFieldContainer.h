@@ -248,6 +248,28 @@ public:
   }
 
   void
+  volumetrize_free_energy()
+  {
+    phase_free_energy /= isoSys._Vm;
+    for (auto &[i, i_alpha] : comp_data)
+      {
+        i_alpha.dfdx.val /= isoSys._Vm;
+        i_alpha.dfdx.grad /= isoSys._Vm;
+      }
+  }
+
+  void
+  nondimensionalize_free_energy()
+  {
+    phase_free_energy /= isoSys.energy_scale;
+    for (auto &[i, i_alpha] : comp_data)
+      {
+        i_alpha.dfdx.val /= isoSys.energy_scale;
+        i_alpha.dfdx.grad /= isoSys.energy_scale;
+      }
+  }
+
+  void
   submit_fields(uint                                        &var_index,
                 variableContainer<dim, degree, scalarValue> &variable_list,
                 const double                                &dt)

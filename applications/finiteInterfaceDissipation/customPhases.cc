@@ -28,6 +28,8 @@ public:
 
     dfdx_CU.grad = (2.0) * x_CU.grad + (0.0) * x_SI.grad;
     dfdx_SI.grad = (0.0) * x_CU.grad + (0.0) * x_SI.grad;
+    this->volumetrize_free_energy();
+    this->nondimensionalize_free_energy();
   }
 };
 
@@ -58,6 +60,8 @@ public:
 
     dfdx_CU.grad = (0.0) * x_CU.grad + (0.0) * x_SI.grad;
     dfdx_SI.grad = (0.0) * x_CU.grad + (2.0) * x_SI.grad;
+    this->volumetrize_free_energy();
+    this->nondimensionalize_free_energy();
   }
 };
 
