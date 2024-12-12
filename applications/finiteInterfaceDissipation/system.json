@@ -1,39 +1,39 @@
 {
     "dimensions": {
-        "length_scale": 10.0,
+        "length_scale": 1.0e-6,
         "time_scale": 1.0,
         "energy_density_scale": 1.0
     },
     "solution_component": "AL",
     "components": {
         "A": {
-            "permeability": 20.0
+            "permeability": 1.0e-10
         },
         "B": {
-            "permeability": 20.0
+            "permeability": 1.0e-10
         }
     },
-    "Vm": 1.0,
-    "eta": 2.0,
+    "Vm": 1.8e-5,
+    "eta": 4.0e-6,
     "phases": {
         "SOLID": {
-            "sigma": 3.0,
-            "mu": 0.8,
+            "sigma": 1.0,
+            "mu": 1.0e-16,
             "A": {
-                "mobility": 0.1
+                "mobility": 2.0e7
             },
             "B": {
-                "mobility": 0.1
+                "mobility": 2.0e7
             }
         },
         "LIQUID": {
-            "sigma": 3.0,
-            "mu": 0.8,
+            "sigma": 1.0,
+            "mu": 1.0e-16,
             "A": {
-                "mobility": 0.1
+                "mobility": 1000.0e7
             },
             "B": {
-                "mobility": 0.1
+                "mobility": 1000.0e7
             }
         }
     }
