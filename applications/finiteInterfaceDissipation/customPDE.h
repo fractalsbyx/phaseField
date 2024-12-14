@@ -115,6 +115,7 @@ private:
     inputFile.close();
 
     Sys = IsothermalSystem(TCSystem);
+    Sys.print_parameters();
   }
 
   inline double

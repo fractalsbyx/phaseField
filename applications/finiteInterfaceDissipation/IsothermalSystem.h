@@ -5,10 +5,10 @@
 #include "json.hpp"
 
 #include "../../include/variableAttributeLoader.h"
+#include <iomanip>
 #include <iostream>
 #include <map>    //
 #include <string> //
-
 
 struct CompInfo
 {
@@ -97,6 +97,51 @@ public:
     for (auto &[comp_name, comp] : comp_info)
       {
         comp.P = comp._P * (E0 * t0);
+      }
+  }
+
+  void
+  print_parameters()
+  {
+    // Set column width
+    const int col_width = 15;
+
+    // Print header
+    std::cout << std::left << std::setw(col_width) << "Name" << std::setw(col_width)
+              << "Dimensionless"
+              << "Dimensional"
+              << "\n";
+    std::cout << std::string(45, '-') << "\n";
+
+    // Print Vm and eta
+    std::cout << std::setw(col_width) << "Vm:" << std::setw(col_width) << Vm << _Vm
+              << "\n";
+    std::cout << std::setw(col_width) << "eta:" << std::setw(col_width) << eta << _eta
+              << "\n";
+
+    // Print component information
+    for (const auto &[comp_name, comp] : comp_info)
+      {
+        std::cout << std::setw(col_width) << (comp_name + " P:") << std::setw(col_width)
+                  << comp.P << comp._P << "\n";
+      }
+    std::cout << "\n";
+
+    // Print phase information
+    for (const auto &[phase_name, phase] : phases)
+      {
+        std::cout << phase_name << ":\n";
+        std::cout << std::setw(col_width) << "mu:" << std::setw(col_width) << phase.mu
+                  << phase._mu << "\n";
+        std::cout << std::setw(col_width) << "sigma:" << std::setw(col_width)
+                  << phase.sigma << phase._sigma << "\n";
+
+        for (const auto &[comp_name, comp] : phase.comps)
+          {
+            std::cout << std::setw(col_width) << (comp_name + ": M:")
+                      << std::setw(col_width) << comp.M << comp._M << "\n";
+          }
+        std::cout << "\n";
       }
   }
 
