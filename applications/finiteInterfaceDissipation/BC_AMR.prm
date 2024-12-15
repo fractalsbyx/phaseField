@@ -2,9 +2,7 @@
 set Boundary condition for variable Phase_A = NATURAL
 set Boundary condition for variable Phase_B = NATURAL
 set Boundary condition for variable Phase_A_CU = NATURAL
-set Boundary condition for variable Phase_A_SI = NATURAL
 set Boundary condition for variable Phase_B_CU = NATURAL
-set Boundary condition for variable Phase_B_SI = NATURAL
 
 subsection Refinement criterion: Phase_A
     set Criterion type = VALUE
@@ -21,15 +19,7 @@ subsection Refinement criterion: Phase_A_CU
     set Criterion type = GRADIENT
     set Gradient magnitude lower bound = 0.2
 end
-subsection Refinement criterion: Phase_A_SI
-    set Criterion type = GRADIENT
-    set Gradient magnitude lower bound = 0.2
-end
 subsection Refinement criterion: Phase_B_CU
-    set Criterion type = GRADIENT
-    set Gradient magnitude lower bound = 0.2
-end
-subsection Refinement criterion: Phase_B_SI
     set Criterion type = GRADIENT
     set Gradient magnitude lower bound = 0.2
 end

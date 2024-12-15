@@ -68,6 +68,7 @@ public:
               {
                 PhaseCompInfo phaseCompInfo;
                 phaseCompInfo._M       = comp_data.at("mobility").get<double>();
+                phaseCompInfo.x0       = comp_data.at("x0").get<double>();
                 phase.comps[comp_name] = phaseCompInfo;
               }
           }
