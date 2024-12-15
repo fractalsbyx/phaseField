@@ -1,39 +1,32 @@
-{   
-    "dimensions" : {
-        "length_scale" : 1.0,
-        "time_scale" : 1.0,
-        "energy_density_scale" : 1.0
+{
+    "dimensions": {
+        "length_scale": 1.0,
+        "time_scale": 1.0,
+        "energy_density_scale": 1.0
     },
-    "solution_component" : "AL",
-    "components" : {
-        "CU" : {
-            "permeability" : 20.0
-        },
-        "SI" : {
-            "permeability" : 20.0
+    "solution_component": "AL",
+    "components": {
+        "CU": {
+            "permeability": 120.0
         }
     },
-    "Vm" : 1.0,
-    "eta" : 0.2,
-    "phases" : {
+    "Vm": 1.0,
+    "eta": 0.8,
+    "phases": {
         "Phase_A": {
-            "sigma" : 3.0,
-            "mu" : 0.8,
-            "CU" : {
-                "mobility" : 0.1
-            },
-            "SI" : {
-                "mobility" : 0.1
+            "sigma": 0.5,
+            "mu": 10.0,
+            "CU": {
+                "mobility": 0.5,
+                "x0": 0.25
             }
         },
         "Phase_B": {
-            "sigma" : 3.0,
-            "mu" : 0.8,
-            "CU" : {
-                "mobility" : 0.1
-            },
-            "SI" : {
-                "mobility" : 0.1
+            "sigma": 0.5,
+            "mu": 10.0,
+            "CU": {
+                "mobility": 0.5,
+                "x0": 0.250
             }
         }
     }

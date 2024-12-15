@@ -8,6 +8,7 @@ struct PhaseCompInfo
 {
   double _M;
   double M;
+  double x0;
 };
 
 struct Phase

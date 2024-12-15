@@ -32,30 +32,28 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
   // TODO: make order parameters
   double p1 = interface(0.75 * (0.5 * (r0 * r0 - r2) / r0) / Sys.eta);
   double p2 = 1.0 - p1;
-  scalar_IC = 0.5;
-  if (index == 0)
+
+  uint var_index = 0;
+  for (const auto &[phase_name, phase] : Sys.phases)
+    {
+      var_index++;
+      for (const auto &[comp_name, comp_info] : phase.comps)
+        {
+          if (index == var_index)
+            {
+              scalar_IC = comp_info.x0;
+            }
+          var_index++;
+        }
+    }
+  uint n_per_phase = Sys.comp_info.size() + 1;
+  if (index == 0 * n_per_phase)
     {
       scalar_IC = p1;
     }
-  if (index == 1)
-    {
-      scalar_IC = 0.25;
-    }
-  if (index == 2)
-    {
-      scalar_IC = 0.75;
-    }
-  if (index == 3)
+  if (index == 1 * n_per_phase)
     {
       scalar_IC = p2;
-    }
-  if (index == 4)
-    {
-      scalar_IC = 0.75;
-    }
-  if (index == 5)
-    {
-      scalar_IC = 0.25;
     }
 
   // ===========================================================================
