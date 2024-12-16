@@ -1,6 +1,11 @@
 // This file will be created or modified by AMMBER
 #include "SystemContainer.h"
 
+constexpr double omega = 4.0; // 5.88;
+constexpr double K_CU  = 0.231;
+constexpr double K_TI  = -0.066;
+constexpr double K_AA  = -0.53;
+
 // Individual phases are derived classes of PhaseFieldContainer
 template <int dim, int degree>
 class Phase_A : public PhaseFieldContainer<dim, degree>
@@ -15,24 +20,33 @@ public:
   inline void
   calculate_free_energy() override
   {
-    const FieldContainer<dim> &x_CU = this->comp_data["CU"].x_data;
+    const FieldContainer<dim> &x_CU    = this->comp_data["CU"].x_data;
+    FieldContainer<dim>       &dfdx_CU = this->comp_data["CU"].dfdx;
 
-    FieldContainer<dim> &dfdx_CU = this->comp_data["CU"].dfdx;
-
-    /* this->phase_free_energy = (x_CU.val * x_CU.val) + 0.5 * (constV(1.0) - x_CU.val);
-
-    dfdx_CU.val = 2.0 * (x_CU.val - constV(0.25));
-
-    dfdx_CU.grad = (2.0) * x_CU.grad; */
+    const FieldContainer<dim> &x_TI    = this->comp_data["TI"].x_data;
+    FieldContainer<dim>       &dfdx_TI = this->comp_data["TI"].dfdx;
 
     this->phase_free_energy =
-      x_CU.val * std::log(x_CU.val) +
-      ((constV(1.0) - x_CU.val) * std::log(constV(1.0) - x_CU.val)) + (x_CU.val);
+      x_CU.val * std::log(x_CU.val) +                                       //
+      x_TI.val * std::log(x_TI.val) +                                       //
+      ((1.0 - x_CU.val - x_TI.val) * std::log(1.0 - x_CU.val - x_TI.val)) + //
+      omega * x_CU.val * (1.0 - x_CU.val - x_TI.val) +                      //
+      K_CU * x_CU.val + K_TI * x_TI.val + K_AA * (1.0 - x_CU.val - x_TI.val);
 
-    dfdx_CU.val = std::log(x_CU.val) - std::log(constV(1.0) - x_CU.val) + constV(1.0);
+    dfdx_CU.val = std::log(x_CU.val) -                               //
+                  std::log(1.0 - x_CU.val - x_TI.val) +              //
+                  omega * ((1.0 - x_CU.val - x_TI.val) - x_CU.val) + //
+                  K_CU - K_AA;
+    dfdx_TI.val = std::log(x_TI.val) -                  //
+                  std::log(1.0 - x_CU.val - x_TI.val) + //
+                  omega * (-x_CU.val) +                 //
+                  K_TI - K_AA;
 
     dfdx_CU.grad =
-      (constV(1.0) / x_CU.val + constV(1.0) / (constV(1.0) - x_CU.val)) * x_CU.grad;
+      (1.0 / x_CU.val + 1.0 / (1.0 - x_CU.val - x_TI.val) - omega * 2.0) * x_CU.grad + //
+      (1.0 / (1.0 - x_CU.val - x_TI.val) - omega) * x_TI.grad;
+    dfdx_TI.grad = (1.0 / (1.0 - x_CU.val - x_TI.val) - omega) * x_CU.grad + //
+                   (1.0 / x_TI.val + 1.0 / (1.0 - x_CU.val - x_TI.val)) * x_TI.grad;
 
     this->volumetrize_free_energy();
     this->nondimensionalize_free_energy();
@@ -53,26 +67,30 @@ public:
   inline void
   calculate_free_energy() override
   {
-    const FieldContainer<dim> &x_CU = this->comp_data["CU"].x_data;
+    const FieldContainer<dim> &x_CU    = this->comp_data["CU"].x_data;
+    FieldContainer<dim>       &dfdx_CU = this->comp_data["CU"].dfdx;
 
-    FieldContainer<dim> &dfdx_CU = this->comp_data["CU"].dfdx;
-
-    /* this->phase_free_energy =
-      ((constV(1.0) - x_CU.val) * (constV(1.0) - x_CU.val)) + 0.5 * x_CU.val;
-
-    dfdx_CU.val = 2.0 * (x_CU.val - constV(0.75));
-
-    dfdx_CU.grad = (2.0) * x_CU.grad; */
+    const FieldContainer<dim> &x_TI    = this->comp_data["TI"].x_data;
+    FieldContainer<dim>       &dfdx_TI = this->comp_data["TI"].dfdx;
 
     this->phase_free_energy =
-      x_CU.val * std::log(x_CU.val) +
-      ((constV(1.0) - x_CU.val) * std::log(constV(1.0) - x_CU.val)) +
-      (constV(1.0) - x_CU.val);
+      x_CU.val * std::log(x_CU.val) +                                       //
+      x_TI.val * std::log(x_TI.val) +                                       //
+      ((1.0 - x_CU.val - x_TI.val) * std::log(1.0 - x_CU.val - x_TI.val)) + //
+      omega * x_CU.val * (1.0 - x_CU.val - x_TI.val);
 
-    dfdx_CU.val = std::log(x_CU.val) - std::log(constV(1.0) - x_CU.val) - constV(1.0);
+    dfdx_CU.val = std::log(x_CU.val) -                  //
+                  std::log(1.0 - x_CU.val - x_TI.val) + //
+                  omega * ((1.0 - x_CU.val - x_TI.val) - x_CU.val);
+    dfdx_TI.val = std::log(x_TI.val) -                  //
+                  std::log(1.0 - x_CU.val - x_TI.val) + //
+                  omega * (-x_CU.val);
 
     dfdx_CU.grad =
-      (constV(1.0) / x_CU.val + constV(1.0) / (constV(1.0) - x_CU.val)) * x_CU.grad;
+      (1.0 / x_CU.val + 1.0 / (1.0 - x_CU.val - x_TI.val) - omega * 2.0) * x_CU.grad + //
+      (1.0 / (1.0 - x_CU.val - x_TI.val) - omega) * x_TI.grad;
+    dfdx_TI.grad = (1.0 / (1.0 - x_CU.val - x_TI.val) - omega) * x_CU.grad + //
+                   (1.0 / x_TI.val + 1.0 / (1.0 - x_CU.val - x_TI.val)) * x_TI.grad;
 
     this->volumetrize_free_energy();
     this->nondimensionalize_free_energy();
