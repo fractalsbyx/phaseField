@@ -15,8 +15,40 @@ public:
     std::cout << "Starting customPDE initializer...\n";
     // Read system json file to TCSystem
     parseSystem();
+    Sys.print_parameters();
+    print_initial_energies();
     std::cout << "customPDE initialized\n";
   };
+
+  void
+  print_initial_energies()
+  {
+    SystemContainer<dim, degree> sys_for_print(Sys, userInputs);
+    for (const auto &[phase_name, phase] : Sys.phases)
+      {
+        for (const auto &[comp_name, comp_info] : phase.comps)
+          {
+            sys_for_print.phase_fields[phase_name]->comp_data[comp_name].x_data.val =
+              constV(comp_info.x0);
+          }
+      }
+    sys_for_print.calculate_locals();
+    std::cout << "Initial bulk free energies:\n";
+    for (const auto &[phase_name, phase] : Sys.phases)
+      {
+        std::cout << phase_name << ":\n"
+                  << "Free Energy:\t"
+                  << sys_for_print.phase_fields[phase_name]->phase_free_energy[0] << "\n";
+        for (const auto &[comp_name, comp_info] : phase.comps)
+          {
+            std::cout
+              << "dfdx_" << comp_name << ":\t"
+              << sys_for_print.phase_fields[phase_name]->comp_data[comp_name].dfdx.val[0]
+              << "\n";
+          }
+        std::cout << "\n";
+      }
+  }
 
   // Function to set the initial conditions (in ICs_and_BCs.h)
   void
@@ -115,7 +147,6 @@ private:
     inputFile.close();
 
     Sys = IsothermalSystem(TCSystem);
-    Sys.print_parameters();
   }
 
   inline double
