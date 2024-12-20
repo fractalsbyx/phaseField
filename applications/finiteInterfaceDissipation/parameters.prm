@@ -8,8 +8,8 @@ set Number of dimensions = 2
 # (Domain size Z ignored in 2D)
 # =================================================================================
 # Each axes spans from zero to the specified length
-set Domain size X = 20.0
-set Domain size Y = 20.0
+set Domain size X = 100.0
+set Domain size Y = 100.0
 #set Domain size Z = 300
 
 # =================================================================================
@@ -43,7 +43,7 @@ set Time step = 1.0e-5
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
-set Number of time steps = 50000
+set Number of time steps = 500
 
 # =================================================================================
 # Set the output parameters
@@ -98,4 +98,4 @@ set Number of checkpoints = 0
 # where [symmetry] is ISOTROPIC, TRANSVERSE, ORTHOTROPIC, or ANISOTROPIC.
 
 # Particle radius
-set Model constant r0 = 3.0, DOUBLE
+set Model constant r0 = 15.0, DOUBLE
