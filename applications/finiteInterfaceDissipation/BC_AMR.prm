@@ -2,7 +2,7 @@
 set Boundary condition for variable Phase_A = NATURAL
 set Boundary condition for variable Phase_B = NATURAL
 set Boundary condition for variable Phase_A_CU = NATURAL
-set Boundary condition for variable Phase_B_CU = NATURAL
+set Boundary condition for variable Phase_B_CU = NATURAL, NATURAL, NON_UNIFORM_DIRICHLET, NATURAL
 set Boundary condition for variable Phase_A_TI = NATURAL
 set Boundary condition for variable Phase_B_TI = NATURAL
 

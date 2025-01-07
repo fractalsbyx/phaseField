@@ -8,8 +8,8 @@ set Number of dimensions = 2
 # (Domain size Z ignored in 2D)
 # =================================================================================
 # Each axes spans from zero to the specified length
-set Domain size X = 100.0
-set Domain size Y = 100.0
+set Domain size X = 256.0
+set Domain size Y = 256.0
 #set Domain size Z = 300
 
 # =================================================================================
@@ -98,4 +98,4 @@ set Number of checkpoints = 0
 # where [symmetry] is ISOTROPIC, TRANSVERSE, ORTHOTROPIC, or ANISOTROPIC.
 
 # Particle radius
-set Model constant r0 = 15.0, DOUBLE
+set Model constant r0 = 64.0, DOUBLE

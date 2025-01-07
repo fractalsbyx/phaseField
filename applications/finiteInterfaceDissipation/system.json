@@ -1,44 +1,53 @@
 {
     "dimensions": {
-        "length_scale": 1.0,
-        "time_scale": 1.0,
-        "energy_density_scale": 1.0
+        "length_scale": 8.0,
+        "time_scale": 5.5e-9,
+        "energy_density_scale": 1.59
     },
     "solution_component": "AL",
     "components": {
         "CU": {
-            "permeability": 1.0e-8
+            "permeability": 57250000.0
         },
         "TI": {
-            "permeability": 1.0e-8
+            "permeability": 57250000.0
         }
     },
     "Vm": 1.0,
-    "eta": 3.96,
+    "eta": 8.0,
     "phases": {
         "Phase_A": {
-            "sigma": 1.57,
-            "mu": 1000.0,
+            "sigma": 0.98,
+            "mu": 1.5e10,
             "CU": {
-                "mobility": 400.0,
+                "mobility": 0.0,
                 "x0": 0.02
             },
             "TI": {
-                "mobility": 400.0,
+                "mobility": 0.0,
                 "x0": 0.96
             }
         },
         "Phase_B": {
-            "sigma": 1.57,
-            "mu": 1000.0,
+            "sigma": 0.98,
+            "mu": 1.5e10,
             "CU": {
-                "mobility": 400000.0,
-                "x0": 0.49
+                "mobility": 458.0e6,
+                "x0": 0.98
             },
             "TI": {
-                "mobility": 400000.0,
-                "x0": 0.49
+                "mobility": 458.0e6,
+                "x0": 0.01
             }
         }
-    }
+    },
+    "comments": [
+        "FID expression = LMD expression:",
+        "4*sigma/eta = lambda_phi",
+        "4*sigma*eta/(pi^2) = sigma_phi",
+        "(mu/2)*sigma*(pi^2/eta^2) = L_phi",
+        "mobility = D*Va/kT",
+        "from FID paper:",
+        "P = 8*M/(eta^2)"
+    ]
 }

@@ -19,6 +19,16 @@ constexpr double K_CU = L_CU * (T - T_CU) / T_CU;
 constexpr double K_TI = L_TI * (T - T_TI) / T_TI;
 constexpr double K_AA = L_AA * (T - T_AA) / T_AA;
 
+template <int dim, int degree>
+dealii::VectorizedArray<double>
+PhaseFieldContainer<dim, degree>::M_ij(const std::string &i, const std::string &j)
+{
+  return info.comps.at(i).M * comp_data.at(i).x_data.val *
+         (double(i == j) - comp_data.at(j).x_data.val); // 0.5 * (info.comps.at(i).M
+                                                        // + info.comps.at(j).M);
+                                                        // // fast bad approximation
+}
+
 // Individual phases are derived classes of PhaseFieldContainer
 template <int dim, int degree>
 class Phase_A : public PhaseFieldContainer<dim, degree>
