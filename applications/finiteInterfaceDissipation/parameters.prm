@@ -29,7 +29,7 @@ set Refine factor = 8
 set Mesh adaptivity = true
 
 # Set the maximum and minimum level of refinement
-set Max refinement level = 8
+set Max refinement level = 9
 set Min refinement level = 3
 
 # Set the number of time steps between remeshing operations
@@ -39,11 +39,11 @@ set Steps between remeshing operations = 25
 # Set the time step parameters
 # =================================================================================
 # The size of the time step
-set Time step = 1.0e-5
+set Time step = 1.0e-6
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
-set Number of time steps = 500
+set Number of time steps = 50000
 
 # =================================================================================
 # Set the output parameters

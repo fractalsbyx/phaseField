@@ -1,6 +1,6 @@
 {
     "dimensions": {
-        "length_scale": 8.0,
+        "length_scale": 2.0,
         "time_scale": 5.5e-9,
         "energy_density_scale": 1.59
     },
