@@ -1,6 +1,8 @@
 // This file will be created or modified by AMMBER
 #include "SystemContainer.h"
 
+constexpr double omega = 0.0;
+
 // Individual phases are derived classes of PhaseFieldContainer
 template <int dim, int degree>
 class Phase_A : public PhaseFieldContainer<dim, degree>
@@ -25,14 +27,16 @@ public:
 
     dfdx_CU.grad = (2.0) * x_CU.grad; */
 
-    this->phase_free_energy =
-      x_CU.val * std::log(x_CU.val) +
-      ((constV(1.0) - x_CU.val) * std::log(constV(1.0) - x_CU.val)) + (x_CU.val);
+    this->phase_free_energy = x_CU.val * std::log(x_CU.val)                   //
+                              + ((1.0 - x_CU.val) * std::log(1.0 - x_CU.val)) //
+                              + omega * x_CU.val * (1.0 - x_CU.val)           //
+                              + (x_CU.val);
 
-    dfdx_CU.val = std::log(x_CU.val) - std::log(constV(1.0) - x_CU.val) + constV(1.0);
+    dfdx_CU.val = std::log(x_CU.val) - std::log(1.0 - x_CU.val) //
+                  + omega * ((1.0 - x_CU.val) - x_CU.val)       //
+                  + 1.0;
 
-    dfdx_CU.grad =
-      (constV(1.0) / x_CU.val + constV(1.0) / (constV(1.0) - x_CU.val)) * x_CU.grad;
+    dfdx_CU.grad = (1.0 / x_CU.val + 1.0 / (1.0 - x_CU.val) + omega * -2.0) * x_CU.grad;
 
     this->volumetrize_free_energy();
     this->nondimensionalize_free_energy();
@@ -64,15 +68,16 @@ public:
 
     dfdx_CU.grad = (2.0) * x_CU.grad; */
 
-    this->phase_free_energy =
-      x_CU.val * std::log(x_CU.val) +
-      ((constV(1.0) - x_CU.val) * std::log(constV(1.0) - x_CU.val)) +
-      (constV(1.0) - x_CU.val);
+    this->phase_free_energy = x_CU.val * std::log(x_CU.val)                   //
+                              + ((1.0 - x_CU.val) * std::log(1.0 - x_CU.val)) //
+                              + omega * x_CU.val * (1.0 - x_CU.val)           //
+                              + (1.0 - x_CU.val);
 
-    dfdx_CU.val = std::log(x_CU.val) - std::log(constV(1.0) - x_CU.val) - constV(1.0);
+    dfdx_CU.val = std::log(x_CU.val) - std::log(1.0 - x_CU.val) //
+                  + omega * ((1.0 - x_CU.val) - x_CU.val)       //
+                  - 1.0;
 
-    dfdx_CU.grad =
-      (constV(1.0) / x_CU.val + constV(1.0) / (constV(1.0) - x_CU.val)) * x_CU.grad;
+    dfdx_CU.grad = (1.0 / x_CU.val + 1.0 / (1.0 - x_CU.val) + omega * -2.0) * x_CU.grad;
 
     this->volumetrize_free_energy();
     this->nondimensionalize_free_energy();
