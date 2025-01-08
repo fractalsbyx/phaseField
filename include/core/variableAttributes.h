@@ -114,6 +114,14 @@ struct variableAttributes
    */
   [[nodiscard]] bool
   var_needed(const solveType &solve_type) const;
+
+  /**
+   * \brief Helper function that returns true if this variable is set in an expression
+   *
+   * \param solve_type EXPLICIT_RHS, NONEXPLICIT_RHS, LHS, POSTPROCESS
+   */
+  [[nodiscard]] bool
+  var_set_in(const solveType &solve_type) const;
 };
 
 #endif

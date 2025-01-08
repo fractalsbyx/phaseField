@@ -68,31 +68,20 @@ userInputParameters<dim>::loadVariableAttributes()
 
   nucleation_occurs = !nucleating_variable_indices.empty();
 
-  // Load variable information for calculating the RHS for explicit equations
   for (const auto &[index, variable] : var_attributes)
     {
       if (variable.var_needed(solveType::EXPLICIT_RHS))
         {
-          attributes_RHS_exp.emplace(index, variable);
+          attributes_RHS_exp_src.emplace(index, variable);
         }
-    }
-
-  // Load variable information for calculating the RHS for nonexplicit equations
-  for (const auto &[index, variable] : var_attributes)
-    {
       if (variable.var_needed(solveType::NONEXPLICIT_RHS))
         {
-          attributes_RHS_nonexp.emplace(index, variable);
+          attributes_RHS_nonexp_src.emplace(index, variable);
         }
-    }
-
-  // Load variable information for calculating the LHS
-  for (const auto &[index, variable] : var_attributes)
-    {
       if (variable.var_needed(solveType::LHS) ||
           bool(variable.eval_flags_change_nonexplicit_LHS))
         {
-          attributes_LHS.emplace(index, variable);
+          attributes_LHS_src.emplace(index, variable);
         }
     }
   // Now load the information for the post-processing variables

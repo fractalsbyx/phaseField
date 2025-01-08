@@ -232,14 +232,13 @@ MatrixFreePDE<dim, degree>::applyBCs(unsigned int fieldIndex)
       // Apply non-uniform Dirlichlet_BCs to the current field
       if (fields[fieldIndex].hasnonuniformDirichletBCs)
         {
-          DoFHandler<dim> *dof_handler    = nullptr;
-          dof_handler                     = dofHandlersSet_nonconst.at(currentFieldIndex);
-          IndexSet *locally_relevant_dofs = nullptr;
-          locally_relevant_dofs = locally_relevant_dofsSet_nonconst.at(currentFieldIndex);
+          DoFHandler<dim> *dof_handler = dofHandlersSet_nonconst.at(currentFieldIndex);
+          IndexSet        *locally_relevant_dofs =
+            locally_relevant_dofsSet_nonconst.at(currentFieldIndex);
           locally_relevant_dofs->clear();
           DoFTools::extract_locally_relevant_dofs(*dof_handler, *locally_relevant_dofs);
-          AffineConstraints<double> *constraintsDirichlet = nullptr;
-          constraintsDirichlet = constraintsDirichletSet_nonconst.at(currentFieldIndex);
+          AffineConstraints<double> *constraintsDirichlet =
+            constraintsDirichletSet_nonconst.at(currentFieldIndex);
           constraintsDirichlet->clear();
           constraintsDirichlet->reinit(*locally_relevant_dofs);
           applyDirichletBCs();
@@ -489,45 +488,42 @@ MatrixFreePDE<dim, degree>::updateImplicitSolution(unsigned int fieldIndex,
                        "be implemented.\n";
         }
     }
-  else
+  else if (nonlinear_it_index == 0)
     {
-      if (nonlinear_it_index == 0)
+      if (fields[fieldIndex].type == SCALAR)
         {
+          *solutionSet[fieldIndex] += dU_scalar;
+        }
+      else
+        {
+          *solutionSet[fieldIndex] += dU_vector;
+        }
+
+      if (currentIncrement % userInputs.skip_print_steps == 0)
+        {
+          double dU_norm = NAN;
           if (fields[fieldIndex].type == SCALAR)
             {
-              *solutionSet[fieldIndex] += dU_scalar;
+              dU_norm = dU_scalar.l2_norm();
             }
           else
             {
-              *solutionSet[fieldIndex] += dU_vector;
+              dU_norm = dU_vector.l2_norm();
             }
-
-          if (currentIncrement % userInputs.skip_print_steps == 0)
-            {
-              double dU_norm = NAN;
-              if (fields[fieldIndex].type == SCALAR)
-                {
-                  dU_norm = dU_scalar.l2_norm();
-                }
-              else
-                {
-                  dU_norm = dU_vector.l2_norm();
-                }
-              snprintf(buffer,
-                       sizeof(buffer),
-                       "field '%2s' [linear solve]: initial "
-                       "residual:%12.6e, current residual:%12.6e, "
-                       "nsteps:%u, tolerance criterion:%12.6e, "
-                       "solution: %12.6e, dU: %12.6e\n",
-                       fields[fieldIndex].name.c_str(),
-                       residualSet[fieldIndex]->l2_norm(),
-                       solver_control.last_value(),
-                       solver_control.last_step(),
-                       solver_control.tolerance(),
-                       solutionSet[fieldIndex]->l2_norm(),
-                       dU_norm);
-              pcout << buffer;
-            }
+          snprintf(buffer,
+                   sizeof(buffer),
+                   "field '%2s' [linear solve]: initial "
+                   "residual:%12.6e, current residual:%12.6e, "
+                   "nsteps:%u, tolerance criterion:%12.6e, "
+                   "solution: %12.6e, dU: %12.6e\n",
+                   fields[fieldIndex].name.c_str(),
+                   residualSet[fieldIndex]->l2_norm(),
+                   solver_control.last_value(),
+                   solver_control.last_step(),
+                   solver_control.tolerance(),
+                   solutionSet[fieldIndex]->l2_norm(),
+                   dU_norm);
+          pcout << buffer;
         }
     }
 

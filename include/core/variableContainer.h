@@ -9,8 +9,6 @@
 #include <deal.II/matrix_free/fe_evaluation.h>
 #include <deal.II/matrix_free/matrix_free.h>
 
-#include <boost/unordered_map.hpp>
-
 #include "core/solveTypeEnums.h"
 #include "core/variableAttributes.h"
 #include "varTypeEnums.h"
@@ -26,8 +24,9 @@ public:
 
   // Standard contructor, used for most situations
   variableContainer(const dealii::MatrixFree<dim, double> &data,
-                    AttributesList                         _subset_attributes,
-                    solveType                              solve_type);
+                    AttributesList                         _src_attributes,
+                    AttributesList                         _dst_attributes,
+                    solveType                              _solve_type);
 
   // Methods to get the value/grad/hess in the residual method (this is how the
   // user gets these values in equations.h)
@@ -91,10 +90,11 @@ public:
                                      unsigned int      cell,
                                      const uint       &var_index);
 
-  // Only initialize the FEEvaluation object for each variable (used for
-  // post-processing)
+  /**
+   * \brief Initialize the FEEvals for the destination variables
+   */
   void
-  reinit(unsigned int cell);
+  reinit_dst(unsigned int cell);
 
   // Integrate the residuals and distribute from local to global
   void
@@ -113,23 +113,24 @@ public:
   get_q_point_location() const;
 
 private:
+  // Object containing some information about each variable (indices, whether
+  // the val/grad/hess is needed, etc)
+  const AttributesList src_attributes;
+  const AttributesList dst_attributes;
+  const solveType      solve_type;
+
   // Vectors of the actual FEEvaluation objects for each active variable, split
   // into scalar variables and vector variables for type reasons
   using scalar_FEEval = dealii::FEEvaluation<dim, degree, degree + 1, 1, double>;
   using vector_FEEval = dealii::FEEvaluation<dim, degree, degree + 1, dim, double>;
 
-  boost::unordered_map<unsigned int, std::unique_ptr<scalar_FEEval>> scalar_vars_map;
-  boost::unordered_map<unsigned int, std::unique_ptr<vector_FEEval>> vector_vars_map;
+  std::unordered_map<unsigned int, scalar_FEEval> src_scalar_vars_map;
+  std::unordered_map<unsigned int, vector_FEEval> src_vector_vars_map;
+  std::unordered_map<unsigned int, scalar_FEEval> dst_scalar_vars_map;
+  std::unordered_map<unsigned int, vector_FEEval> dst_vector_vars_map;
 
-  boost::unordered_map<unsigned int, std::unique_ptr<scalar_FEEval>>
-    scalar_change_in_vars_map;
-  boost::unordered_map<unsigned int, std::unique_ptr<vector_FEEval>>
-    vector_change_in_vars_map;
-
-  // Object containing some information about each variable (indices, whether
-  // the val/grad/hess is needed, etc)
-  const AttributesList subset_attributes;
-  const solveType      solve_type;
+  std::unordered_map<unsigned int, scalar_FEEval> scalar_change_in_vars_map;
+  std::unordered_map<unsigned int, vector_FEEval> vector_change_in_vars_map;
 
   void
   AssertValid(const uint      &var_index,

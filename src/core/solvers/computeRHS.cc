@@ -38,6 +38,7 @@ MatrixFreePDE<dim, degree>::getExplicitRHS(
     {
       // Initialize, read DOFs, and set evaulation flags for each variable
       variable_list.reinit_and_eval(src, cell);
+      variable_list.reinit_dst(cell);
 
       unsigned int num_q_points = variable_list.get_num_q_points();
 
@@ -94,6 +95,7 @@ MatrixFreePDE<dim, degree>::getNonexplicitRHS(
     {
       // Initialize, read DOFs, and set evaulation flags for each variable
       variable_list.reinit_and_eval(src, cell);
+      variable_list.reinit_dst(cell);
 
       unsigned int num_q_points = variable_list.get_num_q_points();
 

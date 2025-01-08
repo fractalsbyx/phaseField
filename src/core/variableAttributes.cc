@@ -244,3 +244,13 @@ variableAttributes::var_needed(const solveType &solve_type) const
 {
   return bool(eval_flags_for_solve(solve_type));
 }
+
+bool
+variableAttributes::var_set_in(const solveType &solve_type) const
+{
+  if (is_pp)
+    {
+      return true;
+    }
+  return bool(residual_flags_for_solve(solve_type));
+}

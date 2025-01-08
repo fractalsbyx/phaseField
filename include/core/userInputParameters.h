@@ -264,7 +264,9 @@ public:
   const AttributesList &pp_attributes;
 
   // Variables needed to calculate each expression
-  AttributesList attributes_RHS_exp, attributes_RHS_nonexp, attributes_LHS;
+  AttributesList attributes_RHS_exp_src, attributes_RHS_nonexp_src, attributes_LHS_src;
+  // Variables needed to calculate each expression
+  AttributesList attributes_RHS_exp_dst, attributes_RHS_nonexp_dst, attributes_LHS_dst;
 
   // Variables for loading in initial conditions
   std::vector<bool>        load_ICs;

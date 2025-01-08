@@ -39,7 +39,7 @@ MatrixFreePDE<dim, degree>::getPostProcessedFields(
     {
       // Initialize, read DOFs, and set evaulation flags for each variable
       variable_list.reinit_and_eval(src, cell);
-      pp_variable_list.reinit(cell);
+      pp_variable_list.reinit_dst(cell);
 
       unsigned int num_q_points = variable_list.get_num_q_points();
 
