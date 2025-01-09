@@ -34,7 +34,7 @@ public:
   using scalarValue = dealii::VectorizedArray<double>;
   using scalarGrad  = dealii::Tensor<1, dim, dealii::VectorizedArray<double>>;
 #define constV(a) dealii::make_vectorized_array(a)
-  double epsilon = 1.0e-7;
+  double epsilon = 1.0e-10;
 
   PhaseFieldContainer(
     const IsothermalSystem                                          &isoSys,
@@ -162,7 +162,7 @@ public:
         sum_term += (phi.val * i_alpha.dfdx.val + beta.phi.val * i_beta.dfdx.val) *
                     (i_beta.x_data.val - i_alpha.x_data.val);
       }
-    sum_term /= phi.val + beta.phi.val;
+    sum_term /= phi.val + beta.phi.val + epsilon;
     return beta.phase_free_energy - phase_free_energy - sum_term;
   }
 
