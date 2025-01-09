@@ -227,11 +227,8 @@ public:
     return 0.5 * (alpha.info.sigma + beta.info.sigma);
   }
 
-  inline double
-  M_ij(const std::string &i, const std::string &j)
-  {
-    return 0.5 * (info.comps.at(i).M + info.comps.at(j).M); // fast bad approximation
-  }
+  scalarValue
+  M_ij(const std::string &i, const std::string &j);
 
   inline double
   mu(const PhaseFieldContainer<dim, degree> &alpha,

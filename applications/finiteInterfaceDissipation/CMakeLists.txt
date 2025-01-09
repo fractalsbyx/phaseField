@@ -141,7 +141,7 @@ include_directories(${CMAKE_SOURCE_DIR}/../../src)
 include_directories(${CMAKE_SOURCE_DIR})
 
 # Set the location of the main.cc file
-set(TARGET_SRC "${CMAKE_SOURCE_DIR}/../main.cc" "customPhases.cc")
+set(TARGET_SRC "customPhases.cc" "${CMAKE_SOURCE_DIR}/../main.cc")
 
 # Check if there has been updates to main library
 set(dir ${PROJECT_SOURCE_DIR}/../..)
