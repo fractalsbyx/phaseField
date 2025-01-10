@@ -27,6 +27,9 @@ struct CompData
 
 constexpr double PI = 3.141592653589793238;
 
+constexpr double diffusion_epsilon = 1.0e-7;
+constexpr double mpf_epsilon       = 1.0e-10;
+
 template <int dim, int degree>
 class PhaseFieldContainer
 {
@@ -34,7 +37,6 @@ public:
   using scalarValue = dealii::VectorizedArray<double>;
   using scalarGrad  = dealii::Tensor<1, dim, dealii::VectorizedArray<double>>;
 #define constV(a) dealii::make_vectorized_array(a)
-  double epsilon = 1.0e-10;
 
   PhaseFieldContainer(
     const IsothermalSystem                                          &isoSys,
@@ -90,7 +92,7 @@ public:
           {
             i_alpha.dxdt.grad += isoSys.Vm * isoSys.Vm * M_ij(i, j) * j_alpha.dfdx.grad;
             i_alpha.dxdt.val -= -isoSys.Vm * isoSys.Vm * M_ij(i, j) * j_alpha.dfdx.grad *
-                                phi.grad / (phi.val + epsilon);
+                                phi.grad / (phi.val + diffusion_epsilon);
           }
         // Internal relaxation (eq. 16)
         scalarValue         pairsum1 = constV(0.0);
@@ -162,7 +164,7 @@ public:
         sum_term += (phi.val * i_alpha.dfdx.val + beta.phi.val * i_beta.dfdx.val) *
                     (i_beta.x_data.val - i_alpha.x_data.val);
       }
-    sum_term /= phi.val + beta.phi.val + epsilon;
+    sum_term /= phi.val + beta.phi.val + mpf_epsilon;
     return beta.phase_free_energy - phase_free_energy - sum_term;
   }
 
