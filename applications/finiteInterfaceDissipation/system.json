@@ -1,35 +1,55 @@
 {
     "dimensions": {
-        "length_scale": 1.0,
-        "time_scale": 1.0,
-        "energy_density_scale": 1.0
+        "length_scale": 2.0,
+        "time_scale": 5.5e-9,
+        "energy_density_scale": 1.59
     },
-    "solution_component": "AL",
+    "solution_component": "TA",
     "components": {
         "CU": {
-            "permeability": 120.0
+            "permeability": 57250000.0
+        },
+        "TI": {
+            "permeability": 57250000.0
         }
     },
     "Vm": 1.0,
-    "eta": 0.8,
+    "eta": 8.0,
     "phases": {
-        "Phase_A": {
-            "sigma": 0.5,
-            "mu": 10.0,
+        "SOLID": {
+            "sigma": 0.98,
+            "mu": 1.5e10,
             "kappa": 0.0,
             "CU": {
-                "mobility": 0.5,
-                "x0": 0.25
+                "mobility": 0.0,
+                "x0": 0.02
+            },
+            "TI": {
+                "mobility": 0.0,
+                "x0": 0.96
             }
         },
-        "Phase_B": {
-            "sigma": 0.5,
-            "mu": 10.0,
+        "LIQUID": {
+            "sigma": 0.98,
+            "mu": 1.5e10,
             "kappa": 0.0,
             "CU": {
-                "mobility": 0.5,
-                "x0": 0.250
+                "mobility": 458.0e6,
+                "x0": 0.98
+            },
+            "TI": {
+                "mobility": 458.0e6,
+                "x0": 0.01
             }
         }
-    }
+    },
+    "comments": [
+        "FID expression = LMD expression:",
+        "4*sigma/eta = lambda_phi",
+        "4*sigma*eta/(pi^2) = sigma_phi",
+        "(mu/2)*sigma*(pi^2/eta^2) = L_phi",
+        "mobility = D*Va/kT",
+        "from FID paper:",
+        "P = 8*M/(eta^2)"
+    ]
 }
