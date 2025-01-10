@@ -51,11 +51,11 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
         }
     }
   uint n_per_phase = Sys.comp_info.size() + 1;
-  if (phase_name[index] == "Phase_A")
+  if (phase_name[index] == "SOLID")
     {
       scalar_IC = p1;
     }
-  if (phase_name[index] == "Phase_B")
+  if (phase_name[index] == "LIQUID")
     {
       scalar_IC = p2;
     }
