@@ -8,8 +8,8 @@ set Number of dimensions = 2
 # (Domain size Z ignored in 2D)
 # =================================================================================
 # Each axes spans from zero to the specified length
-set Domain size X = 20.0
-set Domain size Y = 20.0
+set Domain size X = 256.0
+set Domain size Y = 256.0
 #set Domain size Z = 300
 
 # =================================================================================
@@ -29,7 +29,7 @@ set Refine factor = 8
 set Mesh adaptivity = true
 
 # Set the maximum and minimum level of refinement
-set Max refinement level = 8
+set Max refinement level = 9
 set Min refinement level = 3
 
 # Set the number of time steps between remeshing operations
@@ -39,7 +39,7 @@ set Steps between remeshing operations = 25
 # Set the time step parameters
 # =================================================================================
 # The size of the time step
-set Time step = 1.0e-5
+set Time step = 1.0e-6
 
 # The simulation ends when either the number of time steps is reached or the
 # simulation time is reached.
@@ -98,4 +98,4 @@ set Number of checkpoints = 0
 # where [symmetry] is ISOTROPIC, TRANSVERSE, ORTHOTROPIC, or ANISOTROPIC.
 
 # Particle radius
-set Model constant r0 = 6.0, DOUBLE
+set Model constant r0 = 64.0, DOUBLE
