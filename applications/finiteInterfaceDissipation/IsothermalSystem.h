@@ -21,6 +21,7 @@ class IsothermalSystem
 public:
   std::map<std::string, Phase>    phases;
   std::map<std::string, CompInfo> comp_info;
+  std::string                     solution_component;
   uint                            N;
   double                          length_scale, time_scale, energy_scale;
   double                          _Vm, Vm;
@@ -47,6 +48,7 @@ public:
     _eta = j.at("eta").get<double>();
 
     // Parse components
+    solution_component = j.at("solution_component").get<std::string>();
     for (const auto &[comp_name, comp_data] : j.at("components").items())
       {
         CompInfo compInfo;
@@ -245,7 +247,6 @@ public:
         loader->set_variable_name(var_index, var_name);
         loader->set_variable_type(var_index, SCALAR);
         loader->set_variable_equation_type(var_index, EXPLICIT_TIME_DEPENDENT);
-        loader->set_need_value_nucleation(var_index, true);
         loader->set_dependencies_value_term_RHS(var_index,
                                                 phase_names + ',' + grad_phase_names +
                                                   ',' + comp_names + ',' +
@@ -254,6 +255,26 @@ public:
         // phase_names+','+grad_phase_names+','+comp_names+','+grad_comp_names);
         var_index++;
       }
+    for (const auto &[phase_name, phase] : phases)
+      {
+        std::string var_name = phase_name + "_" + solution_component;
+        loader->set_variable_name(var_index, var_name);
+        loader->set_variable_type(var_index, SCALAR);
+        loader->set_variable_equation_type(var_index, EXPLICIT_TIME_DEPENDENT);
+        loader->set_dependencies_value_term_RHS(var_index,
+                                                phase_names + ',' + grad_phase_names +
+                                                  ',' + comp_names + ',' +
+                                                  grad_comp_names);
+        var_index++;
+      }
+    std::string var_name = "TOTAL_" + solution_component;
+    loader->set_variable_name(var_index, var_name);
+    loader->set_variable_type(var_index, SCALAR);
+    loader->set_variable_equation_type(var_index, EXPLICIT_TIME_DEPENDENT);
+    loader->set_dependencies_value_term_RHS(var_index,
+                                            phase_names + ',' + grad_phase_names + ',' +
+                                              comp_names + ',' + grad_comp_names);
+    var_index++;
   }
 };
 

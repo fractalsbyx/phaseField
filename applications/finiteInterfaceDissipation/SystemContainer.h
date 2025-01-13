@@ -7,7 +7,6 @@
 #include <map>    //
 #include <string> //
 
-
 template <int dim, int degree>
 class SystemContainer
 {
@@ -84,6 +83,7 @@ public:
   {
     uint        var_index = 0;
     scalarValue pp_comp;
+    scalarValue total_solution_comp = constV(1.);
     for (const auto &[comp_name, other] : isoSys.comp_info)
       {
         pp_comp = constV(0.);
@@ -93,8 +93,20 @@ public:
               phase_field->phi.val * phase_field->comp_data[comp_name].x_data.val;
           }
         pp_variable_list.set_scalar_value_term_RHS(var_index, pp_comp);
+        total_solution_comp -= pp_comp;
         ++var_index;
       }
+    for (auto &[key, phase_field] : phase_fields)
+      {
+        scalarValue phase_solution_comp = constV(1.);
+        for (const auto &[comp_name, comp_data] : phase_field->comp_data)
+          {
+            phase_solution_comp -= comp_data.x_data.val;
+          }
+        pp_variable_list.set_scalar_value_term_RHS(var_index, phase_solution_comp);
+        ++var_index;
+      }
+    pp_variable_list.set_scalar_value_term_RHS(var_index, total_solution_comp);
   }
 };
 
