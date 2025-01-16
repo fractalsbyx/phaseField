@@ -35,9 +35,11 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
   double                  p1       = flat;
   double                  p2       = 1.0 - p1;
 
-  uint var_index = 0;
-  for (const auto &[phase_name, phase] : Sys.phases)
+  std::map<uint, std::string> phase_name;
+  uint                        var_index = 0;
+  for (const auto &[_phase_name, phase] : Sys.phases)
     {
+      phase_name[var_index] = _phase_name;
       var_index++;
       for (const auto &[comp_name, comp_info] : phase.comps)
         {
@@ -49,18 +51,14 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
         }
     }
   uint n_per_phase = Sys.comp_info.size() + 1;
-  if (index == 0 * n_per_phase)
+  if (phase_name[index] == "Phase_A")
     {
       scalar_IC = p1;
     }
-  if (index == 1 * n_per_phase)
+  if (phase_name[index] == "Phase_B")
     {
       scalar_IC = p2;
     }
-
-  // ===========================================================================
-  // Submit fields
-  // ===========================================================================
 }
 
 // ===========================================================================
