@@ -30,12 +30,10 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
   double r2        = x * x + y * y + z * z;
 
   // TODO: make order parameters
-  [[maybe_unused]] double circular =
-    interface(0.75 * (0.5 * (r0 * r0 - r2) / r0) / Sys.eta);
-  [[maybe_unused]] double flat =
-    interface(0.75 * (0.5 * (r0 * r0 - y * y) / r0) / Sys.eta);
-  double p1 = flat;
-  double p2 = 1.0 - p1;
+  [[maybe_unused]] double circular = interface(0.5 * (r0 * r0 - r2) / r0);
+  [[maybe_unused]] double flat     = interface(0.5 * (r0 * r0 - y * y) / r0);
+  double                  p1       = flat;
+  double                  p2       = 1.0 - p1;
 
   uint var_index = 0;
   for (const auto &[phase_name, phase] : Sys.phases)

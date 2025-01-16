@@ -152,7 +152,7 @@ private:
   inline double
   interface(const double x)
   {
-    return std::sin(0.5 * pi * std::max(0., std::min(1., x)));
+    return 0.5 * (1.0 + std::sin(pi * std::max(-0.5, std::min(0.5, x / Sys.eta))));
   }
 
   // ================================================================
