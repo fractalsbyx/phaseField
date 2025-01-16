@@ -26,7 +26,7 @@ set Subdivisions Y = 1
 set Subdivisions Z = 1
 
 set Refine factor = 8
-set Mesh adaptivity = false
+set Mesh adaptivity = true
 
 # Set the maximum and minimum level of refinement
 set Max refinement level = 8
