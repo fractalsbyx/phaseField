@@ -63,10 +63,11 @@ public:
         phase.name   = phase_name;
         phase._sigma = phase_data.at("sigma").get<double>();
         phase._mu    = phase_data.at("mu").get<double>();
+        phase._kappa = phase_data.at("kappa").get<double>();
 
         for (const auto &[comp_name, comp_data] : phase_data.items())
           {
-            if (comp_name != "sigma" && comp_name != "mu")
+            if (comp_name != "sigma" && comp_name != "mu" && comp_name != "kappa")
               {
                 PhaseCompInfo phaseCompInfo;
                 phaseCompInfo._M       = comp_data.at("mobility").get<double>();
@@ -92,6 +93,7 @@ public:
       {
         phase.mu    = phase._mu / (l0 / t0 / E0);
         phase.sigma = phase._sigma / (E0 * l0);
+        phase.kappa = phase._kappa / (E0 * l0);
         for (auto &[comp_name, comp] : phase.comps)
           {
             comp.M = comp._M / (l0 * l0 / t0 / E0);
@@ -138,6 +140,8 @@ public:
                   << phase._mu << "\n";
         std::cout << std::setw(col_width) << "sigma:" << std::setw(col_width)
                   << phase.sigma << phase._sigma << "\n";
+        std::cout << std::setw(col_width) << "kappa:" << std::setw(col_width)
+                  << phase.kappa << phase._kappa << "\n";
 
         for (const auto &[comp_name, comp] : phase.comps)
           {
@@ -156,15 +160,20 @@ public:
     std::string grad_phase_names;
     std::string comp_names;
     std::string grad_comp_names;
+    std::string penalty_names;
+    std::string grad_penalty_names;
     for (const auto &[phase_name, phase] : phases)
       {
         phase_names.append(phase_name + ",");
         grad_phase_names.append("grad(" + phase_name + "),");
         for (const auto &[comp, info] : comp_info)
           {
-            std::string var_name = phase_name + '_' + comp;
+            std::string var_name     = phase_name + '_' + comp;
+            std::string penalty_name = var_name + "_PENALTY";
             comp_names.append(var_name + ",");
             grad_comp_names.append("grad(" + var_name + "),");
+            penalty_names.append(penalty_name + ",");
+            grad_penalty_names.append("grad(" + penalty_name + "),");
           }
       }
     // remove commas
@@ -172,6 +181,8 @@ public:
     grad_phase_names.pop_back();
     comp_names.pop_back();
     grad_comp_names.pop_back();
+    penalty_names.pop_back();
+    grad_penalty_names.pop_back();
 
     uint var_index = 0;
     // Assign fields
@@ -185,11 +196,12 @@ public:
         loader->set_dependencies_value_term_RHS(var_index,
                                                 phase_names + ',' + grad_phase_names +
                                                   ',' + comp_names + ',' +
-                                                  grad_comp_names);
-        loader->set_dependencies_gradient_term_RHS(var_index,
-                                                   phase_names + ',' + grad_phase_names +
-                                                     ',' + comp_names + ',' +
-                                                     grad_comp_names);
+                                                  grad_comp_names + ',' + penalty_names +
+                                                  ',' + grad_penalty_names);
+        loader->set_dependencies_gradient_term_RHS(
+          var_index,
+          phase_names + ',' + grad_phase_names + ',' + comp_names + ',' +
+            grad_comp_names + ',' + penalty_names + ',' + grad_penalty_names);
         var_index++;
         for (const auto &[comp, info] : comp_info)
           {
@@ -198,20 +210,41 @@ public:
             loader->set_variable_type(var_index, SCALAR);
             loader->set_variable_equation_type(var_index, EXPLICIT_TIME_DEPENDENT);
             loader->set_need_value_nucleation(var_index, true);
+            loader->set_dependencies_value_term_RHS(
+              var_index,
+              phase_names + ',' + grad_phase_names + ',' + comp_names + ',' +
+                grad_comp_names + ',' + penalty_names + ',' + grad_penalty_names);
+            loader->set_dependencies_gradient_term_RHS(
+              var_index,
+              phase_names + ',' + grad_phase_names + ',' + comp_names + ',' +
+                grad_comp_names + ',' + penalty_names + ',' + grad_penalty_names);
+            var_index++;
+          }
+      }
+    for (const auto &[phase_name, phase] : phases)
+      {
+        for (const auto &[comp, info] : comp_info)
+          {
+            std::string var_name = phase_name + '_' + comp + "_PENALTY";
+            loader->set_variable_name(var_index, var_name);
+            loader->set_variable_type(var_index, SCALAR);
+            loader->set_variable_equation_type(var_index, EXPLICIT_TIME_DEPENDENT);
+            loader->set_need_value_nucleation(var_index, true);
             loader->set_dependencies_value_term_RHS(var_index,
                                                     phase_names + ',' + grad_phase_names +
                                                       ',' + comp_names + ',' +
-                                                      grad_comp_names);
-            loader->set_dependencies_gradient_term_RHS(var_index,
-                                                       phase_names + ',' +
-                                                         grad_phase_names + ',' +
-                                                         comp_names + ',' +
-                                                         grad_comp_names);
+                                                      grad_comp_names + ',' + var_name);
+
+            loader->set_dependencies_gradient_term_RHS(
+              var_index,
+              phase_names + ',' + grad_phase_names + ',' + comp_names + ',' +
+                grad_comp_names + ',' + var_name);
             var_index++;
           }
       }
     std::cout << "Phase names: " << phase_names << "\n"
-              << "Comp names: " << comp_names << "\n";
+              << "Comp names: " << comp_names << "\n"
+              << "Penalty names: " << penalty_names << "\n";
   }
 
   void

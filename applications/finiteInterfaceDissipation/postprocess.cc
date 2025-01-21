@@ -72,6 +72,6 @@ customPDE<dim, degree>::postProcessedFields(
   SystemContainer<dim, degree> sysFields(Sys, userInputs);
   // Solve
   // std::cout << "Initialize Fields Start...\n";
-  sysFields.initialize_fields(variable_list);
+  sysFields.initialize_fields_nonexplicit(variable_list);
   sysFields.submit_pp_fields(pp_variable_list);
 }

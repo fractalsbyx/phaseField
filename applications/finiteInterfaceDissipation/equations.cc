@@ -75,12 +75,13 @@ customPDE<dim, degree>::explicitEquationRHS(
   SystemContainer<dim, degree> sysFields(Sys, userInputs);
   // Solve
   // std::cout << "Initialize Fields Start...\n";
-  sysFields.initialize_fields(variable_list);
+  sysFields.initialize_fields_explicit(variable_list);
   sysFields.calculate_locals();
   // std::cout << "Solve Start...\n";
   sysFields.solve();
   // std::cout << "Submit Start...\n";
   sysFields.submit_fields(variable_list);
+  sysFields.submit_gradient_penalty(variable_list);
 }
 
 // =============================================================================================
@@ -102,7 +103,16 @@ customPDE<dim, degree>::nonExplicitEquationRHS(
   [[maybe_unused]] variableContainer<dim, degree, VectorizedArray<double>> &variable_list,
   [[maybe_unused]] const Point<dim, VectorizedArray<double>>                q_point_loc,
   [[maybe_unused]] const VectorizedArray<double> element_volume) const
-{}
+{
+  // --- Get the values and derivatives of the model variables ---
+  // std::cout << "Equations Start...\n";
+  // SystemContainer<dim, degree> sysFields(Sys, userInputs);
+  // Solve
+  // std::cout << "Initialize Fields Start...\n";
+  // sysFields.initialize_fields_nonexplicit(variable_list);
+  // std::cout << "Submit Start...\n";
+  // sysFields.submit_gradient_penalty(variable_list);
+}
 
 // =============================================================================================
 // equationLHS (needed only if at least one equation is time independent)

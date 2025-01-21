@@ -23,6 +23,7 @@ struct CompData
   FieldContainer<dim> x_data;
   FieldContainer<dim> dfdx;
   FieldContainer<dim> dxdt;
+  FieldContainer<dim> penalty;
 };
 
 constexpr double PI = 3.141592653589793238;
@@ -68,6 +69,18 @@ public:
       {
         comp_data[comp_name].x_data.val  = variable_list.get_scalar_value(var_index);
         comp_data[comp_name].x_data.grad = variable_list.get_scalar_gradient(var_index);
+        var_index++;
+      }
+  }
+
+  void
+  initialize_penalty(uint                                              &var_index,
+                     const variableContainer<dim, degree, scalarValue> &variable_list)
+  {
+    for (const auto &[comp_name, comp_info] : info.comps)
+      {
+        comp_data[comp_name].penalty.val  = variable_list.get_scalar_value(var_index);
+        comp_data[comp_name].penalty.grad = variable_list.get_scalar_gradient(var_index);
         var_index++;
       }
   }
@@ -248,6 +261,13 @@ public:
   calculate_locals()
   {
     calculate_free_energy();
+    for (auto &[i, i_alpha] : comp_data)
+      {
+        i_alpha.dfdx.val += i_alpha.penalty.val;
+        i_alpha.dfdx.grad += i_alpha.penalty.grad;
+        phase_free_energy +=
+          i_alpha.x_data.grad * i_alpha.x_data.grad * std::abs(info.kappa) / 2.0;
+      }
     calculate_I();
   }
 
@@ -270,6 +290,19 @@ public:
       {
         i_alpha.dfdx.val /= isoSys.energy_scale;
         i_alpha.dfdx.grad /= isoSys.energy_scale;
+      }
+  }
+
+  void
+  submit_gradient_penalty(uint                                        &var_index,
+                          variableContainer<dim, degree, scalarValue> &variable_list)
+  {
+    for (auto &[i, i_data] : comp_data)
+      {
+        variable_list.set_scalar_value_term_RHS(var_index, constV(0.0));
+        variable_list.set_scalar_gradient_term_RHS(var_index,
+                                                   i_data.x_data.grad * info.kappa / 2.0);
+        var_index++;
       }
   }
 
