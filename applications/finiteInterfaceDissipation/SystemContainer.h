@@ -30,7 +30,22 @@ public:
   }
 
   void
-  initialize_fields(
+  initialize_fields_explicit(
+    const variableContainer<dim, degree, dealii::VectorizedArray<double>> &variable_list)
+  {
+    uint var_index = 0;
+    for (auto &[key, phase_field] : phase_fields)
+      {
+        phase_field->initialize_fields(var_index, variable_list);
+      }
+    for (auto &[key, phase_field] : phase_fields)
+      {
+        phase_field->initialize_penalty(var_index, variable_list);
+      }
+  }
+
+  void
+  initialize_fields_nonexplicit(
     const variableContainer<dim, degree, dealii::VectorizedArray<double>> &variable_list)
   {
     uint var_index = 0;
@@ -74,6 +89,17 @@ public:
     for (auto &[key, phase_field] : phase_fields)
       {
         phase_field->submit_fields(var_index, variable_list, userInputs.dtValue);
+      }
+  }
+
+  void
+  submit_gradient_penalty(
+    variableContainer<dim, degree, dealii::VectorizedArray<double>> &variable_list)
+  {
+    uint var_index = isoSys.phases.size() * (isoSys.comp_info.size() + 1);
+    for (auto &[key, phase_field] : phase_fields)
+      {
+        phase_field->submit_gradient_penalty(var_index, variable_list);
       }
   }
 

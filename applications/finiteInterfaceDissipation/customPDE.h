@@ -18,6 +18,15 @@ public:
     Sys.print_parameters();
     print_initial_energies();
     std::cout << "customPDE initialized\n";
+    for (uint i = 0; i < this->var_attributes.attributes.size(); i++)
+      {
+        const auto &_set = this->var_attributes.attributes.at(i).dependencies_RHS;
+        for (const auto &_var : _set)
+          {
+            std::cout << std::to_string(i) << ": " << _var << " "
+                      << this->var_attributes.attributes.at(i).is_nonlinear << "\n";
+          }
+      }
   };
 
   void

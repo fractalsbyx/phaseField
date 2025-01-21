@@ -18,8 +18,10 @@ public:
   std::map<std::string, PhaseCompInfo> comps;
   double                               _sigma;
   double                               _mu;
+  double                               _kappa;
   double                               sigma;
   double                               mu;
+  double                               kappa;
 };
 
 #endif

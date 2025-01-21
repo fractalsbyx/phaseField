@@ -57,7 +57,7 @@ set Output condition = EQUAL_SPACING
 set Number of outputs = 500
 
 # The number of time steps between updates being printed to the screen
-set Skip print steps = 50
+set Skip print steps = 100
 
 # =================================================================================
 # Set the boundary conditions
