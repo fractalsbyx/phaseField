@@ -7,46 +7,46 @@
     "solution_component": "TA",
     "components": {
         "CU": {
-            "permeability": 57250000.0
+            "permeability": 572500000.0
         },
         "TI": {
-            "permeability": 57250000.0
+            "permeability": 572500000.0
         }
     },
     "Vm": 1.0,
-    "eta": 8.0,
+    "eta": 3.141592653589793,
     "phases": {
         "SOLID": {
-            "sigma": 0.98,
-            "mu": 1.5e10,
-            "kappa": 0.0,
+            "sigma": 1.24878,
+            "mu": 1.8e9,
+            "kappa": 9.0,
             "CU": {
                 "mobility": 0.0,
-                "x0": 0.02
+                "x0": 0.002
             },
             "TI": {
                 "mobility": 0.0,
-                "x0": 0.96
+                "x0": 0.849
             }
         },
         "LIQUID": {
-            "sigma": 0.98,
-            "mu": 1.5e10,
+            "sigma": 1.24878,
+            "mu": 1.8e9,
             "kappa": 0.0,
             "CU": {
-                "mobility": 458.0e6,
-                "x0": 0.98
+                "mobility": 4.58e8,
+                "x0": 0.001
             },
             "TI": {
-                "mobility": 458.0e6,
-                "x0": 0.01
+                "mobility": 4.58e8,
+                "x0": 0.001
             }
         }
     },
     "comments": [
         "FID expression = LMD expression:",
         "4*sigma/eta = lambda_phi",
-        "4*sigma*eta/(pi^2) = sigma_phi",
+        "4*sigma*eta/(pi^2) = sigma_phi/2",
         "(mu/2)*sigma*(pi^2/eta^2) = L_phi",
         "mobility = D*Va/kT",
         "from FID paper:",
