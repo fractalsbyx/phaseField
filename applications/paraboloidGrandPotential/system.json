@@ -1,0 +1,62 @@
+{
+    "dimensions": {
+        "length_scale": 2.0,
+        "time_scale": 5.5e-9,
+        "energy_density_scale": 1.59
+    },
+    "solution_component": "TA",
+    "components": [
+        "CU",
+        "TI"
+    ],
+    "Vm": 1.0,
+    "l_int": 2.0,
+    "phases": {
+        "SOLID": {
+            "L": 10.0,
+            "D": 1.0,
+            "sigma": 1.0,
+            "f_min": 1.8e9,
+            "CU": {
+                "c_min": 1.24878,
+                "k_well": 9.0,
+                "x0": 0.5
+            },
+            "TI": {
+                "c_min": 1.24878,
+                "k_well": 9.0,
+                "x0": 0.5
+            }
+        },
+        "LIQUID": {
+            "L": 10.0,
+            "D": 1.0,
+            "sigma": 1.0,
+            "f_min": 1.8e9,
+            "CU": {
+                "c_min": 1.24878,
+                "k_well": 9.0,
+                "x0": 0.5
+            },
+            "TI": {
+                "c_min": 1.24878,
+                "k_well": 9.0,
+                "x0": 0.5
+            }
+        }
+    },
+    "order_parameters": [
+        "LIQUID",
+        "SOLID",
+        "SOLID"
+    ],
+    "comments": [
+        "FID expression = LMD expression:",
+        "4*sigma/eta = lambda_phi",
+        "4*sigma*eta/(pi^2) = sigma_phi/2",
+        "(mu/2)*sigma*(pi^2/eta^2) = L_phi",
+        "mobility = D*Va/kT",
+        "from FID paper:",
+        "P = 8*M/(eta^2)"
+    ]
+}

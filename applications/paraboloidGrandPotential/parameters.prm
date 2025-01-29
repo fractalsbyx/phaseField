@@ -1,0 +1,101 @@
+# =================================================================================
+# Set the number of dimensions (2 or 3 for a 2D or 3D calculation)
+# =================================================================================
+set Number of dimensions = 2
+
+# =================================================================================
+# Set the length of the domain in all three dimensions
+# (Domain size Z ignored in 2D)
+# =================================================================================
+# Each axes spans from zero to the specified length
+set Domain size X = 128.0
+set Domain size Y = 128.0
+#set Domain size Z = 300
+
+# =================================================================================
+# Set the element parameters
+# =================================================================================
+# Set the polynomial degree of the element (allowed values: 1, 2, or 3)
+set Element degree = 1
+
+# The number of elements in each direction is 2^(refineFactor) * subdivisions
+# Subdivisions Z ignored in 2D
+# For optimal performance, use refineFactor primarily to determine the element size
+set Subdivisions X = 1
+set Subdivisions Y = 1
+set Subdivisions Z = 1
+
+set Refine factor = 9
+set Mesh adaptivity = true
+
+# Set the maximum and minimum level of refinement
+set Max refinement level = 9
+set Min refinement level = 3
+
+# Set the number of time steps between remeshing operations
+set Steps between remeshing operations = 25
+
+# =================================================================================
+# Set the time step parameters
+# =================================================================================
+# The size of the time step
+set Time step = 1.0e-6
+
+# The simulation ends when either the number of time steps is reached or the
+# simulation time is reached.
+set Number of time steps = 50000
+
+# =================================================================================
+# Set the output parameters
+# =================================================================================
+# Type of spacing between outputs ("EQUAL_SPACING", "LOG_SPACING", "N_PER_DECADE",
+# or "LIST")
+set Output condition = EQUAL_SPACING
+
+# Number of times the program outputs the fields (total number for "EQUAL_SPACING"
+# and "LOG_SPACING", number per decade for "N_PER_DECADE", ignored for "LIST")
+set Number of outputs = 125
+
+# The number of time steps between updates being printed to the screen
+set Skip print steps = 100
+
+# =================================================================================
+# Set the boundary conditions
+# =================================================================================
+# types are NATURAL, DIRICHLET, NON_UNIFORM_DIRICHLET and PERIODIC.
+# [left, right, bottom, top, front, back]. The value of a
+# Dirichlet BC is specified in the following way -- DIRCHILET: val -- where 'val' is
+# the desired value. If the boundary condition is NON_UNIFORM_DIRICHLET, the
+# boundary condition should be specified in the appropriate function in 'ICs_and_BCs.h'.
+# =================================================================================
+# Set the adaptive mesh refinement parameters
+# =================================================================================
+
+include BC_AMR.prm
+
+# =================================================================================
+# Set the checkpoint/restart parameters
+# =================================================================================
+# Whether to start this simulation from the checkpoint of a previous simulation
+set Load from a checkpoint = false
+
+# Type of spacing between checkpoints ("EQUAL_SPACING", "LOG_SPACING", "N_PER_DECADE",
+# or "LIST")
+set Checkpoint condition = EQUAL_SPACING
+
+# Number of times the creates checkpoints (total number for "EQUAL_SPACING"
+# and "LOG_SPACING", number per decade for "N_PER_DECADE", ignored for "LIST")
+set Number of checkpoints = 0
+
+# =================================================================================
+# Set the model constants
+# =================================================================================
+# Set the user-defined model constants, which must have a counter-part given in
+# customPDE.h. These are most often used in the residual equations in equations.h,
+# but may also be used for initial conditions and nucleation calculations. The type
+# options currently are DOUBLE, INT, BOOL, STRING (without commas), DOUBLE ARRAY, INT ARRAY,
+# BOOL ARRAY, STRING ARRAY, TENSOR, and [symmetry] ELASTIC CONSTANTS
+# where [symmetry] is ISOTROPIC, TRANSVERSE, ORTHOTROPIC, or ANISOTROPIC.
+
+# Particle radius
+set Model constant r0 = 32.0, DOUBLE
