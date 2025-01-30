@@ -93,12 +93,18 @@ private:
   // ================================================================
   // Methods specific to this subclass
   // ================================================================
+  [[nodiscard]] double
+  interface(double x) const
+  {
+    return 0.5 * (1.0 + std::tanh(2.0 * x / isoSys.l_int));
+  }
 
   // ================================================================
   // Model constants specific to this subclass
   // ================================================================
   nlohmann::json   model_parameters;
   ParaboloidSystem isoSys;
+  double           r0 = userInputs.get_model_constant_double("r0");
 
   // ================================================================
 };

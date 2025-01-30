@@ -80,6 +80,25 @@ public:
   }
 
   void
+  initialize_fields_postprocess(
+    const variableContainer<dim, degree, dealii::VectorizedArray<double>> &variable_list,
+    uint                                                                  &var_index)
+  {
+    for (const auto &comp_name : isoSys.comp_names)
+      {
+        comp_data[comp_name].mu.val = variable_list.get_scalar_value(var_index);
+        var_index++;
+      }
+    for (const auto &phase_name : isoSys.order_params)
+      {
+        OPData op;
+        op.eta.val = variable_list.get_scalar_value(var_index);
+        op_data.push_back({phase_name, op});
+        var_index++;
+      }
+  }
+
+  void
   calculate_omega_phase()
   {
     for (const auto &[phase_name, phase_info] : isoSys.phases)
@@ -239,11 +258,25 @@ public:
       }
   }
 
-  // void
-  // submit_pp_fields(
-  //   variableContainer<dim, degree, dealii::VectorizedArray<double>> &pp_variable_list,
-  //   uint                                                            &var_index)
-  //{}
+  void
+  submit_pp_fields(
+    variableContainer<dim, degree, dealii::VectorizedArray<double>> &pp_variable_list,
+    uint                                                            &pp_index)
+  {
+    for (auto &[comp_name, comp] : comp_data)
+      {
+        scalarValue c = 0.;
+        for (auto &[phase_name, phase] : phase_data)
+          {
+            const ParaboloidSystem::PhaseCompInfo &comp_info =
+              isoSys.phases.at(phase_name).comps.at(comp_name);
+            c += phase.h.val * comp_info.c_min;
+            c += phase.h.val * comp.mu.val / comp_info.k_well / isoSys.Vm;
+          }
+        pp_variable_list.set_scalar_value_term_RHS(pp_index, c);
+        pp_index++;
+      }
+  }
 };
 
 #endif

@@ -1,6 +1,6 @@
 set Boundary condition for variable LIQUID_0 = NATURAL
 set Boundary condition for variable SOLID_0 = NATURAL
-set Boundary condition for variable SOLID_1 = NATURAL
+#set Boundary condition for variable SOLID_1 = NATURAL
 set Boundary condition for variable mu_CU = NATURAL
 set Boundary condition for variable mu_TI = NATURAL
 
@@ -10,11 +10,11 @@ subsection Refinement criterion: SOLID_0
     set Value lower bound = 0.01
     set Value upper bound = 0.99
 end
-subsection Refinement criterion: SOLID_0
-    set Criterion type = VALUE
-    set Value lower bound = 0.01
-    set Value upper bound = 0.99
-end
+#subsection Refinement criterion: SOLID_1
+#    set Criterion type = VALUE
+#    set Value lower bound = 0.01
+#    set Value upper bound = 0.99
+#end
 subsection Refinement criterion: LIQUID_0
     set Criterion type = VALUE
     set Value lower bound = 0.01

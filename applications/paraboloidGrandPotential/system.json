@@ -1,8 +1,8 @@
 {
     "dimensions": {
-        "length_scale": 2.0,
-        "time_scale": 5.5e-9,
-        "energy_density_scale": 1.59
+        "length_scale": 1.0,
+        "time_scale": 1.0,
+        "energy_density_scale": 1.0
     },
     "solution_component": "TA",
     "components": [
@@ -16,47 +16,40 @@
             "mu_int": 10.0,
             "D": 1.0,
             "sigma": 1.0,
-            "f_min": 1.8e9,
+            "f_min": 0.0,
             "CU": {
-                "c_min": 1.24878,
-                "k_well": 9.0,
-                "x0": 0.5
+                "k_well": 1.0,
+                "c_min": 0.8,
+                "x0": 0.8
             },
             "TI": {
-                "c_min": 1.24878,
-                "k_well": 9.0,
-                "x0": 0.5
+                "k_well": 1.0,
+                "c_min": 0.1,
+                "x0": 0.1
             }
         },
         "LIQUID": {
             "mu_int": 10.0,
             "D": 1.0,
             "sigma": 1.0,
-            "f_min": 1.8e9,
+            "f_min": 0.0,
             "CU": {
-                "c_min": 1.24878,
-                "k_well": 9.0,
-                "x0": 0.5
+                "k_well": 0.5,
+                "c_min": 0.1,
+                "x0": 0.2
             },
             "TI": {
-                "c_min": 1.24878,
-                "k_well": 9.0,
-                "x0": 0.5
+                "k_well": 0.5,
+                "c_min": 0.8,
+                "x0": 0.7
             }
         }
     },
     "order_parameters": [
         "LIQUID",
-        "SOLID",
         "SOLID"
     ],
     "comments": [
-        "FID expression = LMD expression:",
-        "4*sigma/eta = lambda_phi",
-        "4*sigma*eta/(pi^2) = sigma_phi/2",
-        "(mu/2)*sigma*(pi^2/eta^2) = L_phi",
-        "mobility = D*Va/kT",
-        "from FID paper:",
-        "P = 8*M/(eta^2)"
+        "none yet"
     ]
 }

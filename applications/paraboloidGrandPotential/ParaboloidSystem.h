@@ -14,7 +14,7 @@ class ParaboloidSystem
 public:
   struct PhaseCompInfo
   {
-    double c_min, k_well, x0;
+    double c_min, _k_well, k_well, x0;
     double _M, M;
   };
 
@@ -53,7 +53,8 @@ public:
     energy_scale = j.at("dimensions").at("energy_density_scale").get<double>();
 
     // Parse Vm
-    _Vm = j.at("Vm").get<double>();
+    _Vm    = j.at("Vm").get<double>();
+    _l_int = j.at("l_int").get<double>();
 
     // Parse solution component
     solution_component = j.at("solution_component").get<std::string>();
@@ -70,6 +71,8 @@ public:
         Phase phase;
         phase._mu_int = phase_data.at("mu_int").get<double>();
         phase._sigma  = phase_data.at("sigma").get<double>();
+        phase._f_min  = phase_data.at("f_min").get<double>();
+        phase._D      = phase_data.at("D").get<double>();
 
         for (const auto &[comp_name, comp_data] : phase_data.items())
           {
@@ -78,7 +81,7 @@ public:
               {
                 PhaseCompInfo phaseCompInfo;
                 phaseCompInfo.c_min    = comp_data.at("c_min").get<double>();
-                phaseCompInfo.k_well   = comp_data.at("k_well").get<double>();
+                phaseCompInfo._k_well  = comp_data.at("k_well").get<double>();
                 phaseCompInfo.x0       = comp_data.at("x0").get<double>();
                 phase.comps[comp_name] = phaseCompInfo;
               }
@@ -105,8 +108,13 @@ public:
     for (auto &[phase_name, phase] : phases)
       {
         phase.mu_int = phase._mu_int * (E0 * t0);
-        phase.D      = phase._D * (t0 / (l0 * l0)); // FIX?
         phase.sigma  = phase._sigma / (E0 * l0);
+        phase.f_min  = phase._f_min / E0;
+        phase.D      = phase._D * (t0 / (l0 * l0)); // FIX?
+        for (auto &[comp_name, comp] : phase.comps)
+          {
+            comp.k_well = comp._k_well / E0;
+          }
       }
   }
 
@@ -228,9 +236,45 @@ public:
       }
   }
 
-  // void
-  // load_pp_variables(variableAttributeLoader *loader)
-  //{}
+  void
+  load_pp_variables(variableAttributeLoader *loader)
+  {
+    // Get names for comp fields
+    std::vector<std::string> c_names;
+    std::vector<std::string> mu_names;
+    for (const auto &comp_name : comp_names)
+      {
+        c_names.push_back("c_" + comp_name);
+        mu_names.push_back("mu_" + comp_name);
+      }
+    // Get names for order parameter fields
+    std::vector<std::string>    op_names;
+    std::map<std::string, uint> phase_counter;
+    for (const auto &phase_name : order_params)
+      {
+        if (phase_counter.find(phase_name) == phase_counter.end())
+          {
+            phase_counter[phase_name] = 0;
+          }
+        std::string var_name =
+          phase_name + "_" + std::to_string(phase_counter[phase_name]);
+        op_names.push_back(var_name);
+        phase_counter[phase_name]++;
+        std::cout << var_name << " ";
+      }
+    std::cout << "\n";
+
+    // Assign fields
+    uint pp_index = 0;
+    for (const auto &c_name : c_names)
+      {
+        loader->set_variable_name(pp_index, c_name);
+        loader->set_variable_type(pp_index, SCALAR);
+        loader->insert_dependencies_value_term_RHS(pp_index, mu_names);
+        loader->insert_dependencies_value_term_RHS(pp_index, op_names);
+        pp_index++;
+      }
+  }
 };
 
 #endif
