@@ -36,6 +36,9 @@ public:
   double                       _Vm, Vm;
   double                       _l_int, l_int;
 
+  ParaboloidSystem()
+  {}
+
   ParaboloidSystem(const nlohmann::json &TCSystem)
   {
     from_json(TCSystem);
@@ -65,12 +68,13 @@ public:
     for (const auto &[phase_name, phase_data] : j.at("phases").items())
       {
         Phase phase;
-        phase._L     = phase_data.at("L").get<double>();
-        phase._sigma = phase_data.at("sigma").get<double>();
+        phase._mu_int = phase_data.at("mu_int").get<double>();
+        phase._sigma  = phase_data.at("sigma").get<double>();
 
         for (const auto &[comp_name, comp_data] : phase_data.items())
           {
-            if (comp_name != "L" && comp_name != "sigma" && comp_name != "f_min")
+            if (comp_name != "mu_int" && comp_name != "sigma" && comp_name != "f_min" &&
+                comp_name != "D")
               {
                 PhaseCompInfo phaseCompInfo;
                 phaseCompInfo.c_min    = comp_data.at("c_min").get<double>();
@@ -100,9 +104,9 @@ public:
     l_int            = _l_int / (l0);
     for (auto &[phase_name, phase] : phases)
       {
-        phase.L     = phase._L * (E0 * t0);
-        phase.D     = phase._D * (t0 / (l0 * l0)); // FIX?
-        phase.sigma = phase._sigma / (E0 * l0);
+        phase.mu_int = phase._mu_int * (E0 * t0);
+        phase.D      = phase._D * (t0 / (l0 * l0)); // FIX?
+        phase.sigma  = phase._sigma / (E0 * l0);
       }
   }
 
@@ -135,8 +139,8 @@ public:
     for (const auto &[phase_name, phase] : phases)
       {
         std::cout << std::setw(col_width) << phase_name << "\n";
-        std::cout << std::setw(col_width) << "L:" << std::setw(col_width) << phase.L
-                  << std::setw(col_width) << phase._L << "\n";
+        std::cout << std::setw(col_width) << "mu_int:" << std::setw(col_width)
+                  << phase.mu_int << std::setw(col_width) << phase._mu_int << "\n";
         std::cout << std::setw(col_width) << "D:" << std::setw(col_width) << phase.D
                   << std::setw(col_width) << phase._D << "\n";
         std::cout << std::setw(col_width) << "sigma:" << std::setw(col_width)
@@ -160,14 +164,14 @@ public:
   load_variables(variableAttributeLoader *loader)
   {
     // Get names for mu fields
-    std::set<std::string> mu_names;
-    std::set<std::string> grad_mu_names;
+    std::vector<std::string> mu_names;
+    std::vector<std::string> grad_mu_names;
     std::cout << "Comp names: ";
     for (const auto &comp_name : comp_names)
       {
         std::string var_name = "mu_" + comp_name;
-        mu_names.insert(var_name);
-        grad_mu_names.insert("grad(" + var_name + ")");
+        mu_names.push_back(var_name);
+        grad_mu_names.push_back("grad(" + var_name + ")");
         std::cout << var_name << " ";
       }
     std::cout << "\n"
@@ -224,68 +228,9 @@ public:
       }
   }
 
-  void
-  load_pp_variables(variableAttributeLoader *loader)
-  {
-    // Get names for composition fields
-    std::string phase_names;
-    std::string grad_phase_names;
-    std::string comp_names;
-    std::string grad_comp_names;
-    for (const auto &[phase_name, phase] : phases)
-      {
-        phase_names.append(phase_name + ",");
-        grad_phase_names.append("grad(" + phase_name + "),");
-        for (const auto &[comp, info] : comp_info)
-          {
-            std::string var_name = phase_name + '_' + comp;
-            comp_names.append(var_name + ",");
-            grad_comp_names.append("grad(" + var_name + "),");
-          }
-      }
-    // remove commas
-    phase_names.pop_back();
-    grad_phase_names.pop_back();
-    comp_names.pop_back();
-    grad_comp_names.pop_back();
-
-    uint var_index = 0;
-    // Assign fields
-    for (const auto &[comp, info] : comp_info)
-      {
-        std::string var_name = "TOTAL_" + comp;
-        loader->set_variable_name(var_index, var_name);
-        loader->set_variable_type(var_index, SCALAR);
-        loader->set_variable_equation_type(var_index, EXPLICIT_TIME_DEPENDENT);
-        loader->set_dependencies_value_term_RHS(var_index,
-                                                phase_names + ',' + grad_phase_names +
-                                                  ',' + comp_names + ',' +
-                                                  grad_comp_names);
-        // loader->set_dependencies_gradient_term_RHS(var_index,
-        // phase_names+','+grad_phase_names+','+comp_names+','+grad_comp_names);
-        var_index++;
-      }
-    for (const auto &[phase_name, phase] : phases)
-      {
-        std::string var_name = phase_name + "_" + solution_component;
-        loader->set_variable_name(var_index, var_name);
-        loader->set_variable_type(var_index, SCALAR);
-        loader->set_variable_equation_type(var_index, EXPLICIT_TIME_DEPENDENT);
-        loader->set_dependencies_value_term_RHS(var_index,
-                                                phase_names + ',' + grad_phase_names +
-                                                  ',' + comp_names + ',' +
-                                                  grad_comp_names);
-        var_index++;
-      }
-    std::string var_name = "TOTAL_" + solution_component;
-    loader->set_variable_name(var_index, var_name);
-    loader->set_variable_type(var_index, SCALAR);
-    loader->set_variable_equation_type(var_index, EXPLICIT_TIME_DEPENDENT);
-    loader->set_dependencies_value_term_RHS(var_index,
-                                            phase_names + ',' + grad_phase_names + ',' +
-                                              comp_names + ',' + grad_comp_names);
-    var_index++;
-  }
+  // void
+  // load_pp_variables(variableAttributeLoader *loader)
+  //{}
 };
 
 #endif

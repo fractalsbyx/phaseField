@@ -1,39 +1,22 @@
+set Boundary condition for variable LIQUID_0 = NATURAL
+set Boundary condition for variable SOLID_0 = NATURAL
+set Boundary condition for variable SOLID_1 = NATURAL
+set Boundary condition for variable mu_CU = NATURAL
+set Boundary condition for variable mu_TI = NATURAL
 
-set Boundary condition for variable SOLID = NATURAL
-set Boundary condition for variable LIQUID = NATURAL
-set Boundary condition for variable SOLID_CU = NATURAL
-set Boundary condition for variable LIQUID_CU = NATURAL, NATURAL, NON_UNIFORM_DIRICHLET, NATURAL
-set Boundary condition for variable SOLID_TI = NATURAL
-set Boundary condition for variable LIQUID_TI = NATURAL
-set Boundary condition for variable SOLID_CU_PENALTY = NATURAL
-set Boundary condition for variable LIQUID_CU_PENALTY = NATURAL
-set Boundary condition for variable SOLID_TI_PENALTY = NATURAL
-set Boundary condition for variable LIQUID_TI_PENALTY = NATURAL
 
-subsection Refinement criterion: SOLID
+subsection Refinement criterion: SOLID_0
     set Criterion type = VALUE
     set Value lower bound = 0.01
     set Value upper bound = 0.99
 end
-subsection Refinement criterion: LIQUID
+subsection Refinement criterion: SOLID_0
     set Criterion type = VALUE
     set Value lower bound = 0.01
     set Value upper bound = 0.99
 end
-
-subsection Refinement criterion: SOLID_CU
-    set Criterion type = GRADIENT
-    set Gradient magnitude lower bound = 0.01
-end
-subsection Refinement criterion: LIQUID_CU
-    set Criterion type = GRADIENT
-    set Gradient magnitude lower bound = 0.01
-end
-subsection Refinement criterion: SOLID_TI
-    set Criterion type = GRADIENT
-    set Gradient magnitude lower bound = 0.01
-end
-subsection Refinement criterion: LIQUID_TI
-    set Criterion type = GRADIENT
-    set Gradient magnitude lower bound = 0.01
+subsection Refinement criterion: LIQUID_0
+    set Criterion type = VALUE
+    set Value lower bound = 0.01
+    set Value upper bound = 0.99
 end

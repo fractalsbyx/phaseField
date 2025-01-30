@@ -16,21 +16,19 @@
 void
 customAttributeLoader::loadVariableAttributes()
 {
-  // Variable 0
-  set_variable_name(0, "c");
-  set_variable_type(0, SCALAR);
-  set_variable_equation_type(0, EXPLICIT_TIME_DEPENDENT);
+// Load the model parameters
+#include "ParaboloidSystem.h"
 
-  set_dependencies_value_term_RHS(0, "c");
-  set_dependencies_gradient_term_RHS(0, "grad(mu)");
-
-  // Variable 1
-  set_variable_name(1, "mu");
-  set_variable_type(1, SCALAR);
-  set_variable_equation_type(1, AUXILIARY);
-
-  set_dependencies_value_term_RHS(1, "c");
-  set_dependencies_gradient_term_RHS(1, "grad(c)");
+#include <fstream>
+#include <iostream>
+  nlohmann::json   model_parameters;
+  ParaboloidSystem isoSys;
+  std::ifstream    system_file;
+  system_file.open("system.json");
+  system_file >> model_parameters;
+  system_file.close();
+  isoSys.from_json(model_parameters);
+  isoSys.load_variables(this);
 }
 
 // =============================================================================================
@@ -53,17 +51,14 @@ customPDE<dim, degree>::explicitEquationRHS(
   [[maybe_unused]] const Point<dim, VectorizedArray<double>>                q_point_loc,
   [[maybe_unused]] const VectorizedArray<double> element_volume) const
 {
-  // --- Getting the values and derivatives of the model variables ---
-  scalarvalueType c   = variable_list.get_scalar_value(0);
-  scalargradType  mux = variable_list.get_scalar_gradient(1);
-
-  // --- Setting the expressions for the terms in the governing equations ---
-  scalarvalueType eq_c  = c;
-  scalargradType  eqx_c = constV(-McV * userInputs.dtValue) * mux;
-
-  // --- Submitting the terms for the governing equations ---
-  variable_list.set_scalar_value_term_RHS(0, eq_c);
-  variable_list.set_scalar_gradient_term_RHS(0, eqx_c);
+  SystemContainer<dim, degree> sys(isoSys, userInputs);
+  uint                         var_index = 0;
+  sys.initialize_fields_explicit(variable_list, var_index);
+  sys.calculate_locals();
+  sys.calculate_detadt();
+  sys.calculate_dmudt();
+  var_index = 0;
+  sys.submit_fields(variable_list, var_index);
 }
 
 // =============================================================================================
@@ -85,26 +80,7 @@ customPDE<dim, degree>::nonExplicitEquationRHS(
   [[maybe_unused]] variableContainer<dim, degree, VectorizedArray<double>> &variable_list,
   [[maybe_unused]] const Point<dim, VectorizedArray<double>>                q_point_loc,
   [[maybe_unused]] const VectorizedArray<double> element_volume) const
-{
-  // --- Getting the values and derivatives of the model variables ---
-
-  scalarvalueType c  = variable_list.get_scalar_value(0);
-  scalargradType  cx = variable_list.get_scalar_gradient(0);
-
-  // --- Setting the expressions for the terms in the governing equations ---
-
-  // The derivative of the local free energy
-  scalarvalueType fcV = constV(4.0) * (c - constV(1.0)) * (c - constV(0.5)) * c;
-
-  // The terms for the governing equations
-  scalarvalueType eq_mu  = fcV;
-  scalargradType  eqx_mu = constV(KcV) * cx;
-
-  // --- Submitting the terms for the governing equations ---
-
-  variable_list.set_scalar_value_term_RHS(1, eq_mu);
-  variable_list.set_scalar_gradient_term_RHS(1, eqx_mu);
-}
+{}
 
 // =============================================================================================
 // equationLHS (needed only if at least one equation is time independent)
@@ -128,3 +104,39 @@ customPDE<dim, degree>::equationLHS(
   [[maybe_unused]] const Point<dim, VectorizedArray<double>>                q_point_loc,
   [[maybe_unused]] const VectorizedArray<double> element_volume) const
 {}
+
+#include "SystemContainer.h"
+// template class SystemContainer<1, 1>;
+// template class SystemContainer<1, 2>;
+// template class SystemContainer<1, 3>;
+// template class SystemContainer<1, 4>;
+// template class SystemContainer<1, 5>;
+// template class SystemContainer<1, 6>;
+
+template class SystemContainer<2, 1>;
+template class SystemContainer<2, 2>;
+template class SystemContainer<2, 3>;
+template class SystemContainer<2, 4>;
+template class SystemContainer<2, 5>;
+template class SystemContainer<2, 6>;
+
+template class SystemContainer<3, 1>;
+template class SystemContainer<3, 2>;
+template class SystemContainer<3, 3>;
+template class SystemContainer<3, 4>;
+template class SystemContainer<3, 5>;
+template class SystemContainer<3, 6>;
+
+template class customPDE<2, 1>;
+template class customPDE<2, 2>;
+template class customPDE<2, 3>;
+template class customPDE<2, 4>;
+template class customPDE<2, 5>;
+template class customPDE<2, 6>;
+
+template class customPDE<3, 1>;
+template class customPDE<3, 2>;
+template class customPDE<3, 3>;
+template class customPDE<3, 4>;
+template class customPDE<3, 5>;
+template class customPDE<3, 6>;

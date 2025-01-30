@@ -1,4 +1,8 @@
+#include "SystemContainer.h"
+
 #include <core/matrixFreePDE.h>
+#include <fstream>
+#include <iostream>
 
 using namespace dealii;
 
@@ -9,7 +13,15 @@ public:
   // Constructor
   customPDE(userInputParameters<dim> _userInputs)
     : MatrixFreePDE<dim, degree>(_userInputs)
-    , userInputs(_userInputs) {};
+    , userInputs(_userInputs)
+  {
+    // Load the model parameters
+    std::ifstream ifs("system.json");
+    ifs >> model_parameters;
+    ifs.close();
+    isoSys.from_json(model_parameters);
+    isoSys.print_parameters();
+  }
 
   // Function to set the initial conditions (in ICs_and_BCs.h)
   void
@@ -85,6 +97,8 @@ private:
   // ================================================================
   // Model constants specific to this subclass
   // ================================================================
+  nlohmann::json   model_parameters;
+  ParaboloidSystem isoSys;
 
   // ================================================================
 };

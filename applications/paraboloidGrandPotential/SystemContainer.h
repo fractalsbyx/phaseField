@@ -44,26 +44,29 @@ public:
   std::map<std::string, CompData>             comp_data;
   std::vector<std::pair<std::string, OPData>> op_data;
   FieldContainer<dim>                         sum_sq_eta;
-  scalarValue                                 D;
+  FieldContainer<dim>                         D;
 
   /**
    * Constructor
    */
   SystemContainer(const ParaboloidSystem         &_isoSys,
-                  const userInputParameters<dim> &_userInputs);
+                  const userInputParameters<dim> &_userInputs)
+    : isoSys(_isoSys)
+    , userInputs(_userInputs)
+  {}
 
   ~SystemContainer()
   {}
 
   void
   initialize_fields_explicit(
-    const variableContainer<dim, degree, dealii::VectorizedArray<double>> &variable_list)
+    const variableContainer<dim, degree, dealii::VectorizedArray<double>> &variable_list,
+    uint                                                                  &var_index)
   {
-    uint var_index = 0;
     for (const auto &comp_name : isoSys.comp_names)
       {
-        comp_data[comp_name].mu_data.val  = variable_list.get_scalar_value(var_index);
-        comp_data[comp_name].mu_data.grad = variable_list.get_scalar_gradient(var_index);
+        comp_data[comp_name].mu.val  = variable_list.get_scalar_value(var_index);
+        comp_data[comp_name].mu.grad = variable_list.get_scalar_gradient(var_index);
         var_index++;
       }
     for (const auto &phase_name : isoSys.order_params)
@@ -86,7 +89,7 @@ public:
         for (auto &[i_name, i_data] : comp_data)
           {
             phase.omega += -i_data.mu * i_data.mu / (2.0 * isoSys.Vm * isoSys.Vm) //
-                           - i_data.mu * phase_info.comps[i_name].c_min / isoSys.Vm;
+                           - i_data.mu * phase_info.comps.at(i_name).c_min / isoSys.Vm;
           }
       }
   }
@@ -125,20 +128,20 @@ public:
             dhdeta.val                  = constV(0.);
             if (alpha_name == beta_name)
               {
-                dhdeta += 2.0 * op.eta;
+                dhdeta += op.eta * 2.0;
               }
-            dhdeta -= 2.0 * op.eta * beta.h;
+            dhdeta -= op.eta * beta.h * 2.0;
             dhdeta /= sum_sq_eta;
           }
       }
   }
 
   void
-  calculate_dfdeta()
+  calculate_detadt()
   {
     for (auto &[phase_name, op] : op_data)
       {
-        ParaboloidSystem::Phase &phase_info = isoSys.phases[phase_name];
+        const ParaboloidSystem::Phase &phase_info = isoSys.phases.at(phase_name);
 
         double m     = 6.00 * phase_info.sigma / isoSys.l_int;
         double kappa = 0.75 * phase_info.sigma * isoSys.l_int;
@@ -151,15 +154,24 @@ public:
                2. * 1.5 * op.eta.val * (sum_sq_eta.val - op.eta.val * op.eta.val));
         interface_term.grad = kappa * op.eta.grad;
 
-        // This is a variation, NOT a field
-        FieldContainer<dim> chemical_term;
+        // This is a variation, but has no vector term.
+        scalarValue chemical_term;
         for (auto &[phase_name, phase] : phase_data)
           {
-            chemical_term +=
-              FieldContainer<dim>::field_x_variation(phase.omega,
-                                                     op.dhdeta.at(phase_name));
+            // NOTE: Only multiply values
+            chemical_term += phase.omega.val * op.dhdeta.at(phase_name).val;
           }
-        op.detadt = -L * (interface_term + chemical_term);
+        op.detadt = (interface_term + chemical_term) * (-L);
+      }
+  }
+
+  void
+  calculate_local_diffusivity()
+  {
+    D.val = constV(0.);
+    for (auto &[phase_name, phase] : phase_data)
+      {
+        D += phase.h * isoSys.phases.at(phase_name).D;
       }
   }
 
@@ -168,9 +180,9 @@ public:
   {
     for (auto &[comp_name, comp] : comp_data)
       {
-        comp.dmudt = constV(0.);
+        comp.dmudt.val = constV(0.);
         // Flux term
-        comp.dmudt.grad = -D * comp.mu.grad; // CHECK SIGN
+        comp.dmudt.grad = -D.val * comp.mu.grad; // CHECK SIGN
 
         // Partitioning term
         for (auto &[phase_name, op] : op_data)
@@ -186,19 +198,20 @@ public:
             drhodeta_sum /= isoSys.Vm;
             comp.dmudt -=
               FieldContainer<dim>::field_x_variation(drhodeta_sum, op.detadt) *
-              isoSys.Vm * isoSys.Vm * isoSys.phases[phase_name].comps[comp_name].k_well;
+              isoSys.Vm * isoSys.Vm *
+              isoSys.phases.at(phase_name).comps.at(comp_name).k_well;
           }
       }
   }
 
   void
-  calculate_local_diffusivity()
+  calculate_locals()
   {
-    D = constV(0.);
-    for (auto &[phase_name, phase] : phase_data)
-      {
-        D += phase.h * isoSys.phases.at(phase_name).D;
-      }
+    calculate_omega_phase();
+    calculate_sum_sq_eta();
+    calculate_h();
+    calculate_dhdeta();
+    calculate_local_diffusivity();
   }
 
   void
@@ -210,27 +223,27 @@ public:
       {
         variable_list.set_scalar_value_term_RHS(var_index,
                                                 comp.mu.val +
-                                                  comp.dmudt.val * userInputs.dt);
+                                                  comp.dmudt.val * userInputs.dtValue);
         variable_list.set_scalar_gradient_term_RHS(var_index,
-                                                   comp.dmudt.grad * userInputs.dt);
+                                                   comp.dmudt.grad * userInputs.dtValue);
         var_index++;
       }
     for (auto &[phase_name, op] : op_data)
       {
         variable_list.set_scalar_value_term_RHS(var_index,
                                                 op.eta.val +
-                                                  op.detadt.val * userInputs.dt);
+                                                  op.detadt.val * userInputs.dtValue);
         variable_list.set_scalar_gradient_term_RHS(var_index,
-                                                   op.detadt.grad * userInputs.dt);
+                                                   op.detadt.grad * userInputs.dtValue);
         var_index++;
       }
   }
 
-  void
-  submit_pp_fields(
-    variableContainer<dim, degree, dealii::VectorizedArray<double>> &pp_variable_list,
-    uint                                                            &var_index)
-  {}
+  // void
+  // submit_pp_fields(
+  //   variableContainer<dim, degree, dealii::VectorizedArray<double>> &pp_variable_list,
+  //   uint                                                            &var_index)
+  //{}
 };
 
 #endif
