@@ -28,7 +28,10 @@ customAttributeLoader::loadVariableAttributes()
   system_file >> model_parameters;
   system_file.close();
   isoSys.from_json(model_parameters);
-  isoSys.load_variables(this);
+  uint var_index = 0;
+  isoSys.print_parameters();
+  isoSys.load_variables(this, var_index);
+  isoSys.load_pp_variables(this, var_index);
 }
 
 // =============================================================================================
@@ -59,6 +62,7 @@ customPDE<dim, degree>::explicitEquationRHS(
   sys.calculate_dmudt();
   var_index = 0;
   sys.submit_fields(variable_list, var_index);
+  sys.submit_pp_fields(variable_list, var_index);
 }
 
 // =============================================================================================
@@ -104,39 +108,3 @@ customPDE<dim, degree>::equationLHS(
   [[maybe_unused]] const Point<dim, VectorizedArray<double>>                q_point_loc,
   [[maybe_unused]] const VectorizedArray<double> element_volume) const
 {}
-
-#include "SystemContainer.h"
-// template class SystemContainer<1, 1>;
-// template class SystemContainer<1, 2>;
-// template class SystemContainer<1, 3>;
-// template class SystemContainer<1, 4>;
-// template class SystemContainer<1, 5>;
-// template class SystemContainer<1, 6>;
-
-template class SystemContainer<2, 1>;
-template class SystemContainer<2, 2>;
-template class SystemContainer<2, 3>;
-template class SystemContainer<2, 4>;
-template class SystemContainer<2, 5>;
-template class SystemContainer<2, 6>;
-
-template class SystemContainer<3, 1>;
-template class SystemContainer<3, 2>;
-template class SystemContainer<3, 3>;
-template class SystemContainer<3, 4>;
-template class SystemContainer<3, 5>;
-template class SystemContainer<3, 6>;
-
-template class customPDE<2, 1>;
-template class customPDE<2, 2>;
-template class customPDE<2, 3>;
-template class customPDE<2, 4>;
-template class customPDE<2, 5>;
-template class customPDE<2, 6>;
-
-template class customPDE<3, 1>;
-template class customPDE<3, 2>;
-template class customPDE<3, 3>;
-template class customPDE<3, 4>;
-template class customPDE<3, 5>;
-template class customPDE<3, 6>;

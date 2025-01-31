@@ -33,7 +33,7 @@ set Steps between remeshing operations = 25
 # =================================================================================
 set Time step = 1.0e-3
 
-set Number of time steps = 10000
+set Number of time steps = 1000
 
 # =================================================================================
 # Set the output parameters

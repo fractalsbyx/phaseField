@@ -3,6 +3,8 @@ set Boundary condition for variable SOLID_0 = NATURAL
 #set Boundary condition for variable SOLID_1 = NATURAL
 set Boundary condition for variable mu_CU = NATURAL
 set Boundary condition for variable mu_TI = NATURAL
+set Boundary condition for variable c_CU = NATURAL
+set Boundary condition for variable c_TI = NATURAL
 
 
 subsection Refinement criterion: SOLID_0

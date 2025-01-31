@@ -14,8 +14,7 @@ class ParaboloidSystem
 public:
   struct PhaseCompInfo
   {
-    double c_min, _k_well, k_well, x0;
-    double _M, M;
+    double _k_well, k_well, c_min, x0;
   };
 
   struct Phase
@@ -157,10 +156,10 @@ public:
         for (const auto &[comp_name, comp] : phase.comps)
           {
             std::cout << std::setw(col_width) << comp_name << "\n";
+            std::cout << std::setw(col_width) << "k_well:" << std::setw(col_width)
+                      << comp.k_well << std::setw(col_width) << comp._k_well << "\n";
             std::cout << std::setw(col_width) << "c_min:" << std::setw(col_width)
                       << comp.c_min << "\n";
-            std::cout << std::setw(col_width) << "k_well:" << std::setw(col_width)
-                      << comp.k_well << "\n";
             std::cout << std::setw(col_width) << "x0:" << std::setw(col_width) << comp.x0
                       << "\n";
           }
@@ -169,7 +168,7 @@ public:
   }
 
   void
-  load_variables(variableAttributeLoader *loader)
+  load_variables(customAttributeLoader *loader, uint &var_index)
   {
     // Get names for mu fields
     std::vector<std::string> mu_names;
@@ -204,7 +203,6 @@ public:
     std::cout << "\n";
 
     // Assign fields
-    uint var_index = 0;
     for (const auto &mu_name : mu_names)
       {
         loader->set_variable_name(var_index, mu_name);
@@ -237,7 +235,7 @@ public:
   }
 
   void
-  load_pp_variables(variableAttributeLoader *loader)
+  load_pp_variables(customAttributeLoader *loader, uint &pp_index)
   {
     // Get names for comp fields
     std::vector<std::string> c_names;
@@ -260,16 +258,15 @@ public:
           phase_name + "_" + std::to_string(phase_counter[phase_name]);
         op_names.push_back(var_name);
         phase_counter[phase_name]++;
-        std::cout << var_name << " ";
       }
     std::cout << "\n";
 
     // Assign fields
-    uint pp_index = 0;
     for (const auto &c_name : c_names)
       {
         loader->set_variable_name(pp_index, c_name);
         loader->set_variable_type(pp_index, SCALAR);
+        loader->set_variable_equation_type(pp_index, EXPLICIT_TIME_DEPENDENT);
         loader->insert_dependencies_value_term_RHS(pp_index, mu_names);
         loader->insert_dependencies_value_term_RHS(pp_index, op_names);
         pp_index++;

@@ -263,10 +263,10 @@ public:
     variableContainer<dim, degree, dealii::VectorizedArray<double>> &pp_variable_list,
     uint                                                            &pp_index)
   {
-    for (auto &[comp_name, comp] : comp_data)
+    for (const auto &[comp_name, comp] : comp_data)
       {
-        scalarValue c = 0.;
-        for (auto &[phase_name, phase] : phase_data)
+        scalarValue c = constV(0.);
+        for (const auto &[phase_name, phase] : phase_data)
           {
             const ParaboloidSystem::PhaseCompInfo &comp_info =
               isoSys.phases.at(phase_name).comps.at(comp_name);
