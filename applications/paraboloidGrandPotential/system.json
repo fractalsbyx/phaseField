@@ -4,6 +4,7 @@
         "time_scale": 1.0,
         "energy_density_scale": 1.0
     },
+    "convert_fractional_to_volumetric_energy": false,
     "solution_component": "TA",
     "components": [
         "CU",

@@ -30,10 +30,10 @@ public:
   std::set<std::string>        comp_names;
   std::string                  solution_component;
   std::vector<std::string>     order_params;
-  uint                         N;
   double                       length_scale, time_scale, energy_scale;
   double                       _Vm, Vm;
   double                       _l_int, l_int;
+  bool                         volumetrize;
 
   ParaboloidSystem()
   {}
@@ -54,6 +54,9 @@ public:
     // Parse Vm
     _Vm    = j.at("Vm").get<double>();
     _l_int = j.at("l_int").get<double>();
+
+    // Check if volumetrization needed
+    volumetrize = j.at("convert_fractional_to_volumetric_energy").get<bool>();
 
     // Parse solution component
     solution_component = j.at("solution_component").get<std::string>();
@@ -87,12 +90,25 @@ public:
           }
         phases[phase_name] = phase;
       }
-    N = phases.size();
     // Parse order parameters
     for (const auto &phase_name : j.at("order_parameters"))
       {
         order_params.push_back(phase_name);
       }
+
+    // Convert to volumetric energy if necessary
+    if (volumetrize)
+      {
+        for (auto &[phase_name, phase] : phases)
+          {
+            phase._f_min /= _Vm;
+            for (auto &[comp_name, comp] : phase.comps)
+              {
+                comp._k_well /= _Vm;
+              }
+          }
+      }
+    // Non-dimensionalize
     nondimensionalize();
   }
 
