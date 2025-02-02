@@ -24,7 +24,7 @@ set Refine factor = 9
 set Mesh adaptivity = true
 
 set Max refinement level = 9
-set Min refinement level = 6
+set Min refinement level = 4
 
 set Steps between remeshing operations = 25
 
@@ -33,7 +33,7 @@ set Steps between remeshing operations = 25
 # =================================================================================
 set Time step = 1.0e-3
 
-set Number of time steps = 1000
+set Number of time steps = 10000
 
 # =================================================================================
 # Set the output parameters
