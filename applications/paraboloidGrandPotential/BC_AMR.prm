@@ -1,11 +1,11 @@
-set Boundary condition for variable LIQUID_0 = NATURAL
-set Boundary condition for variable SOLID_0 = NATURAL
-#set Boundary condition for variable SOLID_1 = NATURAL
-set Boundary condition for variable mu_CU = NATURAL
-set Boundary condition for variable mu_TI = NATURAL
+set Boundary condition for variable LIQUID_0 = NATURAL, NATURAL, NATURAL, NON_UNIFORM_DIRICHLET
+set Boundary condition for variable Pb_A1_0 = NATURAL, NATURAL, NATURAL, NON_UNIFORM_DIRICHLET
+#set Boundary condition for variable SOLID_1 = NATURAL, NATURAL, NATURAL, NON_UNIFORM_DIRICHLET
+set Boundary condition for variable mu_IN = NATURAL, NATURAL, NATURAL, NON_UNIFORM_DIRICHLET
+set Boundary condition for variable mu_PB = NATURAL, NATURAL, NATURAL, NON_UNIFORM_DIRICHLET
 
 
-subsection Refinement criterion: SOLID_0
+subsection Refinement criterion: Pb_A1_0
     set Criterion type = VALUE
     set Value lower bound = 0.01
     set Value upper bound = 0.99

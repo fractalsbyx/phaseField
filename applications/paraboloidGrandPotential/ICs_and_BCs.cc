@@ -38,11 +38,13 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
   // TODO: Make relevant geometries
   [[maybe_unused]] double circular = interface(0.5 * (r0 * r0 - r2) / r0);
   [[maybe_unused]] double flat     = interface(0.5 * (r0 * r0 - y * y) / r0);
+  [[maybe_unused]] double wavy =
+    interface(r0 - y - 0.5 * std::sin(2. * x) + 0.7 * std::cos(2. * x / 1.618));
 
   // TODO: Populate eta0 with the initial condition for the order parameters
   std::vector<double> eta0(isoSys.order_params.size(), 0.0);
-  eta0[0] = 1.0 - circular;
-  eta0[1] = circular;
+  eta0[0] = 1.0 - wavy;
+  eta0[1] = wavy;
 
   // Submit the fields
   var_index = 0;
@@ -94,6 +96,6 @@ customPDE<dim, degree>::setNonUniformDirichletBCs(
   // --------------------------------------------------------------------------
   // ENTER THE NON-UNIFORM DIRICHLET BOUNDARY CONDITIONS HERE
   // --------------------------------------------------------------------------
-
+  setInitialCondition(p, index, scalar_BC, vector_BC);
   // --------------------------------------------------------------------------
 }
