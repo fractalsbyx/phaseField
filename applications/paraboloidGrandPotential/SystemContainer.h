@@ -1,6 +1,8 @@
 #ifndef SYSTEMCONTAINER_H
 #define SYSTEMCONTAINER_H
 
+#include <deal.II/base/exceptions.h>
+
 #include "FieldContainer.h"
 #include "ParaboloidSystem.h"
 
@@ -19,7 +21,6 @@ public:
 
   struct PhaseData
   {
-    FieldContainer<dim> phi;
     FieldContainer<dim> omega;
     FieldContainer<dim> h;
   };
@@ -49,11 +50,17 @@ public:
   /**
    * Constructor
    */
-  SystemContainer(const ParaboloidSystem         &_isoSys,
-                  const userInputParameters<dim> &_userInputs)
-    : isoSys(_isoSys)
-    , userInputs(_userInputs)
-  {}
+  SystemContainer(const ParaboloidSystem &sys, const userInputParameters<dim> &inputs)
+    : isoSys(sys)
+    , userInputs(inputs)
+    , sum_sq_eta({}) // Zero initialize
+    , D({})          // Zero initialize
+  {
+    // Initialize maps
+    phase_data.clear();
+    comp_data.clear();
+    op_data.clear();
+  }
 
   ~SystemContainer()
   {}
@@ -107,8 +114,11 @@ public:
         phase.omega.val  = phase_info.f_min;
         for (auto &[i_name, i_data] : comp_data)
           {
-            phase.omega += -i_data.mu * i_data.mu / (2.0 * isoSys.Vm * isoSys.Vm) //
-                           - i_data.mu * phase_info.comps.at(i_name).c_min / isoSys.Vm;
+            const ParaboloidSystem::PhaseCompInfo &comp_info =
+              phase_info.comps.at(i_name);
+            phase.omega +=
+              -i_data.mu * i_data.mu / (2.0 * isoSys.Vm * isoSys.Vm * comp_info.k_well) -
+              i_data.mu * comp_info.c_min / isoSys.Vm;
           }
       }
   }
@@ -158,9 +168,9 @@ public:
   void
   calculate_detadt()
   {
-    for (auto &[phase_name, op] : op_data)
+    for (auto &[alpha_name, op] : op_data)
       {
-        const ParaboloidSystem::Phase &phase_info = isoSys.phases.at(phase_name);
+        const ParaboloidSystem::Phase &phase_info = isoSys.phases.at(alpha_name);
 
         double m     = 6.00 * phase_info.sigma / isoSys.l_int;
         double kappa = 0.75 * phase_info.sigma * isoSys.l_int;
@@ -174,11 +184,11 @@ public:
         interface_term.grad = kappa * op.eta.grad;
 
         // This is a variation, but has no vector term.
-        scalarValue chemical_term;
-        for (auto &[phase_name, phase] : phase_data)
+        scalarValue chemical_term = constV(0.);
+        for (const auto &[beta_name, beta] : phase_data)
           {
             // NOTE: Only multiply values
-            chemical_term += phase.omega.val * op.dhdeta.at(phase_name).val;
+            chemical_term += beta.omega.val * op.dhdeta.at(beta_name).val;
           }
         op.detadt = (interface_term + chemical_term) * (-L);
       }

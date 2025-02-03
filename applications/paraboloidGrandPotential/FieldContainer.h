@@ -8,8 +8,8 @@ struct FieldContainer
   using scalarGrad  = dealii::Tensor<1, dim, dealii::VectorizedArray<double>>;
 #define constV(a) dealii::make_vectorized_array(a)
 
-  scalarValue val = constV(0.);
-  scalarGrad  grad;
+  scalarValue val  = constV(0.);
+  scalarGrad  grad = {};
 
   FieldContainer<dim>
   operator+(const FieldContainer<dim> &other) const
@@ -90,7 +90,7 @@ struct FieldContainer
   FieldContainer<dim>
   operator*(const FieldContainer<dim> &other) const
   {
-    return {val * other.val, grad * other.val + val * other.grad};
+    return {val * other.val, val * other.grad + grad * other.val};
   }
 
   template <typename number>
