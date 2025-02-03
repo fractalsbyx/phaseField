@@ -6,6 +6,8 @@
 
 using namespace dealii;
 
+constexpr double pi = numbers::PI;
+
 template <int dim, int degree>
 class customPDE : public MatrixFreePDE<dim, degree>
 {
@@ -99,12 +101,21 @@ private:
     return 0.5 * (1.0 + std::tanh(2.0 * x / isoSys.l_int));
   }
 
+  [[nodiscard]] double
+  eutectic_contour_2D(double x, int n, int i, double spacing) const
+  {
+    return (std::cos(2. * pi * (x / spacing - double(i) / double(n))) -
+            std::cos(pi / double(n))) *
+           spacing / (2. * pi * std::sin(pi / double(n)));
+  }
+
   // ================================================================
   // Model constants specific to this subclass
   // ================================================================
   nlohmann::json   model_parameters;
   ParaboloidSystem isoSys;
   double           r0 = userInputs.get_model_constant_double("r0");
+  double           s0 = userInputs.get_model_constant_double("s0");
 
   // ================================================================
 };

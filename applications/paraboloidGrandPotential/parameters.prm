@@ -31,7 +31,7 @@ set Steps between remeshing operations = 25
 # =================================================================================
 # Set the time step parameters
 # =================================================================================
-set Time step = 1.0e-3
+set Time step = 0.05e-3
 
 set Number of time steps = 10000
 
@@ -67,4 +67,5 @@ set Number of checkpoints = 0
 # =================================================================================
 
 # Particle radius
-set Model constant r0 = 32.0, DOUBLE
+set Model constant r0 = 8.0, DOUBLE
+set Model constant s0 = 64.0, DOUBLE
