@@ -31,7 +31,7 @@ set Steps between remeshing operations = 25
 # =================================================================================
 # Set the time step parameters
 # =================================================================================
-set Time step = 1.0e-3
+set Time step = 0.05e-3
 
 set Number of time steps = 10000
 
@@ -73,3 +73,5 @@ set Model constant r0 = 32.0, DOUBLE
 # A value in (0, 1), practically in [0.1, 0.8]
 # Using a value of 1, a timestep at the stability limit will be reccommend
 set Model constant timestep_alpha = 0.8, DOUBLE
+
+set Model constant s0 = 64.0, DOUBLE

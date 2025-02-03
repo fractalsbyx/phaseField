@@ -10,8 +10,6 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
                                             [[maybe_unused]] Vector<double>    &vector_IC)
 {
   // ---------------------------------------------------------------------
-  // ENTER THE INITIAL CONDITIONS HERE
-  // ---------------------------------------------------------------------
   std::map<uint, uint>        op_index;
   std::map<std::string, uint> comp_index;
   uint                        var_index = 0;
@@ -35,14 +33,25 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
   double r2        = x * x + y * y + z * z;
   (void) r2;
 
-  // TODO: Make relevant geometries
-  [[maybe_unused]] double circular = interface(0.5 * (r0 * r0 - r2) / r0);
-  [[maybe_unused]] double flat     = interface(0.5 * (r0 * r0 - y * y) / r0);
+  // ---------------------------------------------------------------------
+  // TODO: ENTER THE INITIAL CONDITIONS HERE
+  // ---------------------------------------------------------------------
 
-  // TODO: Populate eta0 with the initial condition for the order parameters
+  // Make relevant geometries
+  [[maybe_unused]] double circular     = interface(0.5 * (r0 * r0 - r2) / r0);
+  [[maybe_unused]] double flat         = interface(0.5 * (r0 * r0 - y * y) / r0);
+  [[maybe_unused]] double bottom_strip = interface(r0 - p[1]);
+
+  // TODO: Populate eta0 with the initial condition for each order parameters
   std::vector<double> eta0(isoSys.order_params.size(), 0.0);
-  eta0[0] = 1.0 - circular;
-  eta0[1] = circular;
+  eta0[0] = 1.0 - bottom_strip;
+  eta0[1] = bottom_strip * interface(eutectic_contour_2D(x, 3, 0, s0));
+  eta0[2] = bottom_strip * interface(eutectic_contour_2D(x, 3, 1, s0));
+  eta0[3] = bottom_strip * interface(eutectic_contour_2D(x, 3, 2, s0));
+
+  // ---------------------------------------------------------------------
+  //
+  // ---------------------------------------------------------------------
 
   // Submit the fields
   var_index = 0;

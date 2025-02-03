@@ -10,6 +10,8 @@
 
 using namespace dealii;
 
+constexpr double pi = numbers::PI;
+
 template <int dim, int degree>
 class customPDE : public MatrixFreePDE<dim, degree>
 {
@@ -234,6 +236,14 @@ private:
       }
   }
 
+  [[nodiscard]] double
+  eutectic_contour_2D(double x, int n, int i, double spacing) const
+  {
+    return (std::cos(2. * pi * (x / spacing - double(i) / double(n))) -
+            std::cos(pi / double(n))) *
+           spacing / (2. * pi * std::sin(pi / double(n)));
+  }
+
   // ================================================================
   // Members specific to this subclass
   // ================================================================
@@ -254,6 +264,7 @@ private:
    * printing)
    */
   std::map<std::string, double> initial_omega;
+  double                        s0 = userInputs.get_model_constant_double("s0");
 
   double r0 = userInputs.get_model_constant_double("r0");
   // ================================================================
