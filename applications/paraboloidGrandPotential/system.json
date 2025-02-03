@@ -1,54 +1,54 @@
 {
     "dimensions": {
-        "length_scale": 1.0,
+        "length_scale": 1.0e-6,
         "time_scale": 1.0,
-        "energy_density_scale": 1.0
+        "energy_density_scale": 4.0e8
     },
-    "convert_fractional_to_volumetric_energy": false,
-    "solution_component": "TA",
+    "convert_fractional_to_volumetric_energy": true,
+    "solution_component": "GA",
     "components": [
-        "CU",
-        "TI"
+        "IN",
+        "PB"
     ],
-    "Vm": 1.0,
-    "l_int": 2.0,
+    "Vm": 10.0e-6,
+    "l_int": 2.0e-6,
     "phases": {
-        "SOLID": {
-            "mu_int": 10.0,
-            "D": 1.0,
+        "LIQUID": {
+            "mu_int": 2.5e-15,
+            "D": 10.0e-12,
             "sigma": 1.0,
-            "f_min": 0.0,
-            "CU": {
-                "k_well": 1.0,
-                "c_min": 0.8,
-                "x0": 0.8
+            "f_min": -1102.4974887542348,
+            "IN": {
+                "k_well": 2023.6873988540424,
+                "c_min": 0.425,
+                "x0": 0.0
             },
-            "TI": {
-                "k_well": 1.0,
-                "c_min": 0.1,
-                "x0": 0.1
+            "PB": {
+                "k_well": 35736.48375182379,
+                "c_min": 0.15,
+                "x0": 0.0
             }
         },
-        "LIQUID": {
-            "mu_int": 10.0,
-            "D": 1.0,
+        "Pb_A1": {
+            "mu_int": 2.5e-15,
+            "D": 0.1e-12,
             "sigma": 1.0,
-            "f_min": 0.0,
-            "CU": {
-                "k_well": 0.5,
-                "c_min": 0.1,
-                "x0": 0.2
+            "f_min": -797.7707333436747,
+            "IN": {
+                "k_well": 4005.520963708242,
+                "c_min": 0.37,
+                "x0": 0.37
             },
-            "TI": {
-                "k_well": 0.5,
-                "c_min": 0.8,
-                "x0": 0.7
+            "PB": {
+                "k_well": 4005.5209637082407,
+                "c_min": 0.63,
+                "x0": 0.63
             }
         }
     },
     "order_parameters": [
         "LIQUID",
-        "SOLID"
+        "Pb_A1"
     ],
     "comments": [
         "none yet"
