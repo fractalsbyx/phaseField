@@ -122,10 +122,10 @@ public:
     l_int            = _l_int / (l0);
     for (auto &[phase_name, phase] : phases)
       {
-        phase.mu_int = phase._mu_int * (E0 * t0);
+        phase.mu_int = phase._mu_int / (l0 / (E0 * t0));
         phase.sigma  = phase._sigma / (E0 * l0);
         phase.f_min  = phase._f_min / E0;
-        phase.D      = phase._D * (t0 / (l0 * l0)); // FIX?
+        phase.D      = phase._D / ((l0 * l0) / t0); // FIX?
         for (auto &[comp_name, comp] : phase.comps)
           {
             comp.k_well = comp._k_well / E0;
