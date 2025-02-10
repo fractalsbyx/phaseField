@@ -136,3 +136,32 @@ struct FieldContainer
             field.val * variation.grad};
   }
 };
+
+template <typename number, unsigned int dim>
+FieldContainer<dim>
+operator+(const number &other, const FieldContainer<dim> &field)
+{
+  return field + other;
+}
+
+template <typename number, unsigned int dim>
+FieldContainer<dim>
+operator-(const number &other, const FieldContainer<dim> &field)
+{
+  return -field + other;
+}
+
+template <typename number, unsigned int dim>
+FieldContainer<dim>
+operator*(const number &other, const FieldContainer<dim> &field)
+{
+  return field * other;
+}
+
+template <typename number, unsigned int dim>
+FieldContainer<dim>
+operator/(const number &other, const FieldContainer<dim> &field)
+{
+  FieldContainer<dim> one = {dealii::make_vectorized_array(1.0), {}};
+  return (one / field) * other;
+}

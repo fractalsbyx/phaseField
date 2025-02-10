@@ -29,6 +29,7 @@ public:
   {
     FieldContainer<dim> mu;
     FieldContainer<dim> dmudt;
+    scalarValue         M;
   };
 
   struct OPData
@@ -45,7 +46,6 @@ public:
   std::map<std::string, CompData>             comp_data;
   std::vector<std::pair<std::string, OPData>> op_data;
   FieldContainer<dim>                         sum_sq_eta;
-  FieldContainer<dim>                         D;
 
   /**
    * Constructor
@@ -54,7 +54,6 @@ public:
     : isoSys(sys)
     , userInputs(inputs)
     , sum_sq_eta({}) // Zero initialize
-    , D({})          // Zero initialize
   {
     // Initialize maps
     phase_data.clear();
@@ -195,12 +194,17 @@ public:
   }
 
   void
-  calculate_local_diffusivity()
+  calculate_local_mobility()
   {
-    D.val = constV(0.);
-    for (auto &[phase_name, phase] : phase_data)
+    for (auto &[comp_name, comp] : comp_data)
       {
-        D += phase.h * isoSys.phases.at(phase_name).D;
+        comp.M = constV(0.);
+        for (auto &[phase_name, phase] : phase_data)
+          {
+            comp.M += isoSys.phases.at(phase_name).D * phase.h.val /
+                      (isoSys.Vm * isoSys.Vm *
+                       isoSys.phases.at(phase_name).comps.at(comp_name).k_well);
+          }
       }
   }
 
@@ -209,9 +213,16 @@ public:
   {
     for (auto &[comp_name, comp] : comp_data)
       {
+        FieldContainer<dim> chi_AA;
+        for (const auto &[phase_name, phase] : phase_data)
+          {
+            const ParaboloidSystem::PhaseCompInfo &comp_info =
+              isoSys.phases.at(phase_name).comps.at(comp_name);
+            chi_AA += phase.h / comp_info.k_well / isoSys.Vm / isoSys.Vm;
+          }
         comp.dmudt.val = constV(0.);
         // Flux term
-        comp.dmudt.grad = -D.val * comp.mu.grad; // CHECK SIGN
+        comp.dmudt.grad = -comp.M * comp.mu.grad; // CHECK SIGN
 
         // Partitioning term
         for (auto &[phase_name, op] : op_data)
@@ -225,11 +236,9 @@ public:
                   (comp.mu / isoSys.Vm / comp_info.k_well + comp_info.c_min);
               }
             drhodeta_sum /= isoSys.Vm;
-            comp.dmudt -=
-              FieldContainer<dim>::field_x_variation(drhodeta_sum, op.detadt) *
-              isoSys.Vm * isoSys.Vm *
-              isoSys.phases.at(phase_name).comps.at(comp_name).k_well;
+            comp.dmudt -= FieldContainer<dim>::field_x_variation(drhodeta_sum, op.detadt);
           }
+        comp.dmudt = FieldContainer<dim>::field_x_variation(1.0 / chi_AA, comp.dmudt);
       }
   }
 
@@ -240,7 +249,7 @@ public:
     calculate_sum_sq_eta();
     calculate_h();
     calculate_dhdeta();
-    calculate_local_diffusivity();
+    calculate_local_mobility();
   }
 
   void
