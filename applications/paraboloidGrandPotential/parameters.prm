@@ -31,7 +31,7 @@ set Steps between remeshing operations = 400
 # =================================================================================
 # Set the time step parameters
 # =================================================================================
-set Time step = 1.0e-3
+set Time step = 0.5e-5
 
 set Number of time steps = 1000000
 
