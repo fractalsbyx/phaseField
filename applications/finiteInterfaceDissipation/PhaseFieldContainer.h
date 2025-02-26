@@ -13,8 +13,8 @@
 template <int dim>
 struct FieldContainer
 {
-  dealii::VectorizedArray<double>                         val;
-  dealii::Tensor<1, dim, dealii::VectorizedArray<double>> grad;
+  dealii::VectorizedArray<double> val = dealii::make_vectorized_array(0.0);
+  dealii::Tensor<1, dim, dealii::VectorizedArray<double>> grad = {};
 };
 
 template <int dim>
@@ -90,8 +90,13 @@ public:
         // Spatial flux
         for (auto &[j, j_alpha] : comp_data)
           {
-            i_alpha.dxdt.grad += isoSys.Vm * isoSys.Vm * M_ij(i, j) * j_alpha.dfdx.grad;
-            i_alpha.dxdt.val -= -isoSys.Vm * isoSys.Vm * M_ij(i, j) * j_alpha.dfdx.grad *
+            scalarValue local_M_ij;
+            for (const auto &[beta_name, beta] : phase_fields)
+              {
+                local_M_ij += beta->M_ij(i, j) * beta->phi.val;
+              }
+            i_alpha.dxdt.grad += isoSys.Vm * isoSys.Vm * local_M_ij * j_alpha.dfdx.grad;
+            i_alpha.dxdt.val -= -isoSys.Vm * isoSys.Vm * local_M_ij * j_alpha.dfdx.grad *
                                 phi.grad / (phi.val + diffusion_epsilon);
           }
         // Internal relaxation (eq. 16)
