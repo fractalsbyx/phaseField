@@ -90,11 +90,11 @@ public:
     eta              = _eta / (l0);
     for (auto &[phase_name, phase] : phases)
       {
-        phase.mu    = phase._mu * (E0 * t0);
+        phase.mu    = phase._mu / (l0 / t0 / E0);
         phase.sigma = phase._sigma / (E0 * l0);
         for (auto &[comp_name, comp] : phase.comps)
           {
-            comp.M = comp._M * (E0 * l0 * t0);
+            comp.M = comp._M / (l0 * l0 / t0 / E0);
           }
       }
     for (auto &[comp_name, comp] : comp_info)
