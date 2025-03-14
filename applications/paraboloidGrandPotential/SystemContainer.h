@@ -156,9 +156,9 @@ public:
             dhdeta.val                  = constV(0.);
             if (alpha_name == beta_name)
               {
-                dhdeta += op.eta * 2.0;
+                dhdeta += 2.0 * op.eta;
               }
-            dhdeta -= op.eta * beta.h * 2.0;
+            dhdeta -= 2.0 * op.eta * beta.h;
             dhdeta /= sum_sq_eta;
           }
       }
@@ -180,7 +180,7 @@ public:
         interface_term.val =
           m * (op.eta.val * op.eta.val * op.eta.val - op.eta.val +
                2. * 1.5 * op.eta.val * (sum_sq_eta.val - op.eta.val * op.eta.val));
-        interface_term.grad = kappa * op.eta.grad;
+        interface_term.grad = -kappa * op.eta.grad;
 
         // This is a variation, but has no vector term.
         scalarValue chemical_term = constV(0.);
@@ -189,7 +189,7 @@ public:
             // NOTE: Only multiply values
             chemical_term += beta.omega.val * op.dhdeta.at(beta_name).val;
           }
-        op.detadt = (interface_term + chemical_term) * (-L);
+        op.detadt = -L * (interface_term + chemical_term);
       }
   }
 
@@ -222,7 +222,7 @@ public:
           }
         comp.dmudt.val = constV(0.);
         // Flux term
-        comp.dmudt.grad = -comp.M * comp.mu.grad; // CHECK SIGN
+        comp.dmudt.grad = -comp.M * -comp.mu.grad;
 
         // Partitioning term
         for (auto &[phase_name, op] : op_data)
@@ -263,7 +263,7 @@ public:
                                                 comp.mu.val +
                                                   comp.dmudt.val * userInputs.dtValue);
         variable_list.set_scalar_gradient_term_RHS(var_index,
-                                                   comp.dmudt.grad * userInputs.dtValue);
+                                                   -comp.dmudt.grad * userInputs.dtValue);
         var_index++;
       }
     for (auto &[phase_name, op] : op_data)
@@ -272,7 +272,7 @@ public:
                                                 op.eta.val +
                                                   op.detadt.val * userInputs.dtValue);
         variable_list.set_scalar_gradient_term_RHS(var_index,
-                                                   op.detadt.grad * userInputs.dtValue);
+                                                   -op.detadt.grad * userInputs.dtValue);
         var_index++;
       }
   }
