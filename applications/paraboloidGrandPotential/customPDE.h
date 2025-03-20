@@ -2,7 +2,10 @@
 
 #include <core/matrixFreePDE.h>
 #include <fstream>
+#include <iomanip>
+#include <ios>
 #include <iostream>
+#include <string>
 
 using namespace dealii;
 
@@ -22,6 +25,7 @@ public:
     isoSys.from_json(model_parameters);
     isoSys.print_parameters();
     print_initial_energies();
+    estimate_stability();
   }
 
   // Function to set the initial conditions (in ICs_and_BCs.h)
@@ -109,7 +113,11 @@ private:
         SystemContainer<dim, degree> sys_for_print(isoSys, userInputs);
         sys_for_print.op_data.push_back({
           phase_name,
-          {constV(1.), {}}
+          {
+            {constV(1.), {}}, // eta
+            {constV(0.), {}}, // detadt
+            {}                // dhdeta
+          }
         });
 
         for (const auto &[comp_name, comp_info] : isoSys.phases.at(phase_name).comps)
@@ -132,12 +140,61 @@ private:
       }
   }
 
+  void
+  estimate_stability()
+  {
+    double min_dx = std::numeric_limits<double>::max();
+    for (unsigned int i = 0; i < dim; i++)
+      {
+        min_dx = std::min(min_dx,
+                          double(userInputs.subdivisions[i]) * userInputs.domain_size[i] /
+                            std::pow(2.0, userInputs.refine_factor));
+      }
+    constexpr double theoretical_max_gradient_factor = 0.25;
+    double           max_gradient_factor             = 0.0;
+    std::string      stability_limiter               = "diffusion";
+    std::string      limiting_phase                  = "";
+    for (const auto &[phase_name, phase] : isoSys.phases)
+      {
+        const double gradient_prefactor = userInputs.dtValue *
+                                          (userInputs.degree * userInputs.degree) /
+                                          (min_dx * min_dx);
+
+        const double diffusion_gradient_factor = phase.D * gradient_prefactor;
+        // mu*sigma = L*kappa
+        const double order_parameter_gradient_factor =
+          (phase.mu_int * phase.sigma) * gradient_prefactor;
+
+        if (diffusion_gradient_factor > max_gradient_factor)
+          {
+            max_gradient_factor = diffusion_gradient_factor;
+            stability_limiter   = "diffusion";
+            limiting_phase      = phase_name;
+          }
+        if (order_parameter_gradient_factor > max_gradient_factor)
+          {
+            max_gradient_factor = order_parameter_gradient_factor;
+            stability_limiter   = "order parameter evolution";
+            limiting_phase      = phase_name;
+          }
+      }
+    std::cout << "Then numerical stability for this set of parameters is limited by "
+              << stability_limiter << " in phase " << limiting_phase << ".\n";
+    std::cout << "The reccommended maximum time step (using a design factor of "
+              << timestep_alpha
+              << ") is " /* << std::scientific << std::setprecision(2) */
+              << timestep_alpha * userInputs.dtValue * theoretical_max_gradient_factor /
+                   max_gradient_factor
+              << ".\n\n" /* << std::defaultfloat << std::setprecision(6) */;
+  }
+
   // ================================================================
   // Model constants specific to this subclass
   // ================================================================
   nlohmann::json   model_parameters;
   ParaboloidSystem isoSys;
-  double           r0 = userInputs.get_model_constant_double("r0");
+  double           r0   = userInputs.get_model_constant_double("r0");
+  double timestep_alpha = userInputs.get_model_constant_double("timestep_alpha");
 
   // ================================================================
 };
