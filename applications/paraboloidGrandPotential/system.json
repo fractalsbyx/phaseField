@@ -1,6 +1,6 @@
 {
     "dimensions": {
-        "length_scale": 1.0e-6,
+        "length_scale": 1.0e-7,
         "time_scale": 1.0,
         "energy_density_scale": 4.0e8
     },
@@ -11,10 +11,10 @@
         "PB"
     ],
     "Vm": 10.0e-6,
-    "l_int": 2.0e-6,
+    "l_int": 2.0e-7,
     "phases": {
         "LIQUID": {
-            "mu_int": 5.0e-13,
+            "mu_int": 5.0e-11,
             "D": 1.75e-9,
             "sigma": 1.0,
             "f_min": -1102.4974887542348,
@@ -30,8 +30,8 @@
             }
         },
         "Pb_A1": {
-            "mu_int": 5.0e-13,
-            "D": 0.0,
+            "mu_int": 5.0e-11,
+            "D": 0.01e-9,
             "sigma": 1.0,
             "f_min": -797.7707333436747,
             "IN": {
