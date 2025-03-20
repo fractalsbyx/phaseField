@@ -20,10 +20,10 @@ set Subdivisions X = 1
 set Subdivisions Y = 1
 set Subdivisions Z = 1
 
-set Refine factor = 9
+set Refine factor = 8
 set Mesh adaptivity = true
 
-set Max refinement level = 9
+set Max refinement level = 8
 set Min refinement level = 4
 
 set Steps between remeshing operations = 400
@@ -31,7 +31,7 @@ set Steps between remeshing operations = 400
 # =================================================================================
 # Set the time step parameters
 # =================================================================================
-set Time step = 0.5e-5
+set Time step = 2.5e-7
 
 set Number of time steps = 1000000
 
