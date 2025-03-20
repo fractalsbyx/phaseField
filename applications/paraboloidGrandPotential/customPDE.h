@@ -26,6 +26,7 @@ public:
     isoSys.print_parameters();
     print_initial_energies();
     estimate_stability();
+    print_interface_properties();
   }
 
   // Function to set the initial conditions (in ICs_and_BCs.h)
@@ -131,6 +132,7 @@ private:
         std::cout << phase_name << ":\n"
                   << "Omega:\t" << sys_for_print.phase_data[phase_name].omega.val[0]
                   << "\n";
+        initial_omega[phase_name] = sys_for_print.phase_data[phase_name].omega.val[0];
         for (const auto &[comp_name, comp_info] : phase.comps)
           {
             std::cout << "mu_" << comp_name << ":\t"
@@ -188,6 +190,31 @@ private:
               << ".\n\n" /* << std::defaultfloat << std::setprecision(6) */;
   }
 
+  void
+  print_interface_properties()
+  {
+    for (const auto &[alpha_name, alpha] : isoSys.phases)
+      {
+        for (const auto &[beta_name, beta] : isoSys.phases)
+          {
+            std::cout << "Properties of the interface between " << alpha_name << " and "
+                      << beta_name << ":\n";
+            double delta_g = initial_omega[alpha_name] - initial_omega[beta_name];
+            double sigma   = 0.5 * (alpha.sigma + beta.sigma);
+            double D       = 0.5 * (alpha.D * beta.D) / (alpha.D + beta.D);
+            double mu_int =
+              0.5 * (alpha.mu_int * beta.mu_int) / (alpha.mu_int + beta.mu_int);
+            std::cout << "The value of the dimensionless number delta_g/(sigma/l_int) is "
+                      << delta_g * isoSys.l_int / sigma << "\n";
+            std::cout
+              << "The value of the dimensionless number delta_g*mu_int*l_int/D is "
+              << delta_g * mu_int * isoSys.l_int / D << "\n";
+            std::cout << "The value of the dimensionless number sigma*mu_int/D is "
+                      << sigma * mu_int / D << "\n\n";
+          }
+      }
+  }
+
   // ================================================================
   // Model constants specific to this subclass
   // ================================================================
@@ -195,6 +222,7 @@ private:
   ParaboloidSystem isoSys;
   double           r0   = userInputs.get_model_constant_double("r0");
   double timestep_alpha = userInputs.get_model_constant_double("timestep_alpha");
+  std::map<std::string, double> initial_omega;
 
   // ================================================================
 };
