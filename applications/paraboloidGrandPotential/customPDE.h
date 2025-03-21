@@ -6,6 +6,7 @@
 #include <iomanip>
 #include <ios>
 #include <iostream>
+#include <random>
 #include <string>
 
 using namespace dealii;
@@ -30,6 +31,9 @@ public:
     print_initial_energies();
     estimate_stability();
     print_interface_properties();
+    dist = distribution(-1.0, 1.0);
+    // Initializing random variable
+    rng = engine(2025);
   }
 
   // Function to set the initial conditions (in ICs_and_BCs.h)
@@ -48,6 +52,9 @@ public:
                             [[maybe_unused]] const double       time,
                             [[maybe_unused]] double            &scalar_BC,
                             [[maybe_unused]] Vector<double>    &vector_BC) override;
+
+  typedef std::mt19937_64                        engine;
+  typedef std::uniform_real_distribution<double> distribution;
 
 private:
 #include <core/typeDefs.h>
@@ -265,7 +272,11 @@ private:
    */
   std::map<std::string, double> initial_omega;
   double                        s0 = userInputs.get_model_constant_double("s0");
+  double                        r0 = userInputs.get_model_constant_double("r0");
+  // Declaring random number generator (Type std::mt19937_64)
+  engine rng;
+  // Declaring distribution (Type std::uniform_real_distribution<double>)
+  distribution dist;
 
-  double r0 = userInputs.get_model_constant_double("r0");
   // ================================================================
 };

@@ -1,78 +1,78 @@
 {
     "dimensions": {
-        "length_scale": 1.0,
-        "time_scale": 1.0,
-        "energy_density_scale": 1.0
+        "length_scale": 0.01e-7,
+        "time_scale": 0.00001,
+        "energy_density_scale": 0.1e9
     },
-    "convert_fractional_to_volumetric_energy": false,
+    "convert_fractional_to_volumetric_energy": true,
     "solution_component": "TA",
     "components": [
         "CU",
         "TI"
     ],
-    "Vm": 1.0,
-    "l_int": 2.0,
+    "Vm": 10.0e-6,
+    "l_int": 0.02e-7,
     "phases": {
         "LIQUID": {
-            "mu_int": 10.0,
-            "D": 0.000,
-            "sigma": 4.0,
-            "f_min": 0.01,
+            "mu_int": 1.0e-9,
+            "D": 1.0e-9,
+            "sigma": 0.1,
+            "f_min": 250.0,
             "CU": {
-                "k_well": 0.1,
+                "k_well": 1000.0,
                 "c_min": 0.333333,
                 "x0": 0.333333
             },
             "TI": {
-                "k_well": 0.1,
+                "k_well": 1000.0,
                 "c_min": 0.333333,
                 "x0": 0.333333
             }
         },
         "alpha": {
-            "mu_int": 10.0,
-            "D": 0.000,
-            "sigma": 4.0,
+            "mu_int": 1.0e-9,
+            "D": 1.0e-9,
+            "sigma": 0.1,
             "f_min": 0.0,
             "CU": {
-                "k_well": 1.0,
+                "k_well": 10000.0,
                 "c_min": 0.8,
                 "x0": 0.8
             },
             "TI": {
-                "k_well": 1.0,
+                "k_well": 10000.0,
                 "c_min": 0.1,
                 "x0": 0.1
             }
         },
         "beta": {
-            "mu_int": 10.0,
-            "D": 0.000,
-            "sigma": 4.0,
+            "mu_int": 1.0e-9,
+            "D": 1.0e-9,
+            "sigma": 0.1,
             "f_min": 0.0,
             "CU": {
-                "k_well": 1.0,
+                "k_well": 10000.0,
                 "c_min": 0.1,
                 "x0": 0.1
             },
             "TI": {
-                "k_well": 1.0,
+                "k_well": 10000.0,
                 "c_min": 0.8,
                 "x0": 0.8
             }
         },
         "gamma": {
-            "mu_int": 10.0,
-            "D": 0.000,
-            "sigma": 4.0,
+            "mu_int": 1.0e-9,
+            "D": 1.0e-9,
+            "sigma": 0.1,
             "f_min": 0.0,
             "CU": {
-                "k_well": 1.0,
+                "k_well": 15000.0,
                 "c_min": 0.1,
                 "x0": 0.1
             },
             "TI": {
-                "k_well": 1.0,
+                "k_well": 15000.0,
                 "c_min": 0.1,
                 "x0": 0.1
             }
