@@ -49,6 +49,10 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
   eta0[2] = bottom_strip * interface(eutectic_contour_2D(x, 3, 1, s0));
   eta0[3] = bottom_strip * interface(eutectic_contour_2D(x, 3, 2, s0));
 
+  eta0[1] = bottom_strip * ((1.0 / 3.0) + 0.1 * dist(rng));
+  eta0[2] = bottom_strip * ((1.0 / 3.0) + 0.1 * dist(rng));
+  eta0[3] = bottom_strip * ((1.0 / 3.0) + 0.1 * dist(rng));
+
   // ---------------------------------------------------------------------
   //
   // ---------------------------------------------------------------------
