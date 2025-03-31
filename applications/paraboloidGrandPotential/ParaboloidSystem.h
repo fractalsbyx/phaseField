@@ -14,26 +14,29 @@ class ParaboloidSystem
 public:
   struct PhaseCompInfo
   {
-    double _k_well, k_well, c_min, x0;
+    std::string name;
+    double      _k_well, k_well, c_min, x0;
   };
 
   struct Phase
   {
-    double                               _mu_int, mu_int;
-    double                               _D, D;
-    double                               _sigma, sigma;
-    double                               _f_min, f_min;
-    std::map<std::string, PhaseCompInfo> comps;
+    std::string                name;
+    double                     _mu_int, mu_int;
+    double                     _D, D;
+    double                     _sigma, sigma;
+    double                     _f_min, f_min;
+    std::vector<PhaseCompInfo> comps;
   };
 
-  std::map<std::string, Phase> phases;
-  std::set<std::string>        comp_names;
-  std::string                  solution_component;
-  std::vector<std::string>     order_params;
-  double                       length_scale, time_scale, energy_scale;
-  double                       _Vm, Vm;
-  double                       _l_int, l_int;
-  bool                         volumetrize;
+  std::vector<Phase>       phases;
+  std::vector<std::string> comp_names;
+  std::vector<std::string> phase_names;
+  std::string              solution_component;
+  std::vector<uint>        order_params;
+  double                   length_scale, time_scale, energy_scale;
+  double                   _Vm, Vm;
+  double                   _l_int, l_int;
+  bool                     volumetrize;
 
   ParaboloidSystem()
   {}
@@ -62,12 +65,14 @@ public:
     solution_component = j.at("solution_component").get<std::string>();
 
     // Parse components
+    comp_names.clear();
     for (const auto &comp_name : j.at("components"))
       {
-        comp_names.insert(comp_name);
+        comp_names.push_back(comp_name);
       }
 
     // Parse phases
+    phases.clear();
     for (const auto &[phase_name, phase_data] : j.at("phases").items())
       {
         Phase phase;
@@ -76,33 +81,33 @@ public:
         phase._f_min  = phase_data.at("f_min").get<double>();
         phase._D      = phase_data.at("D").get<double>();
 
-        for (const auto &[comp_name, comp_data] : phase_data.items())
+        for (const std::string &comp_name : comp_names)
           {
-            if (comp_name != "mu_int" && comp_name != "sigma" && comp_name != "f_min" &&
-                comp_name != "D")
-              {
-                PhaseCompInfo phaseCompInfo;
-                phaseCompInfo.c_min    = comp_data.at("c_min").get<double>();
-                phaseCompInfo._k_well  = comp_data.at("k_well").get<double>();
-                phaseCompInfo.x0       = comp_data.at("x0").get<double>();
-                phase.comps[comp_name] = phaseCompInfo;
-              }
+            PhaseCompInfo phaseCompInfo;
+            phaseCompInfo.name    = comp_name;
+            phaseCompInfo.c_min   = phase_data.at(comp_name).at("c_min").get<double>();
+            phaseCompInfo._k_well = phase_data.at(comp_name).at("k_well").get<double>();
+            phaseCompInfo.x0      = phase_data.at(comp_name).at("x0").get<double>();
+            phase.comps.push_back(phaseCompInfo);
           }
-        phases[phase_name] = phase;
+        phases.push_back(phase);
+        phase_names.push_back(phase_name);
       }
     // Parse order parameters
     for (const auto &phase_name : j.at("order_parameters"))
       {
-        order_params.push_back(phase_name);
+        uint phase_index = std::find(phase_names.begin(), phase_names.end(), phase_name) -
+                           phase_names.begin();
+        order_params.push_back(phase_index);
       }
 
     // Convert to volumetric energy if necessary
     if (volumetrize)
       {
-        for (auto &[phase_name, phase] : phases)
+        for (Phase &phase : phases)
           {
             phase._f_min /= _Vm;
-            for (auto &[comp_name, comp] : phase.comps)
+            for (PhaseCompInfo &comp : phase.comps)
               {
                 comp._k_well /= _Vm;
               }
@@ -120,13 +125,13 @@ public:
     const double &E0 = energy_scale; // density
     Vm               = _Vm / (l0 * l0 * l0);
     l_int            = _l_int / (l0);
-    for (auto &[phase_name, phase] : phases)
+    for (Phase &phase : phases)
       {
         phase.mu_int = phase._mu_int / (l0 / (E0 * t0));
         phase.sigma  = phase._sigma / (E0 * l0);
         phase.f_min  = phase._f_min / E0;
         phase.D      = phase._D / ((l0 * l0) / t0); // FIX?
-        for (auto &[comp_name, comp] : phase.comps)
+        for (PhaseCompInfo &comp : phase.comps)
           {
             comp.k_well = comp._k_well / E0;
           }
@@ -159,9 +164,9 @@ public:
     std::cout << "\n";
 
     // Print phase information
-    for (const auto &[phase_name, phase] : phases)
+    for (const Phase &phase : phases)
       {
-        std::cout << std::setw(col_width) << phase_name << "\n";
+        std::cout << std::setw(col_width) << phase.name << "\n";
         std::cout << std::setw(col_width) << "mu_int:" << std::setw(col_width)
                   << phase.mu_int << std::setw(col_width) << phase._mu_int << "\n";
         std::cout << std::setw(col_width) << "D:" << std::setw(col_width) << phase.D
@@ -169,9 +174,9 @@ public:
         std::cout << std::setw(col_width) << "sigma:" << std::setw(col_width)
                   << phase.sigma << std::setw(col_width) << phase._sigma << "\n";
 
-        for (const auto &[comp_name, comp] : phase.comps)
+        for (const PhaseCompInfo &comp : phase.comps)
           {
-            std::cout << std::setw(col_width) << comp_name << "\n";
+            std::cout << std::setw(col_width) << comp.name << "\n";
             std::cout << std::setw(col_width) << "k_well:" << std::setw(col_width)
                       << comp.k_well << std::setw(col_width) << comp._k_well << "\n";
             std::cout << std::setw(col_width) << "c_min:" << std::setw(col_width)
@@ -200,20 +205,21 @@ public:
     std::cout << "\n"
               << "Order parameter names: ";
     // Get names for order parameter fields
-    std::vector<std::string>    op_names;
-    std::vector<std::string>    grad_op_names;
-    std::map<std::string, uint> phase_counter;
-    for (const auto &phase_name : order_params)
+    std::vector<std::string> op_names;
+    std::vector<std::string> grad_op_names;
+    std::map<uint, uint>     phase_counter;
+    for (const auto &phase_index : order_params)
       {
-        if (phase_counter.find(phase_name) == phase_counter.end())
+        if (phase_counter.find(phase_index) == phase_counter.end())
           {
-            phase_counter[phase_name] = 0;
+            phase_counter[phase_index] = 0;
           }
+        std::string phase_name = phase_names[phase_index];
         std::string var_name =
-          phase_name + "_" + std::to_string(phase_counter[phase_name]);
+          phase_name + "_" + std::to_string(phase_counter[phase_index]);
         op_names.push_back(var_name);
         grad_op_names.push_back("grad(" + var_name + ")");
-        phase_counter[phase_name]++;
+        phase_counter[phase_index]++;
         std::cout << var_name << " ";
       }
     std::cout << "\n";
@@ -262,18 +268,19 @@ public:
         mu_names.push_back("mu_" + comp_name);
       }
     // Get names for order parameter fields
-    std::vector<std::string>    op_names;
-    std::map<std::string, uint> phase_counter;
-    for (const auto &phase_name : order_params)
+    std::vector<std::string> op_names;
+    std::map<uint, uint>     phase_counter;
+    for (const auto &phase_index : order_params)
       {
-        if (phase_counter.find(phase_name) == phase_counter.end())
+        if (phase_counter.find(phase_index) == phase_counter.end())
           {
-            phase_counter[phase_name] = 0;
+            phase_counter[phase_index] = 0;
           }
+        std::string phase_name = phase_names[phase_index];
         std::string var_name =
-          phase_name + "_" + std::to_string(phase_counter[phase_name]);
+          phase_name + "_" + std::to_string(phase_counter[phase_index]);
         op_names.push_back(var_name);
-        phase_counter[phase_name]++;
+        phase_counter[phase_index]++;
       }
     std::cout << "\n";
 

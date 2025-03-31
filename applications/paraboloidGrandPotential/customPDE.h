@@ -1,3 +1,4 @@
+#include "ParaboloidSystem.h"
 #include "SystemContainer.h"
 
 #include <core/matrixFreePDE.h>
@@ -109,11 +110,12 @@ private:
   print_initial_energies()
   {
     std::cout << "Initial omega free energies:\n";
-    for (const auto &[phase_name, phase] : isoSys.phases)
+    for (uint phase_index = 0; phase_index < isoSys.phases.size(); phase_index++)
       {
-        SystemContainer<dim, degree> sys_for_print(isoSys, userInputs);
+        const ParaboloidSystem::Phase &phase = isoSys.phases.at(phase_index);
+        SystemContainer<dim, degree>   sys_for_print(isoSys, userInputs);
         sys_for_print.op_data.push_back({
-          phase_name,
+          phase_index,
           {
             {constV(1.), {}}, // eta
             {constV(0.), {}}, // detadt
@@ -121,22 +123,23 @@ private:
           }
         });
 
-        for (const auto &[comp_name, comp_info] : isoSys.phases.at(phase_name).comps)
+        for (uint comp_index = 0; comp_index < isoSys.comp_names.size(); comp_index++)
           {
+            const ParaboloidSystem::PhaseCompInfo &comp_info = phase.comps.at(comp_index);
             double mu0 = isoSys.Vm * comp_info.k_well * (comp_info.x0 - comp_info.c_min);
-            sys_for_print.comp_data[comp_name].mu.val = constV(mu0);
+            sys_for_print.comp_data[comp_index].mu.val = constV(mu0);
           }
+        sys_for_print.calculate_omega_phase();
 
-        sys_for_print.calculate_locals();
-
-        std::cout << phase_name << ":\n"
-                  << "Omega:\t" << sys_for_print.phase_data[phase_name].omega.val[0]
+        std::cout << phase.name << ":\n"
+                  << "Omega:\t" << sys_for_print.phase_data[phase_index].omega.val[0]
                   << "\n";
-        initial_omega[phase_name] = sys_for_print.phase_data[phase_name].omega.val[0];
-        for (const auto &[comp_name, comp_info] : phase.comps)
+        initial_omega[phase.name] = sys_for_print.phase_data[phase_index].omega.val[0];
+        for (uint comp_index = 0; comp_index < isoSys.comp_names.size(); comp_index++)
           {
-            std::cout << "mu_" << comp_name << ":\t"
-                      << sys_for_print.comp_data[comp_name].mu.val[0] << "\n";
+            const ParaboloidSystem::PhaseCompInfo &comp = phase.comps.at(comp_index);
+            std::cout << "mu_" << comp.name << ":\t"
+                      << sys_for_print.comp_data[comp_index].mu.val[0] << "\n";
           }
         std::cout << "\n";
       }
@@ -155,8 +158,8 @@ private:
     constexpr double theoretical_max_gradient_factor = 0.25;
     double           max_gradient_factor             = 0.0;
     std::string      stability_limiter               = "diffusion";
-    std::string      limiting_phase                  = "";
-    for (const auto &[phase_name, phase] : isoSys.phases)
+    std::string      limiting_phase;
+    for (const auto &phase : isoSys.phases)
       {
         const double gradient_prefactor = userInputs.dtValue *
                                           (userInputs.degree * userInputs.degree) /
@@ -171,13 +174,13 @@ private:
           {
             max_gradient_factor = diffusion_gradient_factor;
             stability_limiter   = "diffusion";
-            limiting_phase      = phase_name;
+            limiting_phase      = phase.name;
           }
         if (order_parameter_gradient_factor > max_gradient_factor)
           {
             max_gradient_factor = order_parameter_gradient_factor;
             stability_limiter   = "order parameter evolution";
-            limiting_phase      = phase_name;
+            limiting_phase      = phase.name;
           }
       }
     std::cout << "Then numerical stability for this set of parameters is limited by "
@@ -193,13 +196,13 @@ private:
   void
   print_interface_properties()
   {
-    for (const auto &[alpha_name, alpha] : isoSys.phases)
+    for (const auto &alpha : isoSys.phases)
       {
-        for (const auto &[beta_name, beta] : isoSys.phases)
+        for (const auto &beta : isoSys.phases)
           {
-            std::cout << "Properties of the interface between " << alpha_name << " and "
-                      << beta_name << ":\n";
-            double delta_g = initial_omega[alpha_name] - initial_omega[beta_name];
+            std::cout << "Properties of the interface between " << alpha.name << " and "
+                      << beta.name << ":\n";
+            double delta_g = initial_omega[alpha.name] - initial_omega[beta.name];
             double sigma   = 0.5 * (alpha.sigma + beta.sigma);
             double D       = 0.5 * (alpha.D * beta.D) / (alpha.D + beta.D);
             double mu_int =

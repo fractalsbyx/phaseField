@@ -46,15 +46,15 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
 
   // Submit the fields
   var_index = 0;
-  for (const auto &comp_name : isoSys.comp_names)
+  for (uint comp_index = 0; comp_index < isoSys.comp_names.size(); comp_index++)
     {
       if (index == var_index)
         {
           double mu0 = 0.;
           eta_index  = 0;
-          for (const auto &phase_name : isoSys.order_params)
+          for (const auto &phase_index : isoSys.order_params)
             {
-              auto &phase_comp_info = isoSys.phases.at(phase_name).comps.at(comp_name);
+              auto &phase_comp_info = isoSys.phases.at(phase_index).comps.at(comp_index);
               mu0 += eta0[eta_index] * isoSys.Vm * phase_comp_info.k_well *
                      (phase_comp_info.x0 - phase_comp_info.c_min);
               eta_index++;
