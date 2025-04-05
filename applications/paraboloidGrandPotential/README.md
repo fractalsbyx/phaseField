@@ -14,14 +14,20 @@ The file parameters.prm is the same as any PRISMS-PF app and controls numerical 
 
 BC_AMR.prm contains the usual PRISMS-PF boundary conditions and adaptive meshing settings for each field. It is kept separately from parameters.prm because it is coupled to the model defined in system.json.
 
-Initial and boundary conditions for each field are defined in ICs_and_BCs.cc. You must recompile after making any changes here.
+Initial and Dirichlet boundary conditions for each field are defined in ICs_and_BCs.cc. You must recompile after making any changes here.
 
 ## system.json
 
 ### dimensions
+Numbers used to non-dimesionalize simulation vaiables.
 #### length_scale
-#### time_scale 
+Real length of 1 simulation length unit, e.g. `"length_scale" : 1.0e-6` means 1 simulation unit is 1.0 micrometers (if your parameters are in meters).
+#### time_scale
+Real duration of 1 simulation time unit, e.g. `"length_scale" : 3600.0` means 1 simulation time unit corresponds to 1 real-time hour (if your parameters are in seconds).
+
+Changes to time scale numerically have the same effect as changes to timestep.
 #### energy_scale
+Real energy density. This has no effect numerically but may be useful for characterization.
 
 ### Vm
 The molar/atomic volume of phases in your system assumed to be constant. This variable has no effect numerically unless `convert_fractional_to_volumetric_energy == true`.
@@ -38,14 +44,21 @@ Key-value pairs defining the thermodynamic and kinetic parameters of each phase.
 #### mu_int
 Interface mobility. Relates driving forces to interface velocity.
 #### D
-Diffusivity
+Diffusivity within the phase.
 #### sigma
+Interfacial energy contribution from the phase.
 #### f_min
+Minimum free energy in paraboloid representation [Equation A](#).
 #### component properties
 ##### k_well
+Curvature of free energy of this phase with respect to the component. [Equation A](#)
 ##### c_min
+Composition of the free energy minimum in this phase. [Equation A](#)
 ##### x0
+Initial composition in this phase.
+
 ### order_parameters
+List of the phase of each order parameter. You can have several order parameters of each phase. They are indexed from 0 in the code and in [ICs_and_BCs.cc](#ics_and_bcscc). For the PRISMS-PF names of the fields, they are automatically assigned the name of the phase + a number. See [BC_AMR.prm](#parametersprm-and-bc_amrprm).
 
 
 
