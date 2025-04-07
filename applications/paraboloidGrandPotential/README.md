@@ -1,12 +1,12 @@
-# Welcome
-Welcome to the PRISMS-PF online user manual and code documentation site. Click on the links in the sidebar to the left to navigate the site.
+# Grand-potential model 
+Welcome. This is a manual describing the file structure of the AMMBER implementation of a grand potental-based phase-field model in PRISMS-PF.
 
 # Setting up a simulation
 In this AMMBER application, there are four files you need to modify to set up and run a simulation:
-- system.json
-- parameters.prm
-- BC_AMR.prm
-- ICs_and_BCs.cc
+- [system.json](system.json)
+- [parameters.prm](parameters.prm)
+- [BC_AMR.prm](BC_AMR.prm)
+- [ICs_and_BCs.cc](ICs_and_BCs.cc)
 
 Most of the model is defined inside system.json, which contains all of the thermodynamic and kinetic parameters of the physical system.
 
@@ -18,51 +18,52 @@ Initial and Dirichlet boundary conditions for each field are defined in ICs_and_
 
 ## system.json
 
-### dimensions
+### `dimensions`
 Numbers used to non-dimesionalize simulation vaiables.
-#### length_scale
+#### `length_scale`
 Real length of 1 simulation length unit, e.g. `"length_scale" : 1.0e-6` means 1 simulation unit is 1.0 micrometers (if your parameters are in meters).
-#### time_scale
+#### `time_scale`
 Real duration of 1 simulation time unit, e.g. `"length_scale" : 3600.0` means 1 simulation time unit corresponds to 1 real-time hour (if your parameters are in seconds).
 
 Changes to time scale numerically have the same effect as changes to timestep.
-#### energy_scale
+#### `energy_scale`
 Real energy density. This has no effect numerically but may be useful for characterization.
 
-### Vm
+### `Vm`
 The molar/atomic volume of phases in your system assumed to be constant. This variable has no effect numerically unless `convert_fractional_to_volumetric_energy == true`.
-### l_int
+### `l_int`
 Width of the diffuse interface.
-### convert_fractional_to_volumetric_energy
+### `convert_fractional_to_volumetric_energy`
 This model uses volumetric free energy, but most free energy representations are given in molar or atomic free energy. If your free energy is provided in molar or atomic units, set this to `true` to scale by `Vm`.
-### solution_component
+### `solution_component`
 Component in the solution that is not explicitly tracked
-### components
+### `components`
 List of chemical components in the system.
-### phases
+### `phases`
 Key-value pairs defining the thermodynamic and kinetic parameters of each phase.
-#### mu_int
-Interface mobility. Relates driving forces to interface velocity.
-#### D
-Diffusivity within the phase.
-#### sigma
-Interfacial energy contribution from the phase.
-#### f_min
-Minimum free energy in paraboloid representation [Equation A](#).
-#### component properties
-##### k_well
-Curvature of free energy of this phase with respect to the component. [Equation A](#)
-##### c_min
-Composition of the free energy minimum in this phase. [Equation A](#)
-##### x0
-Initial composition in this phase.
+>#### `mu_int`
+>Interface mobility. Relates driving forces to interface velocity.
+>#### `D`
+>Diffusivity within the phase.
+>#### `sigma`
+>Interfacial energy contribution from the phase.
+>#### `f_min`
+>Minimum free energy in paraboloid representation >[Equation A](#).
+>>#### component properties
+>>##### `k_well`
+>>Curvature of free energy of this phase with respect to the component. [Equation A](#)
+>>##### `c_min`
+>>Composition of the free energy minimum in this phase. [Equation A](#)
+>>##### `x0`
+>>Initial composition in this phase.
+<br><br>
 
-### order_parameters
+### `order_parameters`
 List of the phase of each order parameter. You can have several order parameters of each phase. They are indexed from 0 in the code and in [ICs_and_BCs.cc](#ics_and_bcscc). For the PRISMS-PF names of the fields, they are automatically assigned the name of the phase + a number. See [BC_AMR.prm](#parametersprm-and-bc_amrprm).
 
 
 
-## parameters.prm and BC_AMR.prm
+## [parameters.prm](parameters.prm) and [BC_AMR.prm](BC_AMR.prm)
 See [Input File](../../doc/doxygen/user_manual/input_file/input_file.md).
 
 In BC_AMR, boundary conditions must be defined for every field in the simulation. 
@@ -72,7 +73,7 @@ The names of the fields are as follows:
 
 For example, if your order parameters are <br>`[alpha, beta, beta, gamma, alpha]`,<br> the fields will be named <br>`"alpha_0", "alpha_1", "beta_0", "beta_1", "gamma_0"`.
 
-## ICs_and_BCs.cc
+## [ICs_and_BCs.cc](ICs_and_BCs.cc)
 See [ICs and BCs](../../doc/doxygen/user_manual/app_files/app_files.md#ics_and_bcscc).
 <br>
 
