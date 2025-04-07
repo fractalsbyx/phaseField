@@ -1,6 +1,12 @@
 #include <deal.II/base/tensor.h>
 #include <deal.II/base/vectorization.h>
 
+/**
+ * @brief Class for holding fields and their spatial derivatives OR variations in their
+ * strong form
+ * @details Variations are in strong form: [val + div(grad)]
+ * @tparam dim The dimension of the problem
+ */
 template <unsigned int dim>
 struct FieldContainer
 {
@@ -18,15 +24,15 @@ struct FieldContainer
   }
 
   FieldContainer<dim>
-  operator+(const scalarValue &scalar) const
+  operator+(const scalarValue &constant) const
   {
-    return {val + scalar, grad};
+    return {val + constant, grad};
   }
 
   FieldContainer<dim>
-  operator+(const double &scalar) const
+  operator+(const double &constant) const
   {
-    return {val + scalar, grad};
+    return {val + constant, grad};
   }
 
   FieldContainer<dim>
@@ -56,15 +62,15 @@ struct FieldContainer
   }
 
   FieldContainer<dim>
-  operator-(const scalarValue &scalar) const
+  operator-(const scalarValue &constant) const
   {
-    return {val - scalar, grad};
+    return {val - constant, grad};
   }
 
   FieldContainer<dim>
-  operator-(const double &scalar) const
+  operator-(const double &constant) const
   {
-    return {val - scalar, grad};
+    return {val - constant, grad};
   }
 
   template <typename number>
@@ -76,15 +82,15 @@ struct FieldContainer
   }
 
   FieldContainer<dim>
-  operator*(const scalarValue &scalar) const
+  operator*(const scalarValue &constant) const
   {
-    return {val * scalar, grad * scalar};
+    return {val * constant, grad * constant};
   }
 
   FieldContainer<dim>
-  operator*(const double &scalar) const
+  operator*(const double &constant) const
   {
-    return {val * scalar, grad * scalar};
+    return {val * constant, grad * constant};
   }
 
   FieldContainer<dim>
@@ -102,15 +108,15 @@ struct FieldContainer
   }
 
   FieldContainer<dim>
-  operator/(const scalarValue &scalar) const
+  operator/(const scalarValue &constant) const
   {
-    return {val / scalar, grad / scalar};
+    return {val / constant, grad / constant};
   }
 
   FieldContainer<dim>
-  operator/(const double &scalar) const
+  operator/(const double &constant) const
   {
-    return {val / scalar, grad / scalar};
+    return {val / constant, grad / constant};
   }
 
   FieldContainer<dim>

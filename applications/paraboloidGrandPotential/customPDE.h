@@ -100,12 +100,20 @@ private:
   // ================================================================
   // Methods specific to this subclass
   // ================================================================
+  /**
+   * @brief Function to set the initial conditions with the proper tanh profile given a
+   * level-set function
+   */
   [[nodiscard]] double
   interface(double x) const
   {
     return 0.5 * (1.0 + std::tanh(2.0 * x / isoSys.l_int));
   }
 
+  /**
+   * @brief Prints the grand potential densities (nondimensionalized) of each phase at
+   * its initial conditions
+   */
   void
   print_initial_energies()
   {
@@ -145,6 +153,10 @@ private:
       }
   }
 
+  /**
+   * @brief Function to estimate the numerical stability of the system based on the
+   * parameters provided and give a recommendation for the time step
+   */
   void
   estimate_stability()
   {
@@ -193,6 +205,10 @@ private:
               << ".\n\n" /* << std::defaultfloat << std::setprecision(6) */;
   }
 
+  /**
+   * @brief Function to print the properties of the interface between two phases at
+   * initial conditions
+   */
   void
   print_interface_properties()
   {
@@ -219,13 +235,26 @@ private:
   }
 
   // ================================================================
-  // Model constants specific to this subclass
+  // Members specific to this subclass
   // ================================================================
-  nlohmann::json   model_parameters;
+  /**
+   * @brief JSON containing the model parameters
+   */
+  nlohmann::json model_parameters;
+  /**
+   * @brief Object containing the thermodynamic and kinetic parameters
+   */
   ParaboloidSystem isoSys;
-  double           r0   = userInputs.get_model_constant_double("r0");
+  /**
+   * @brief Fraction of the theoretical maximum time step to use
+   */
   double timestep_alpha = userInputs.get_model_constant_double("timestep_alpha");
+  /**
+   * @brief Map of the initial grand potential densities for each phase (used for
+   * printing)
+   */
   std::map<std::string, double> initial_omega;
 
+  double r0 = userInputs.get_model_constant_double("r0");
   // ================================================================
 };

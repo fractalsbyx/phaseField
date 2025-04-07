@@ -9,15 +9,25 @@
 #include <map>
 #include <string>
 
+/**
+ * @brief Class containing the thermodynamic and kinetic parameters needed for the grand
+ * potential based model using simplified second-order polynomials
+ */
 class ParaboloidSystem
 {
 public:
+  /**
+   * @brief Parameters for compositions within a phase
+   */
   struct PhaseCompInfo
   {
     std::string name;
     double      _k_well, k_well, c_min, x0;
   };
 
+  /**
+   * @brief Parameters for each phase
+   */
   struct Phase
   {
     std::string                name;
@@ -28,24 +38,66 @@ public:
     std::vector<PhaseCompInfo> comps;
   };
 
-  std::vector<Phase>       phases;
+  /**
+   * @brief Phase parameters
+   */
+  std::vector<Phase> phases;
+  /**
+   * @brief Component names at each index
+   */
   std::vector<std::string> comp_names;
+  /**
+   * @brief Phase names at each index
+   */
   std::vector<std::string> phase_names;
-  std::string              solution_component;
-  std::vector<uint>        order_params;
-  double                   length_scale, time_scale, energy_scale;
-  double                   _Vm, Vm;
-  double                   _l_int, l_int;
-  bool                     volumetrize;
+  /**
+   * @brief Name of the component that is not an independent variable
+   */
+  std::string solution_component;
+  /**
+   * @brief The index of the phase of each order parameter
+   */
+  std::vector<uint> order_params;
+  /**
+   * @brief Scale parameters for non-dimensionalization
+   * - length_scale: length scale
+   * - time_scale: time scale
+   * - energy_scale: energy density scale
+   */
+  double length_scale, time_scale, energy_scale;
+  /**
+   * @brief The atomic or molar volume assumed to be uniform
+   */
+  double _Vm, Vm;
+  /**
+   * @brief The interface width
+   */
+  double _l_int, l_int;
+  /**
+   * @brief If true, the energy density is converted to volumetric energy density from
+   * molar/atomic energy
+   */
+  bool volumetrize;
 
+  /**
+   * @brief Constructor
+   */
   ParaboloidSystem()
   {}
 
+  /**
+   * @brief JSON Constructor
+   * @param TCSystem JSON object containing the parameters
+   */
   ParaboloidSystem(const nlohmann::json &TCSystem)
   {
     from_json(TCSystem);
   }
 
+  /**
+   * @brief Load the parameters from a JSON object
+   * @param j JSON object containing the parameters
+   */
   void
   from_json(const nlohmann::json &j)
   {
@@ -73,6 +125,7 @@ public:
 
     // Parse phases
     phases.clear();
+    phase_names.clear();
     for (const auto &[phase_name, phase_data] : j.at("phases").items())
       {
         Phase phase;
@@ -81,6 +134,7 @@ public:
         phase._f_min  = phase_data.at("f_min").get<double>();
         phase._D      = phase_data.at("D").get<double>();
 
+        // Parse components
         for (const std::string &comp_name : comp_names)
           {
             PhaseCompInfo phaseCompInfo;
@@ -93,7 +147,9 @@ public:
         phases.push_back(phase);
         phase_names.push_back(phase_name);
       }
+
     // Parse order parameters
+    order_params.clear();
     for (const auto &phase_name : j.at("order_parameters"))
       {
         uint phase_index = std::find(phase_names.begin(), phase_names.end(), phase_name) -
@@ -117,12 +173,15 @@ public:
     nondimensionalize();
   }
 
+  /**
+   * @brief Non-dimensionalize the parameters using the provided unit scales.
+   */
   void
   nondimensionalize()
   {
     const double &l0 = length_scale;
     const double &t0 = time_scale;
-    const double &E0 = energy_scale; // density
+    const double &E0 = energy_scale; // energy density
     Vm               = _Vm / (l0 * l0 * l0);
     l_int            = _l_int / (l0);
     for (Phase &phase : phases)
@@ -130,7 +189,7 @@ public:
         phase.mu_int = phase._mu_int / (l0 / (E0 * t0));
         phase.sigma  = phase._sigma / (E0 * l0);
         phase.f_min  = phase._f_min / E0;
-        phase.D      = phase._D / ((l0 * l0) / t0); // FIX?
+        phase.D      = phase._D / ((l0 * l0) / t0);
         for (PhaseCompInfo &comp : phase.comps)
           {
             comp.k_well = comp._k_well / E0;
@@ -138,17 +197,21 @@ public:
       }
   }
 
+  /**
+   * @brief Print the parameters to the console
+   */
   void
   print_parameters()
   {
     // Set column width
-    const int col_width = 15;
+    const int col_width  = 15;
+    const int line_width = 45;
 
     // Print header
     std::cout << std::left << std::setw(col_width) << "Name" << std::setw(col_width)
               << "Dimensionless" << std::setw(col_width) << "Dimensional"
               << "\n";
-    std::cout << std::string(45, '-') << "\n";
+    std::cout << std::string(line_width, '-') << "\n";
 
     // Print Vm and l_int
     std::cout << std::setw(col_width) << "Vm:" << std::setw(col_width) << Vm
@@ -188,6 +251,10 @@ public:
       }
   }
 
+  /**
+   * @brief Declare the fields needed for the PDE in PRISMS-PF
+   * @param loader Pointer to the attribute loader (equations.cc)
+   */
   void
   load_variables(customAttributeLoader *loader, uint &var_index)
   {
@@ -256,6 +323,10 @@ public:
       }
   }
 
+  /**
+   * @brief Declare the post-processed fields in PRISMS-PF
+   * @param loader Pointer to the attribute loader (postprocess.cc)
+   */
   void
   load_pp_variables(customAttributeLoader *loader, uint &pp_index)
   {

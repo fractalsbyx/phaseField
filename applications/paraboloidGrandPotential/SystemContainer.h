@@ -11,6 +11,11 @@
 #include <map>
 #include <string>
 
+/**
+ * @brief Class for solving the PDE (equations.cc and postprocess.cc)
+ * @tparam dim The dimension of the problem
+ * @tparam degree The degree of the finite element
+ */
 template <int dim, int degree>
 class SystemContainer
 {
@@ -19,12 +24,18 @@ public:
   using scalarGrad  = dealii::Tensor<1, dim, dealii::VectorizedArray<double>>;
 #define constV(a) dealii::make_vectorized_array(a)
 
+  /**
+   * @brief Data structure to hold the phase data
+   */
   struct PhaseData
   {
     FieldContainer<dim> omega;
     FieldContainer<dim> h;
   };
 
+  /**
+   * @brief Data structure to hold the composition data
+   */
   struct CompData
   {
     FieldContainer<dim> mu;
@@ -32,6 +43,9 @@ public:
     scalarValue         M;
   };
 
+  /**
+   * @brief Data structure to hold the order parameter data
+   */
   struct OPData
   {
     FieldContainer<dim>              eta;
@@ -39,13 +53,31 @@ public:
     std::vector<FieldContainer<dim>> dhdeta;
   };
 
-  const ParaboloidSystem         &isoSys;
+  /**
+   * @brief Pointer to the system parameters
+   */
+  const ParaboloidSystem &isoSys;
+  /**
+   * @brief Pointer to the PRISMS-PF parameters
+   */
   const userInputParameters<dim> &userInputs;
 
-  std::vector<PhaseData>               phase_data;
-  std::vector<CompData>                comp_data;
+  /**
+   * @brief Values associated with each phase
+   */
+  std::vector<PhaseData> phase_data;
+  /**
+   * @brief Values associated with each component
+   */
+  std::vector<CompData> comp_data;
+  /**
+   * @brief Values associated with each order parameter
+   */
   std::vector<std::pair<uint, OPData>> op_data;
-  FieldContainer<dim>                  sum_sq_eta;
+  /**
+   * @brief Sum of squares of the order parameters
+   */
+  FieldContainer<dim> sum_sq_eta;
 
   /**
    * Constructor
@@ -62,6 +94,11 @@ public:
   ~SystemContainer()
   {}
 
+  /**
+   * @brief Initialize the fields for the PDE
+   * @param variable_list The variable list
+   * @param var_index The starting index for the block of fields
+   */
   void
   initialize_fields_explicit(
     const variableContainer<dim, degree, dealii::VectorizedArray<double>> &variable_list,
@@ -86,6 +123,11 @@ public:
       }
   }
 
+  /**
+   * @brief Initialize the fields needed for the postprocess
+   * @param variable_list The variable list
+   * @param var_index The starting index for the block of fields
+   */
   void
   initialize_fields_postprocess(
     const variableContainer<dim, degree, dealii::VectorizedArray<double>> &variable_list,
@@ -108,6 +150,9 @@ public:
       }
   }
 
+  /**
+   * @brief Calculate the grand potential density for each phase
+   */
   void
   calculate_omega_phase()
   {
@@ -128,6 +173,9 @@ public:
       }
   }
 
+  /**
+   * @brief Calculate the sum of squares of the order parameters
+   */
   void
   calculate_sum_sq_eta()
   {
@@ -138,6 +186,10 @@ public:
       }
   }
 
+  /**
+   * @brief Calculate the phase fraction, h, for each phase
+   * @details h_i = eta_i^2 / sum(eta^2)
+   */
   void
   calculate_h()
   {
@@ -151,6 +203,9 @@ public:
       }
   }
 
+  /**
+   * @brief Calculate the derivative of the phase fraction, h, with respect to eta
+   */
   void
   calculate_dhdeta()
   {
@@ -171,6 +226,9 @@ public:
       }
   }
 
+  /**
+   * @brief Calculate the time evolution of the order parameters
+   */
   void
   calculate_detadt()
   {
@@ -194,13 +252,15 @@ public:
         for (uint beta_index = 0; beta_index < phase_data.size(); beta_index++)
           {
             const PhaseData &beta = phase_data.at(beta_index);
-            // NOTE: Only multiply values
             chemical_term += beta.omega.val * op.dhdeta.at(beta_index).val;
           }
         op.detadt = -L * (interface_term + chemical_term);
       }
   }
 
+  /**
+   * @brief Calculate the local chemical mobility
+   */
   void
   calculate_local_mobility()
   {
@@ -218,12 +278,19 @@ public:
       }
   }
 
+  /**
+   * @brief Calculate the time evolution of the chemical potential
+   * @details Calculates the evolution of the composition, then converts to chemical
+   * potential through the susceptibility, chi_AA
+   */
   void
   calculate_dmudt()
   {
     for (uint comp_index = 0; comp_index < comp_data.size(); comp_index++)
       {
-        CompData           &comp = comp_data[comp_index];
+        CompData &comp = comp_data[comp_index];
+
+        // Calculate the susceptibility
         FieldContainer<dim> chi_AA;
         for (uint phase_index = 0; phase_index < phase_data.size(); phase_index++)
           {
@@ -232,8 +299,9 @@ public:
               isoSys.phases.at(phase_index).comps.at(comp_index);
             chi_AA += phase.h / comp_info.k_well / isoSys.Vm / isoSys.Vm;
           }
-        comp.dmudt.val = constV(0.);
+
         // Flux term
+        comp.dmudt.val  = constV(0.);
         comp.dmudt.grad = -comp.M * -comp.mu.grad;
 
         // Partitioning term
@@ -250,10 +318,16 @@ public:
             drhodeta_sum /= isoSys.Vm;
             comp.dmudt -= FieldContainer<dim>::field_x_variation(drhodeta_sum, op.detadt);
           }
+
+        // Convert from dcdt to dmudt
         comp.dmudt = FieldContainer<dim>::field_x_variation(1.0 / chi_AA, comp.dmudt);
       }
   }
 
+  /**
+   * @brief Calculate the information needed to solve the evolution equations in the
+   * proper order
+   */
   void
   calculate_locals()
   {
@@ -264,6 +338,11 @@ public:
     calculate_local_mobility();
   }
 
+  /**
+   * @brief Submit the fields to PRISMS-PF
+   * @param variable_list The PRISMS-PF variable list
+   * @param var_index The starting index for the block of fields
+   */
   void
   submit_fields(
     variableContainer<dim, degree, dealii::VectorizedArray<double>> &variable_list,
@@ -290,6 +369,11 @@ public:
       }
   }
 
+  /**
+   * @brief Submit the post-processed fields to PRISMS-PF
+   * @param pp_variable_list The PRISMS-PF variable list
+   * @param pp_index The starting index for the block of fields
+   */
   void
   submit_pp_fields(
     variableContainer<dim, degree, dealii::VectorizedArray<double>> &pp_variable_list,
