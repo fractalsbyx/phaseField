@@ -171,3 +171,164 @@ operator/(const number &other, const FieldContainer<dim> &field)
   FieldContainer<dim> one = {dealii::make_vectorized_array(1.0), {}};
   return (one / field) * other;
 }
+
+template <unsigned int dim>
+struct Variation
+{
+  using scalarValue = dealii::VectorizedArray<double>;
+  using scalarGrad  = dealii::Tensor<1, dim, dealii::VectorizedArray<double>>;
+#define constV(a) dealii::make_vectorized_array(a)
+
+  scalarValue val = constV(0.);
+  scalarGrad  vec = {};
+
+  Variation<dim>
+  operator+(const Variation<dim> &other) const
+  {
+    return {val + other.val, vec + other.vec};
+  }
+
+  Variation<dim>
+  operator+(const scalarValue &scalar) const
+  {
+    return {val + scalar, vec};
+  }
+
+  Variation<dim>
+  operator+(const double &scalar) const
+  {
+    return {val + scalar, vec};
+  }
+
+  Variation<dim>
+  operator+() const
+  {
+    return *this;
+  }
+
+  template <typename number>
+  Variation<dim> &
+  operator+=(const number &other)
+  {
+    *this = *this + other;
+    return *this;
+  }
+
+  Variation<dim>
+  operator-(const Variation<dim> &other) const
+  {
+    return {val - other.val, vec - other.vec};
+  }
+
+  Variation<dim>
+  operator-() const
+  {
+    return {-val, -vec};
+  }
+
+  Variation<dim>
+  operator-(const scalarValue &scalar) const
+  {
+    return {val - scalar, vec};
+  }
+
+  Variation<dim>
+  operator-(const double &scalar) const
+  {
+    return {val - scalar, vec};
+  }
+
+  template <typename number>
+  Variation<dim> &
+  operator-=(const number &other)
+  {
+    *this = *this - other;
+    return *this;
+  }
+
+  Variation<dim>
+  operator*(const scalarValue &constant_scalar) const
+  {
+    return {val * constant_scalar, vec * constant_scalar};
+  }
+
+  Variation<dim>
+  operator*(const double &constant_scalar) const
+  {
+    return {val * constant_scalar, vec * constant_scalar};
+  }
+
+  template <typename number>
+  Variation<dim> &
+  operator*=(const number &other)
+  {
+    *this = *this * other;
+    return *this;
+  }
+
+  Variation<dim>
+  operator/(const scalarValue &constant_scalar) const
+  {
+    return {val / constant_scalar, vec / constant_scalar};
+  }
+
+  Variation<dim>
+  operator/(const double &constant_scalar) const
+  {
+    return {val / constant_scalar, vec / constant_scalar};
+  }
+
+  template <typename number>
+  Variation<dim> &
+  operator/=(const number &other)
+  {
+    *this = *this / other;
+    return *this;
+  }
+};
+
+template <typename number, unsigned int dim>
+Variation<dim>
+operator+(const number &other, const Variation<dim> &variation)
+{
+  return variation + other;
+}
+
+template <typename number, unsigned int dim>
+Variation<dim>
+operator-(const number &other, const Variation<dim> &variation)
+{
+  return -variation + other;
+}
+
+template <typename number, unsigned int dim>
+Variation<dim>
+operator*(const number &other, const Variation<dim> &variation)
+{
+  return variation * other;
+}
+
+/**
+ * @brief Multiply a field and a variation
+ * @param field The field to multiply
+ * @param variation The variation to multiply
+ */
+template <unsigned int dim>
+Variation<dim>
+operator*(const FieldContainer<dim> &field, const Variation<dim> &variation)
+{
+  return {field.val * variation.val - field.grad * variation.vec,
+          field.val * variation.vec};
+}
+
+/**
+ * @brief Multiply a field and a variation
+ * @param field The field to multiply
+ * @param variation The variation to multiply
+ */
+template <unsigned int dim>
+Variation<dim>
+operator*(const Variation<dim> &variation, const FieldContainer<dim> &field)
+{
+  return field * variation;
+}

@@ -39,7 +39,7 @@ public:
   struct CompData
   {
     FieldContainer<dim> mu;
-    FieldContainer<dim> dmudt;
+    Variation<dim>      dmudt;
     scalarValue         M;
   };
 
@@ -49,7 +49,7 @@ public:
   struct OPData
   {
     FieldContainer<dim>              eta;
-    FieldContainer<dim>              detadt;
+    Variation<dim>                   detadt;
     std::vector<FieldContainer<dim>> dhdeta;
   };
 
@@ -240,13 +240,14 @@ public:
         double kappa = 0.75 * phase_info.sigma * isoSys.l_int;
         double L     = 4.00 * phase_info.mu_int / isoSys.l_int / 3.00;
 
-        // This is a variation, NOT a field
-        FieldContainer<dim> interface_term;
+        // Interface term
+        Variation<dim> interface_term;
         interface_term.val =
           m * (op.eta.val * op.eta.val * op.eta.val - op.eta.val +
                2. * 1.5 * op.eta.val * (sum_sq_eta.val - op.eta.val * op.eta.val));
-        interface_term.grad = -kappa * op.eta.grad;
+        interface_term.vec = -kappa * op.eta.grad;
 
+        // Chemical term
         // This is a variation, but has no vector term.
         scalarValue chemical_term = constV(0.);
         for (uint beta_index = 0; beta_index < phase_data.size(); beta_index++)
@@ -301,8 +302,8 @@ public:
           }
 
         // Flux term
-        comp.dmudt.val  = constV(0.);
-        comp.dmudt.grad = -comp.M * -comp.mu.grad;
+        comp.dmudt.val = constV(0.);
+        comp.dmudt.vec = -comp.M * -comp.mu.grad;
 
         // Partitioning term
         for (auto &[phase_index, op] : op_data)
@@ -316,11 +317,11 @@ public:
                   (comp.mu / isoSys.Vm / comp_info.k_well + comp_info.c_min);
               }
             drhodeta_sum /= isoSys.Vm;
-            comp.dmudt -= FieldContainer<dim>::field_x_variation(drhodeta_sum, op.detadt);
+            comp.dmudt -= drhodeta_sum * op.detadt;
           }
 
         // Convert from dcdt to dmudt
-        comp.dmudt = FieldContainer<dim>::field_x_variation(1.0 / chi_AA, comp.dmudt);
+        comp.dmudt = (1.0 / chi_AA) * comp.dmudt;
       }
   }
 
@@ -355,7 +356,7 @@ public:
                                                 comp.mu.val +
                                                   comp.dmudt.val * userInputs.dtValue);
         variable_list.set_scalar_gradient_term_RHS(var_index,
-                                                   -comp.dmudt.grad * userInputs.dtValue);
+                                                   -comp.dmudt.vec * userInputs.dtValue);
         var_index++;
       }
     for (auto &[phase_index, op] : op_data)
@@ -364,7 +365,7 @@ public:
                                                 op.eta.val +
                                                   op.detadt.val * userInputs.dtValue);
         variable_list.set_scalar_gradient_term_RHS(var_index,
-                                                   -op.detadt.grad * userInputs.dtValue);
+                                                   -op.detadt.vec * userInputs.dtValue);
         var_index++;
       }
   }
