@@ -1,7 +1,7 @@
 # =================================================================================
 # Set the number of dimensions (2 or 3 for a 2D or 3D calculation)
 # =================================================================================
-set Number of dimensions = 2
+set Number of dimensions = 3
 
 # =================================================================================
 # Set the length of the domain in all three dimensions
@@ -9,7 +9,7 @@ set Number of dimensions = 2
 # =================================================================================
 set Domain size X = 128.0
 set Domain size Y = 128.0
-#set Domain size Z = 300
+set Domain size Z = 128.0
 
 # =================================================================================
 # Set the element parameters
@@ -67,7 +67,7 @@ set Number of checkpoints = 0
 # =================================================================================
 
 # Particle radius
-set Model constant r0 = 16.0, DOUBLE
+set Model constant r0 = 8.0, DOUBLE
 
 # Design factor (1/safety factor) for reccommending timestep.
 # A value in (0, 1), practically in [0.1, 0.8]
