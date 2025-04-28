@@ -1,6 +1,12 @@
 #ifndef PARABOLOIDSYSTEM_H
 #define PARABOLOIDSYSTEM_H
 
+#include <deal.II/lac/full_matrix.h>
+#include <deal.II/lac/vector.h>
+
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+
 #include "json.hpp"
 
 #include <core/variableAttributeLoader.h>
@@ -8,6 +14,11 @@
 #include <iostream>
 #include <map>
 #include <string>
+
+template <typename number>
+using boost_vector = boost::numeric::ublas::vector<number>;
+template <typename number>
+using boost_matrix = boost::numeric::ublas::matrix<number>;
 
 /**
  * @brief Class containing the thermodynamic and kinetic parameters needed for the grand
@@ -17,25 +28,18 @@ class ParaboloidSystem
 {
 public:
   /**
-   * @brief Parameters for compositions within a phase
-   */
-  struct PhaseCompInfo
-  {
-    std::string name;
-    double      _k_well, k_well, c_min, x0;
-  };
-
-  /**
    * @brief Parameters for each phase
    */
   struct Phase
   {
-    std::string                name;
-    double                     _mu_int, mu_int;
-    double                     _D, D;
-    double                     _sigma, sigma;
-    double                     _f_min, f_min;
-    std::vector<PhaseCompInfo> comps;
+    std::string name;
+    double      _mu_int, mu_int;
+    double      _D, D;
+    double      _sigma, sigma;
+
+    boost_matrix<double> _A_well, A_well, suscept;
+    boost_vector<double> _B_well, B_well, c_ref, mu_ref, c0;
+    double               _D_well, D_well;
   };
 
   /**
@@ -46,6 +50,10 @@ public:
    * @brief Component names at each index
    */
   std::vector<std::string> comp_names;
+  /**
+   * @brief Number of non-solution components. (Binary->1, Ternary->2...)
+   */
+  unsigned int num_comps;
   /**
    * @brief Phase names at each index
    */
@@ -122,6 +130,7 @@ public:
       {
         comp_names.push_back(comp_name);
       }
+    num_comps = comp_names.size();
 
     // Parse phases
     phases.clear();
@@ -132,18 +141,32 @@ public:
         phase.name    = phase_name;
         phase._mu_int = phase_data.at("mu_int").get<double>();
         phase._sigma  = phase_data.at("sigma").get<double>();
-        phase._f_min  = phase_data.at("f_min").get<double>();
         phase._D      = phase_data.at("D").get<double>();
 
+        phase._A_well = boost_matrix<double>(num_comps, num_comps);
+        phase._B_well = boost_vector<double>(num_comps);
+        phase._D_well = phase_data.at("D_well").get<double>();
+
         // Parse components
-        for (const std::string &comp_name : comp_names)
+        for (uint comp_index = 0; comp_index < num_comps; comp_index++)
           {
-            PhaseCompInfo phaseCompInfo;
-            phaseCompInfo.name    = comp_name;
-            phaseCompInfo.c_min   = phase_data.at(comp_name).at("c_min").get<double>();
-            phaseCompInfo._k_well = phase_data.at(comp_name).at("k_well").get<double>();
-            phaseCompInfo.x0      = phase_data.at(comp_name).at("x0").get<double>();
-            phase.comps.push_back(phaseCompInfo);
+            const std::string &comp_name = comp_names[comp_index];
+            phase.c_ref[comp_index] = phase_data.at("c_ref").at(comp_name).get<double>();
+            phase.B_well[comp_index] =
+              phase_data.at("B_well").at(comp_name).get<double>();
+            phase.c0[comp_index] = phase_data.at("c0").at(comp_name).get<double>();
+
+            auto A_well_row = phase_data.at(comp_name).at("A_well");
+            for (uint col_comp_index = 0; col_comp_index < num_comps; col_comp_index++)
+              {
+                const std::string &col_comp_name = comp_names[col_comp_index];
+                if (!A_well_row.contains(col_comp_name))
+                  {
+                    continue;
+                  }
+                phase._A_well(comp_index, col_comp_index) =
+                  A_well_row.at(col_comp_name).get<double>();
+              }
           }
         phases.push_back(phase);
         phase_names.push_back(phase_name);
@@ -163,11 +186,9 @@ public:
       {
         for (Phase &phase : phases)
           {
-            phase._f_min /= _Vm;
-            for (PhaseCompInfo &comp : phase.comps)
-              {
-                comp._k_well /= _Vm;
-              }
+            phase._A_well /= _Vm;
+            phase._B_well /= _Vm;
+            phase._D_well /= _Vm;
           }
       }
     // Non-dimensionalize
@@ -189,12 +210,15 @@ public:
       {
         phase.mu_int = phase._mu_int / (l0 / (E0 * t0));
         phase.sigma  = phase._sigma / (E0 * l0);
-        phase.f_min  = phase._f_min / E0;
         phase.D      = phase._D / ((l0 * l0) / t0);
-        for (PhaseCompInfo &comp : phase.comps)
-          {
-            comp.k_well = comp._k_well / E0;
-          }
+
+        phase.A_well = phase._A_well;
+        phase.A_well /= (E0);
+        phase.B_well = phase._B_well;
+        phase.B_well /= (E0);
+        phase.D_well = phase._D_well;
+        phase.D_well /= (E0);
+        phase.suscept.invert(phase.A_well);
       }
   }
 
@@ -238,16 +262,41 @@ public:
         std::cout << std::setw(col_width) << "sigma:" << std::setw(col_width)
                   << phase.sigma << std::setw(col_width) << phase._sigma << "\n";
 
-        for (const PhaseCompInfo &comp : phase.comps)
+        // Print A matrix
+        std::cout << std::setw(col_width) << "A_well:\n";
+        std::cout << std::setw(col_width) << "..";
+        for (uint col_index = 0; col_index < comp_names.size(); col_index++)
           {
-            std::cout << std::setw(col_width) << comp.name << "\n";
-            std::cout << std::setw(col_width) << "k_well:" << std::setw(col_width)
-                      << comp.k_well << std::setw(col_width) << comp._k_well << "\n";
-            std::cout << std::setw(col_width) << "c_min:" << std::setw(col_width)
-                      << comp.c_min << "\n";
-            std::cout << std::setw(col_width) << "x0:" << std::setw(col_width) << comp.x0
-                      << "\n";
+            std::cout << std::setw(col_width) << comp_names[col_index];
           }
+        for (uint row_index = 0; row_index < comp_names.size(); row_index++)
+          {
+            std::cout << std::setw(col_width) << comp_names[row_index];
+            for (uint col_index = 0; col_index < comp_names.size(); col_index++)
+              {
+                std::cout << std::setw(col_width) << phase.A_well(row_index, col_index);
+              }
+            std::cout << "\n";
+          }
+        std::cout << "\n";
+
+        // Print B vector
+        std::cout << std::setw(col_width) << "B_well:\n";
+        // std::cout << std::setw(col_width) << "..";
+        for (uint comp_index = 0; comp_index < comp_names.size(); comp_index++)
+          {
+            std::cout << std::setw(col_width) << comp_names[comp_index];
+          }
+        std::cout << "\n";
+        for (uint comp_index = 0; comp_index < comp_names.size(); comp_index++)
+          {
+            std::cout << std::setw(col_width) << phase.B_well[comp_index];
+          }
+        std::cout << "\n";
+
+        // Print D_well
+        std::cout << std::setw(col_width) << "D_well:" << std::setw(col_width)
+                  << phase.D_well << std::setw(col_width) << phase._D_well << "\n";
         std::cout << "\n";
       }
   }

@@ -55,8 +55,8 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
           for (const auto &phase_index : isoSys.order_params)
             {
               auto &phase_comp_info = isoSys.phases.at(phase_index).comps.at(comp_index);
-              mu0 += eta0[eta_index] * isoSys.Vm * phase_comp_info.k_well *
-                     (phase_comp_info.x0 - phase_comp_info.c_min);
+              mu0 += eta0[eta_index] * isoSys.Vm * phase_comp_info.A_well *
+                     (phase_comp_info.x0 - phase_comp_info.c_ref);
               eta_index++;
             }
           scalar_IC = mu0;

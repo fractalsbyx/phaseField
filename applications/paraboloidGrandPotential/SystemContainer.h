@@ -2,6 +2,8 @@
 #define SYSTEMCONTAINER_H
 
 #include <deal.II/base/exceptions.h>
+#include <deal.II/lac/full_matrix.h>
+#include <deal.II/lac/vector.h>
 
 #include "FieldContainer.h"
 #include "ParaboloidSystem.h"
@@ -32,15 +34,9 @@ public:
     FieldContainer<dim> h;
   };
 
-  /**
-   * @brief Data structure to hold the composition data
-   */
-  struct CompData
-  {
-    FieldContainer<dim> mu;
-    Variation<dim>      dmudt;
-    scalarValue         M;
-  };
+  dealii::Vector<FieldContainer<dim>> mu;
+  dealii::Vector<Variation<dim>>      dmudt;
+  dealii::Vector<scalarValue>         M;
 
   /**
    * @brief Data structure to hold the order parameter data
@@ -66,10 +62,6 @@ public:
    */
   std::vector<PhaseData> phase_data;
   /**
-   * @brief Values associated with each component
-   */
-  std::vector<CompData> comp_data;
-  /**
    * @brief Values associated with each order parameter
    */
   std::vector<std::pair<uint, OPData>> op_data;
@@ -85,7 +77,9 @@ public:
     : isoSys(sys)
     , userInputs(inputs)
     , phase_data(std::vector<PhaseData>(isoSys.phases.size()))
-    , comp_data(std::vector<CompData>(isoSys.comp_names.size()))
+    , mu(dealii::Vector<FieldContainer<dim>>(isoSys.num_comps))
+    , dmudt(dealii::Vector<Variation<dim>>(isoSys.num_comps))
+    , M(dealii::Vector<scalarValue>(isoSys.num_comps))
     , op_data({})
     , sum_sq_eta({})
   {}
@@ -159,15 +153,15 @@ public:
       {
         const ParaboloidSystem::Phase &phase_info = isoSys.phases[phase_index];
         PhaseData                     &phase      = phase_data[phase_index];
-        phase.omega.val                           = phase_info.f_min;
+        phase.omega.val                           = phase_info.D_well;
         for (uint comp_index = 0; comp_index < comp_data.size(); comp_index++)
           {
             const CompData                        &comp = comp_data.at(comp_index);
             const ParaboloidSystem::PhaseCompInfo &comp_info =
               phase_info.comps.at(comp_index);
             phase.omega +=
-              -comp.mu * comp.mu / (2.0 * isoSys.Vm * isoSys.Vm * comp_info.k_well) -
-              comp.mu * comp_info.c_min / isoSys.Vm;
+              -comp.mu * comp.mu / (2.0 * isoSys.Vm * isoSys.Vm * comp_info.A_well) -
+              comp.mu * comp_info.c_ref / isoSys.Vm;
           }
       }
   }
@@ -273,7 +267,7 @@ public:
             PhaseData &phase = phase_data[phase_index];
             comp.M += isoSys.phases.at(phase_index).D * phase.h.val /
                       (isoSys.Vm * isoSys.Vm *
-                       isoSys.phases.at(phase_index).comps.at(comp_index).k_well);
+                       isoSys.phases.at(phase_index).comps.at(comp_index).A_well);
           }
       }
   }
@@ -297,7 +291,7 @@ public:
             PhaseData                             &phase = phase_data[phase_index];
             const ParaboloidSystem::PhaseCompInfo &comp_info =
               isoSys.phases.at(phase_index).comps.at(comp_index);
-            chi_AA += phase.h / comp_info.k_well / isoSys.Vm / isoSys.Vm;
+            chi_AA += phase.h / comp_info.A_well / isoSys.Vm / isoSys.Vm;
           }
 
         // Flux term
@@ -313,7 +307,7 @@ public:
                 auto &comp_info = isoSys.phases.at(beta_index).comps.at(comp_index);
                 drhodeta_sum +=
                   op.dhdeta.at(beta_index) *
-                  (comp.mu / isoSys.Vm / comp_info.k_well + comp_info.c_min);
+                  (comp.mu / isoSys.Vm / comp_info.A_well + comp_info.c_ref);
               }
             drhodeta_sum /= isoSys.Vm;
             comp.dmudt -= drhodeta_sum * op.detadt;
@@ -388,8 +382,8 @@ public:
             const PhaseData                       &phase = phase_data.at(phase_index);
             const ParaboloidSystem::PhaseCompInfo &comp_info =
               isoSys.phases.at(phase_index).comps.at(comp_index);
-            c += phase.h.val * comp_info.c_min;
-            c += phase.h.val * comp.mu.val / comp_info.k_well / isoSys.Vm;
+            c += phase.h.val * comp_info.c_ref;
+            c += phase.h.val * comp.mu.val / comp_info.A_well / isoSys.Vm;
           }
         pp_variable_list.set_scalar_value_term_RHS(pp_index, c);
         pp_index++;
