@@ -12,7 +12,7 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
   // ---------------------------------------------------------------------
   // ENTER THE INITIAL CONDITIONS HERE
   // ---------------------------------------------------------------------
-  std::map<uint, uint>        op_index;
+  std::map<uint, uint>        op_var_index;
   std::map<std::string, uint> comp_index;
   uint                        var_index = 0;
   for (const auto &comp_name : isoSys.comp_names)
@@ -22,7 +22,7 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
   uint eta_index = 0;
   for ([[maybe_unused]] const auto &phase_name : isoSys.order_params)
     {
-      op_index[eta_index++] = var_index++;
+      op_var_index[eta_index++] = var_index++;
     }
 
   // Custom coordinate system
@@ -44,29 +44,27 @@ customPDE<dim, degree>::setInitialCondition([[maybe_unused]] const Point<dim>  &
   eta0[0] = 1.0 - circular;
   eta0[1] = circular;
 
-  // Submit the fields
+  // Compute the initial condition for the chemical potential
+  boost_vector<double> mu0(isoSys.num_comps);
+  for (const auto &phase_index : isoSys.order_params)
+    {
+      auto &phase_info = isoSys.phases.at(phase_index);
+      mu0 += phase_info.mu0 * eta0[phase_index];
+    }
+  // Submit the initial condition for the chemical potential
   var_index = 0;
-  for (uint comp_index = 0; comp_index < isoSys.comp_names.size(); comp_index++)
+  for (uint comp_index = 0; comp_index < isoSys.num_comps; comp_index++)
     {
       if (index == var_index)
         {
-          double mu0 = 0.;
-          eta_index  = 0;
-          for (const auto &phase_index : isoSys.order_params)
-            {
-              auto &phase_comp_info = isoSys.phases.at(phase_index).comps.at(comp_index);
-              mu0 += eta0[eta_index] * isoSys.Vm * phase_comp_info.A_well *
-                     (phase_comp_info.x0 - phase_comp_info.c_ref);
-              eta_index++;
-            }
-          scalar_IC = mu0;
+          scalar_IC = mu0[comp_index];
         }
       var_index++;
     }
   eta_index = 0;
   for ([[maybe_unused]] const auto &phase_name : isoSys.order_params)
     {
-      if (index == op_index[eta_index])
+      if (index == op_var_index[eta_index])
         {
           scalar_IC = eta0[eta_index];
         }

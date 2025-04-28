@@ -2,8 +2,10 @@
 #define SYSTEMCONTAINER_H
 
 #include <deal.II/base/exceptions.h>
-#include <deal.II/lac/full_matrix.h>
-#include <deal.II/lac/vector.h>
+
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/symmetric.hpp>
+#include <boost/numeric/ublas/vector.hpp>
 
 #include "FieldContainer.h"
 #include "ParaboloidSystem.h"
@@ -12,6 +14,11 @@
 #include <core/variableContainer.h>
 #include <map>
 #include <string>
+
+template <typename number>
+using boost_vector = boost::numeric::ublas::vector<number>;
+template <typename number>
+using boost_matrix = boost::numeric::ublas::symmetric_matrix<number>;
 
 /**
  * @brief Class for solving the PDE (equations.cc and postprocess.cc)
@@ -30,13 +37,12 @@ public:
    */
   struct PhaseData
   {
-    FieldContainer<dim> omega;
-    FieldContainer<dim> h;
+    FieldContainer<dim>               omega;
+    FieldContainer<dim>               h;
+    boost_vector<FieldContainer<dim>> delta_mu;
+    boost_vector<FieldContainer<dim>> delta_c;
+    boost_vector<FieldContainer<dim>> c_phase;
   };
-
-  dealii::Vector<FieldContainer<dim>> mu;
-  dealii::Vector<Variation<dim>>      dmudt;
-  dealii::Vector<scalarValue>         M;
 
   /**
    * @brief Data structure to hold the order parameter data
@@ -61,6 +67,11 @@ public:
    * @brief Values associated with each phase
    */
   std::vector<PhaseData> phase_data;
+
+  boost_vector<FieldContainer<dim>>       mu;
+  boost_vector<Variation<dim>>            dmudt;
+  boost_vector<boost_matrix<scalarValue>> M;
+
   /**
    * @brief Values associated with each order parameter
    */
@@ -77,9 +88,9 @@ public:
     : isoSys(sys)
     , userInputs(inputs)
     , phase_data(std::vector<PhaseData>(isoSys.phases.size()))
-    , mu(dealii::Vector<FieldContainer<dim>>(isoSys.num_comps))
-    , dmudt(dealii::Vector<Variation<dim>>(isoSys.num_comps))
-    , M(dealii::Vector<scalarValue>(isoSys.num_comps))
+    , mu(boost_vector<FieldContainer<dim>>(isoSys.num_comps))
+    , dmudt(boost_vector<Variation<dim>>(isoSys.num_comps))
+    , M(boost_vector<scalarValue>(isoSys.num_comps))
     , op_data({})
     , sum_sq_eta({})
   {}
@@ -99,10 +110,10 @@ public:
   {
     op_data.clear();
     op_data.reserve(isoSys.order_params.size());
-    for (uint comp_index = 0; comp_index < isoSys.comp_names.size(); comp_index++)
+    for (uint comp_index = 0; comp_index < isoSys.num_comps; comp_index++)
       {
-        comp_data[comp_index].mu.val  = variable_list.get_scalar_value(var_index);
-        comp_data[comp_index].mu.grad = variable_list.get_scalar_gradient(var_index);
+        mu[comp_index].val  = variable_list.get_scalar_value(var_index);
+        mu[comp_index].grad = variable_list.get_scalar_gradient(var_index);
         var_index++;
       }
     for (const auto &phase_index : isoSys.order_params)
@@ -128,9 +139,9 @@ public:
   {
     op_data.clear();
     op_data.reserve(isoSys.order_params.size());
-    for (uint comp_index = 0; comp_index < isoSys.comp_names.size(); comp_index++)
+    for (uint comp_index = 0; comp_index < isoSys.num_comps; comp_index++)
       {
-        comp_data[comp_index].mu.val = variable_list.get_scalar_value(var_index);
+        mu[comp_index].val = variable_list.get_scalar_value(var_index);
         var_index++;
       }
     for (const auto &phase_index : isoSys.order_params)
@@ -140,6 +151,19 @@ public:
         op.dhdeta.resize(isoSys.phases.size());
         op_data.push_back({phase_index, op});
         var_index++;
+      }
+  }
+
+  void
+  calculate_deltas()
+  {
+    for (uint phase_index = 0; phase_index < phase_data.size(); phase_index++)
+      {
+        const ParaboloidSystem::Phase &phase_info = isoSys.phases[phase_index];
+        PhaseData                     &phase      = phase_data[phase_index];
+        phase.delta_mu                            = mu - phase_info.B_well;
+        phase.delta_c = prod(phase_info.suscept, phase.delta_mu);
+        phase.c_phase = phase_info.c_ref + phase.delta_c;
       }
   }
 
@@ -153,16 +177,10 @@ public:
       {
         const ParaboloidSystem::Phase &phase_info = isoSys.phases[phase_index];
         PhaseData                     &phase      = phase_data[phase_index];
-        phase.omega.val                           = phase_info.D_well;
-        for (uint comp_index = 0; comp_index < comp_data.size(); comp_index++)
-          {
-            const CompData                        &comp = comp_data.at(comp_index);
-            const ParaboloidSystem::PhaseCompInfo &comp_info =
-              phase_info.comps.at(comp_index);
-            phase.omega +=
-              -comp.mu * comp.mu / (2.0 * isoSys.Vm * isoSys.Vm * comp_info.A_well) -
-              comp.mu * comp_info.c_ref / isoSys.Vm;
-          }
+        phase.omega =
+          -0.5 * inner_prod(phase.delta_mu, prod(phase_info.suscept, phase.delta_mu)) /
+            (isoSys.Vm * isoSys.Vm) -
+          inner_prod(phase_info.c_ref, mu) / (isoSys.Vm) + phase_info.D_well;
       }
   }
 
@@ -258,64 +276,54 @@ public:
   void
   calculate_local_mobility()
   {
-    for (uint comp_index = 0; comp_index < comp_data.size(); comp_index++)
+    for (uint phase_index = 0; phase_index < phase_data.size(); phase_index++)
       {
-        CompData &comp = comp_data[comp_index];
-        comp.M         = dealii::make_vectorized_array(0.);
-        for (uint phase_index = 0; phase_index < phase_data.size(); phase_index++)
-          {
-            PhaseData &phase = phase_data[phase_index];
-            comp.M += isoSys.phases.at(phase_index).D * phase.h.val /
-                      (isoSys.Vm * isoSys.Vm *
-                       isoSys.phases.at(phase_index).comps.at(comp_index).A_well);
-          }
+        PhaseData &phase = phase_data[phase_index];
+        M += isoSys.phases.at(phase_index).D * isoSys.phases.at(phase_index).suscept *
+             phase.h.val / (isoSys.Vm * isoSys.Vm);
       }
   }
 
   /**
    * @brief Calculate the time evolution of the chemical potential
    * @details Calculates the evolution of the composition, then converts to chemical
-   * potential through the susceptibility, chi_AA
+   * potential through the susceptibility
    */
   void
   calculate_dmudt()
   {
-    for (uint comp_index = 0; comp_index < comp_data.size(); comp_index++)
+    // Get the local susceptibility
+    boost_matrix<FieldContainer<dim>> local_suscept_inv(isoSys.num_comps,
+                                                        isoSys.num_comps);
+    for (uint phase_index = 0; phase_index < phase_data.size(); phase_index++)
       {
-        CompData &comp = comp_data[comp_index];
-
-        // Calculate the susceptibility
-        FieldContainer<dim> chi_AA;
-        for (uint phase_index = 0; phase_index < phase_data.size(); phase_index++)
-          {
-            PhaseData                             &phase = phase_data[phase_index];
-            const ParaboloidSystem::PhaseCompInfo &comp_info =
-              isoSys.phases.at(phase_index).comps.at(comp_index);
-            chi_AA += phase.h / comp_info.A_well / isoSys.Vm / isoSys.Vm;
-          }
-
-        // Flux term
-        comp.dmudt.val = dealii::make_vectorized_array(0.);
-        comp.dmudt.vec = -comp.M * -comp.mu.grad;
-
-        // Partitioning term
-        for (auto &[phase_index, op] : op_data)
-          {
-            FieldContainer<dim> drhodeta_sum;
-            for (uint beta_index = 0; beta_index < phase_data.size(); beta_index++)
-              {
-                auto &comp_info = isoSys.phases.at(beta_index).comps.at(comp_index);
-                drhodeta_sum +=
-                  op.dhdeta.at(beta_index) *
-                  (comp.mu / isoSys.Vm / comp_info.A_well + comp_info.c_ref);
-              }
-            drhodeta_sum /= isoSys.Vm;
-            comp.dmudt -= drhodeta_sum * op.detadt;
-          }
-
-        // Convert from dcdt to dmudt
-        comp.dmudt = (1.0 / chi_AA) * comp.dmudt;
+        const ParaboloidSystem::Phase &phase_info = isoSys.phases[phase_index];
+        local_suscept_inv += phase_info.suscept * phase_data[phase_index].h;
       }
+
+    // Get just the gradient of mu
+    boost_vector<scalarGrad> mu_grad(isoSys.num_comps);
+    for (uint comp_index = 0; comp_index < isoSys.num_comps; comp_index++)
+      {
+        mu_grad[comp_index] = mu[comp_index].grad;
+      }
+
+    // Flux term
+    dmudt += prod(M, mu_grad);
+
+    // Partition/conservation term
+    for (auto &[phase_index, op] : op_data)
+      {
+        boost_vector<FieldContainer<dim>> dcdeta_sum;
+        for (uint beta_index = 0; beta_index < phase_data.size(); beta_index++)
+          {
+            dcdeta_sum += op.dhdeta.at(beta_index) * (phase_data[beta_index].c_phase);
+          }
+        dcdeta_sum /= isoSys.Vm;
+        dmudt -= dcdeta_sum * op.detadt;
+      }
+    // Convert from dcdt to dmudt
+    dmudt = prod(local_suscept_inv, dmudt);
   }
 
   /**
@@ -342,14 +350,15 @@ public:
     variableContainer<dim, degree, dealii::VectorizedArray<double>> &variable_list,
     uint                                                            &var_index)
   {
-    for (uint comp_index = 0; comp_index < comp_data.size(); comp_index++)
+    for (uint comp_index = 0; comp_index < isoSys.num_comps; comp_index++)
       {
-        CompData &comp = comp_data[comp_index];
         variable_list.set_scalar_value_term_RHS(var_index,
-                                                comp.mu.val +
-                                                  comp.dmudt.val * userInputs.dtValue);
+                                                mu[comp_index].val +
+                                                  dmudt[comp_index].val *
+                                                    userInputs.dtValue);
         variable_list.set_scalar_gradient_term_RHS(var_index,
-                                                   -comp.dmudt.vec * userInputs.dtValue);
+                                                   -dmudt[comp_index].vec *
+                                                     userInputs.dtValue);
         var_index++;
       }
     for (auto &[phase_index, op] : op_data)
@@ -373,19 +382,15 @@ public:
     variableContainer<dim, degree, dealii::VectorizedArray<double>> &pp_variable_list,
     uint                                                            &pp_index)
   {
-    for (uint comp_index = 0; comp_index < comp_data.size(); comp_index++)
+    boost_vector<FieldContainer<dim>> c_loc;
+    for (uint phase_index = 0; phase_index < phase_data.size(); phase_index++)
       {
-        CompData   &comp = comp_data[comp_index];
-        scalarValue c    = dealii::make_vectorized_array(0.);
-        for (uint phase_index = 0; phase_index < phase_data.size(); phase_index++)
-          {
-            const PhaseData                       &phase = phase_data.at(phase_index);
-            const ParaboloidSystem::PhaseCompInfo &comp_info =
-              isoSys.phases.at(phase_index).comps.at(comp_index);
-            c += phase.h.val * comp_info.c_ref;
-            c += phase.h.val * comp.mu.val / comp_info.A_well / isoSys.Vm;
-          }
-        pp_variable_list.set_scalar_value_term_RHS(pp_index, c);
+        const PhaseData &phase = phase_data.at(phase_index);
+        c_loc += phase.h * phase.c_phase;
+      }
+    for (uint comp_index = 0; comp_index < isoSys.num_comps; comp_index++)
+      {
+        pp_variable_list.set_scalar_value_term_RHS(pp_index, c_loc[comp_index].val);
         pp_index++;
       }
   }

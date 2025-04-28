@@ -131,11 +131,10 @@ private:
           }
         });
 
-        for (uint comp_index = 0; comp_index < isoSys.comp_names.size(); comp_index++)
+        boost_vector<double> mu0 = prod(phase.A_well, phase.c0);
+        for (uint comp_index = 0; comp_index < isoSys.num_comps; comp_index++)
           {
-            const ParaboloidSystem::PhaseCompInfo &comp_info = phase.comps.at(comp_index);
-            double mu0 = isoSys.Vm * comp_info.k_well * (comp_info.x0 - comp_info.c_min);
-            sys_for_print.comp_data[comp_index].mu.val = constV(mu0);
+            sys_for_print.mu[comp_index].val = mu0[comp_index];
           }
         sys_for_print.calculate_omega_phase();
 
@@ -143,11 +142,10 @@ private:
                   << "Omega:\t" << sys_for_print.phase_data[phase_index].omega.val[0]
                   << "\n";
         initial_omega[phase.name] = sys_for_print.phase_data[phase_index].omega.val[0];
-        for (uint comp_index = 0; comp_index < isoSys.comp_names.size(); comp_index++)
+        for (uint comp_index = 0; comp_index < isoSys.num_comps; comp_index++)
           {
-            const ParaboloidSystem::PhaseCompInfo &comp = phase.comps.at(comp_index);
-            std::cout << "mu_" << comp.name << ":\t"
-                      << sys_for_print.comp_data[comp_index].mu.val[0] << "\n";
+            std::cout << "mu_" << isoSys.comp_names.at(comp_index) << ":\t"
+                      << mu0[comp_index] << "\n";
           }
         std::cout << "\n";
       }

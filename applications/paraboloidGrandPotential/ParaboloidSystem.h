@@ -5,6 +5,7 @@
 #include <deal.II/lac/vector.h>
 
 #include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 
 #include "json.hpp"
@@ -18,11 +19,11 @@
 template <typename number>
 using boost_vector = boost::numeric::ublas::vector<number>;
 template <typename number>
-using boost_matrix = boost::numeric::ublas::matrix<number>;
+using boost_matrix = boost::numeric::ublas::symmetric_matrix<number>;
 
 /**
  * @brief Class containing the thermodynamic and kinetic parameters needed for the grand
- * potential based model using simplified second-order polynomials
+ * potential based model using second-order polynomials
  */
 class ParaboloidSystem
 {
@@ -37,9 +38,10 @@ public:
     double      _D, D;
     double      _sigma, sigma;
 
-    boost_matrix<double> _A_well, A_well, suscept;
-    boost_vector<double> _B_well, B_well, c_ref, mu_ref, c0;
-    double               _D_well, D_well;
+    boost_matrix<double>       _A_well, A_well, suscept;
+    boost_vector<double>       _B_well, B_well, c_ref, c0, mu0;
+    double                     _D_well, D_well;
+    dealii::FullMatrix<double> helper, helper_inv;
   };
 
   /**
@@ -218,7 +220,26 @@ public:
         phase.B_well /= (E0);
         phase.D_well = phase._D_well;
         phase.D_well /= (E0);
-        phase.suscept.invert(phase.A_well);
+
+        phase.mu0 = prod(phase.A_well, phase.c0) + phase.B_well;
+
+        phase.helper = dealii::FullMatrix<double>(num_comps);
+        for (size_t i = 0; i < num_comps; ++i)
+          {
+            for (size_t j = 0; j < num_comps; ++j)
+              {
+                phase.helper(i, j) = phase.A_well(i, j);
+              }
+          }
+        phase.helper_inv.invert(phase.helper);
+        phase.suscept = boost_matrix<double>(num_comps, num_comps);
+        for (size_t i = 0; i < num_comps; ++i)
+          {
+            for (size_t j = 0; j < num_comps; ++j)
+              {
+                phase.suscept(i, j) = phase.helper_inv(i, j);
+              }
+          }
       }
   }
 
