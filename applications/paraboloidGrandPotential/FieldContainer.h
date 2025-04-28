@@ -17,6 +17,16 @@ struct FieldContainer
   scalarValue val  = constV(0.);
   scalarGrad  grad = {};
 
+  FieldContainer(const scalarValue &_val, const scalarGrad &_grad)
+    : val(_val)
+    , grad(_grad)
+  {}
+
+  explicit FieldContainer(const int &initial_value = 0)
+    : val(constV(double(initial_value)))
+    , grad()
+  {}
+
   FieldContainer<dim>
   operator+(const FieldContainer<dim> &other) const
   {
@@ -96,7 +106,7 @@ struct FieldContainer
   FieldContainer<dim>
   operator*(const FieldContainer<dim> &other) const
   {
-    return {val * other.val, val * other.grad + grad * other.val};
+    return FieldContainer<dim>(val * other.val, (val * other.grad) + (grad * other.val));
   }
 
   template <typename number>
@@ -110,20 +120,21 @@ struct FieldContainer
   FieldContainer<dim>
   operator/(const scalarValue &constant) const
   {
-    return {val / constant, grad / constant};
+    return FieldContainer<dim> {val / constant, grad / constant};
   }
 
   FieldContainer<dim>
   operator/(const double &constant) const
   {
-    return {val / constant, grad / constant};
+    return FieldContainer<dim> {val / constant, grad / constant};
   }
 
   FieldContainer<dim>
   operator/(const FieldContainer<dim> &other) const
   {
-    return {val / other.val,
-            (grad * other.val - val * other.grad) / (other.val * other.val)};
+    return FieldContainer<dim> {val / other.val,
+                                (grad * other.val - val * other.grad) /
+                                  (other.val * other.val)};
   }
 
   template <typename number>
@@ -138,8 +149,9 @@ struct FieldContainer
   field_x_variation(const FieldContainer<dim> &field,
                     const FieldContainer<dim> &variation)
   {
-    return {field.val * variation.val - field.grad * variation.grad,
-            field.val * variation.grad};
+    return FieldContainer<dim> {(field.val * variation.val) -
+                                  (field.grad * variation.grad),
+                                field.val * variation.grad};
   }
 };
 
@@ -168,7 +180,7 @@ template <typename number, unsigned int dim>
 FieldContainer<dim>
 operator/(const number &other, const FieldContainer<dim> &field)
 {
-  FieldContainer<dim> one = {dealii::make_vectorized_array(1.0), {}};
+  FieldContainer<dim> one = FieldContainer<dim> {dealii::make_vectorized_array(1.0), {}};
   return (one / field) * other;
 }
 
@@ -182,22 +194,32 @@ struct Variation
   scalarValue val = constV(0.);
   scalarGrad  vec = {};
 
+  Variation(const scalarValue &_val, const scalarGrad &_vec)
+    : val(_val)
+    , vec(_vec)
+  {}
+
+  explicit Variation(const int &initial_value = 0)
+    : val(constV(double(initial_value)))
+    , vec()
+  {}
+
   Variation<dim>
   operator+(const Variation<dim> &other) const
   {
-    return {val + other.val, vec + other.vec};
+    return Variation<dim> {val + other.val, vec + other.vec};
   }
 
   Variation<dim>
   operator+(const scalarValue &scalar) const
   {
-    return {val + scalar, vec};
+    return Variation<dim> {val + scalar, vec};
   }
 
   Variation<dim>
   operator+(const double &scalar) const
   {
-    return {val + scalar, vec};
+    return Variation<dim> {val + scalar, vec};
   }
 
   Variation<dim>
@@ -217,25 +239,25 @@ struct Variation
   Variation<dim>
   operator-(const Variation<dim> &other) const
   {
-    return {val - other.val, vec - other.vec};
+    return Variation<dim> {val - other.val, vec - other.vec};
   }
 
   Variation<dim>
   operator-() const
   {
-    return {-val, -vec};
+    return Variation<dim> {-val, -vec};
   }
 
   Variation<dim>
   operator-(const scalarValue &scalar) const
   {
-    return {val - scalar, vec};
+    return Variation<dim> {val - scalar, vec};
   }
 
   Variation<dim>
   operator-(const double &scalar) const
   {
-    return {val - scalar, vec};
+    return Variation<dim> {val - scalar, vec};
   }
 
   template <typename number>
@@ -249,13 +271,13 @@ struct Variation
   Variation<dim>
   operator*(const scalarValue &constant_scalar) const
   {
-    return {val * constant_scalar, vec * constant_scalar};
+    return Variation<dim> {val * constant_scalar, vec * constant_scalar};
   }
 
   Variation<dim>
   operator*(const double &constant_scalar) const
   {
-    return {val * constant_scalar, vec * constant_scalar};
+    return Variation<dim> {val * constant_scalar, vec * constant_scalar};
   }
 
   template <typename number>
@@ -269,13 +291,13 @@ struct Variation
   Variation<dim>
   operator/(const scalarValue &constant_scalar) const
   {
-    return {val / constant_scalar, vec / constant_scalar};
+    return Variation<dim> {val / constant_scalar, vec / constant_scalar};
   }
 
   Variation<dim>
   operator/(const double &constant_scalar) const
   {
-    return {val / constant_scalar, vec / constant_scalar};
+    return Variation<dim> {val / constant_scalar, vec / constant_scalar};
   }
 
   template <typename number>
@@ -317,8 +339,8 @@ template <unsigned int dim>
 Variation<dim>
 operator*(const FieldContainer<dim> &field, const Variation<dim> &variation)
 {
-  return {field.val * variation.val - field.grad * variation.vec,
-          field.val * variation.vec};
+  return Variation<dim> {field.val * variation.val - field.grad * variation.vec,
+                         field.val * variation.vec};
 }
 
 /**
