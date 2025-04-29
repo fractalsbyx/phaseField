@@ -223,6 +223,12 @@ struct Variation
   }
 
   Variation<dim>
+  operator+(const scalarGrad &vector) const
+  {
+    return Variation<dim> {val, vec + vector};
+  }
+
+  Variation<dim>
   operator+() const
   {
     return *this;
@@ -243,12 +249,6 @@ struct Variation
   }
 
   Variation<dim>
-  operator-() const
-  {
-    return Variation<dim> {-val, -vec};
-  }
-
-  Variation<dim>
   operator-(const scalarValue &scalar) const
   {
     return Variation<dim> {val - scalar, vec};
@@ -258,6 +258,18 @@ struct Variation
   operator-(const double &scalar) const
   {
     return Variation<dim> {val - scalar, vec};
+  }
+
+  Variation<dim>
+  operator-(const scalarGrad &vector) const
+  {
+    return Variation<dim> {val, vec - vector};
+  }
+
+  Variation<dim>
+  operator-() const
+  {
+    return Variation<dim> {-val, -vec};
   }
 
   template <typename number>
