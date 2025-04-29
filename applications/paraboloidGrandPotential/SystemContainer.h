@@ -22,7 +22,6 @@ class SystemContainer
 public:
   using scalarValue = dealii::VectorizedArray<double>;
   using scalarGrad  = dealii::Tensor<1, dim, dealii::VectorizedArray<double>>;
-#define constV(a) dealii::make_vectorized_array(a)
 
   /**
    * @brief Data structure to hold the phase data
@@ -179,7 +178,7 @@ public:
   void
   calculate_sum_sq_eta()
   {
-    sum_sq_eta.val = constV(0.);
+    sum_sq_eta.val = dealii::make_vectorized_array(0.);
     for (const auto &[phase_index, op] : op_data)
       {
         sum_sq_eta += op.eta * op.eta;
@@ -215,7 +214,7 @@ public:
           {
             PhaseData           &beta   = phase_data[beta_index];
             FieldContainer<dim> &dhdeta = op.dhdeta[beta_index];
-            dhdeta.val                  = constV(0.);
+            dhdeta.val                  = dealii::make_vectorized_array(0.);
             if (alpha_index == beta_index)
               {
                 dhdeta += 2.0 * op.eta;
@@ -249,7 +248,7 @@ public:
 
         // Chemical term
         // This is a variation, but has no vector term.
-        scalarValue chemical_term = constV(0.);
+        scalarValue chemical_term = dealii::make_vectorized_array(0.);
         for (uint beta_index = 0; beta_index < phase_data.size(); beta_index++)
           {
             const PhaseData &beta = phase_data.at(beta_index);
@@ -268,7 +267,7 @@ public:
     for (uint comp_index = 0; comp_index < comp_data.size(); comp_index++)
       {
         CompData &comp = comp_data[comp_index];
-        comp.M         = constV(0.);
+        comp.M         = dealii::make_vectorized_array(0.);
         for (uint phase_index = 0; phase_index < phase_data.size(); phase_index++)
           {
             PhaseData &phase = phase_data[phase_index];
@@ -302,7 +301,7 @@ public:
           }
 
         // Flux term
-        comp.dmudt.val = constV(0.);
+        comp.dmudt.val = dealii::make_vectorized_array(0.);
         comp.dmudt.vec = -comp.M * -comp.mu.grad;
 
         // Partitioning term
@@ -383,7 +382,7 @@ public:
     for (uint comp_index = 0; comp_index < comp_data.size(); comp_index++)
       {
         CompData   &comp = comp_data[comp_index];
-        scalarValue c    = constV(0.);
+        scalarValue c    = dealii::make_vectorized_array(0.);
         for (uint phase_index = 0; phase_index < phase_data.size(); phase_index++)
           {
             const PhaseData                       &phase = phase_data.at(phase_index);

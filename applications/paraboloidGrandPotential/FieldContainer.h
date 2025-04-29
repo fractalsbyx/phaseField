@@ -12,9 +12,8 @@ struct FieldContainer
 {
   using scalarValue = dealii::VectorizedArray<double>;
   using scalarGrad  = dealii::Tensor<1, dim, dealii::VectorizedArray<double>>;
-#define constV(a) dealii::make_vectorized_array(a)
 
-  scalarValue val  = constV(0.);
+  scalarValue val  = dealii::make_vectorized_array(0.);
   scalarGrad  grad = {};
 
   FieldContainer(const scalarValue &_val, const scalarGrad &_grad)
@@ -23,7 +22,7 @@ struct FieldContainer
   {}
 
   explicit FieldContainer(const int &initial_value = 0)
-    : val(constV(double(initial_value)))
+    : val(dealii::make_vectorized_array(double(initial_value)))
     , grad()
   {}
 
@@ -189,9 +188,8 @@ struct Variation
 {
   using scalarValue = dealii::VectorizedArray<double>;
   using scalarGrad  = dealii::Tensor<1, dim, dealii::VectorizedArray<double>>;
-#define constV(a) dealii::make_vectorized_array(a)
 
-  scalarValue val = constV(0.);
+  scalarValue val = dealii::make_vectorized_array(0.);
   scalarGrad  vec = {};
 
   Variation(const scalarValue &_val, const scalarGrad &_vec)
@@ -200,7 +198,7 @@ struct Variation
   {}
 
   explicit Variation(const int &initial_value = 0)
-    : val(constV(double(initial_value)))
+    : val(dealii::make_vectorized_array(double(initial_value)))
     , vec()
   {}
 
