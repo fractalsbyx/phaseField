@@ -53,6 +53,7 @@ customPDE<dim, degree>::postProcessedFields(
   SystemContainer<dim, degree> ppsys(isoSys, userInputs);
   uint                         var_index = 0;
   ppsys.initialize_fields_postprocess(variable_list, var_index);
+  ppsys.calculate_deltas();
   ppsys.calculate_sum_sq_eta();
   ppsys.calculate_h();
   uint pp_index = 0;

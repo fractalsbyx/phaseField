@@ -38,10 +38,9 @@ public:
     double      _D, D;
     double      _sigma, sigma;
 
-    boost_matrix<double>       _A_well, A_well, suscept;
-    boost_vector<double>       _B_well, B_well, c_ref, c0, mu0;
-    double                     _D_well, D_well;
-    dealii::FullMatrix<double> helper, helper_inv;
+    boost_matrix<double> _A_well, A_well, suscept;
+    boost_vector<double> _B_well, B_well, c_ref, c0, mu0;
+    double               _D_well, D_well;
   };
 
   /**
@@ -148,17 +147,19 @@ public:
         phase._A_well = boost_matrix<double>(num_comps, num_comps);
         phase._B_well = boost_vector<double>(num_comps);
         phase._D_well = phase_data.at("D_well").get<double>();
+        phase.c_ref   = boost_vector<double>(num_comps);
+        phase.c0      = boost_vector<double>(num_comps);
 
         // Parse components
         for (uint comp_index = 0; comp_index < num_comps; comp_index++)
           {
             const std::string &comp_name = comp_names[comp_index];
-            phase.c_ref[comp_index] = phase_data.at("c_ref").at(comp_name).get<double>();
-            phase.B_well[comp_index] =
-              phase_data.at("B_well").at(comp_name).get<double>();
-            phase.c0[comp_index] = phase_data.at("c0").at(comp_name).get<double>();
+            const auto        &comp_data = phase_data.at(comp_name);
+            phase.c_ref[comp_index]      = comp_data.at("c_ref").get<double>();
+            phase._B_well[comp_index]    = comp_data.at("B_well").get<double>();
+            phase.c0[comp_index]         = comp_data.at("c0").get<double>();
 
-            auto A_well_row = phase_data.at(comp_name).at("A_well");
+            const auto &A_well_row = comp_data.at("A_well");
             for (uint col_comp_index = 0; col_comp_index < num_comps; col_comp_index++)
               {
                 const std::string &col_comp_name = comp_names[col_comp_index];
@@ -221,23 +222,24 @@ public:
         phase.D_well = phase._D_well;
         phase.D_well /= (E0);
 
-        phase.mu0 = prod(phase.A_well, phase.c0) + phase.B_well;
+        phase.mu0 = prod(phase.A_well, phase.c0 - phase.c_ref) + phase.B_well;
 
-        phase.helper = dealii::FullMatrix<double>(num_comps);
+        dealii::FullMatrix<double> helper(num_comps);
         for (size_t i = 0; i < num_comps; ++i)
           {
             for (size_t j = 0; j < num_comps; ++j)
               {
-                phase.helper(i, j) = phase.A_well(i, j);
+                helper(i, j) = phase.A_well(i, j);
               }
           }
-        phase.helper_inv.invert(phase.helper);
+        dealii::FullMatrix<double> helper_inv(num_comps);
+        helper_inv.invert(helper);
         phase.suscept = boost_matrix<double>(num_comps, num_comps);
         for (size_t i = 0; i < num_comps; ++i)
           {
             for (size_t j = 0; j < num_comps; ++j)
               {
-                phase.suscept(i, j) = phase.helper_inv(i, j);
+                phase.suscept(i, j) = helper_inv(i, j);
               }
           }
       }
@@ -281,15 +283,17 @@ public:
         std::cout << std::setw(col_width) << "D:" << std::setw(col_width) << phase.D
                   << std::setw(col_width) << phase._D << "\n";
         std::cout << std::setw(col_width) << "sigma:" << std::setw(col_width)
-                  << phase.sigma << std::setw(col_width) << phase._sigma << "\n";
+                  << phase.sigma << std::setw(col_width) << phase._sigma << "\n\n";
 
         // Print A matrix
-        std::cout << std::setw(col_width) << "A_well:\n";
+        std::cout << std::setw(col_width) << "A_well:"
+                  << "\n";
         std::cout << std::setw(col_width) << "..";
         for (uint col_index = 0; col_index < comp_names.size(); col_index++)
           {
             std::cout << std::setw(col_width) << comp_names[col_index];
           }
+        std::cout << "\n";
         for (uint row_index = 0; row_index < comp_names.size(); row_index++)
           {
             std::cout << std::setw(col_width) << comp_names[row_index];
@@ -302,16 +306,12 @@ public:
         std::cout << "\n";
 
         // Print B vector
-        std::cout << std::setw(col_width) << "B_well:\n";
-        // std::cout << std::setw(col_width) << "..";
+        std::cout << std::setw(col_width) << "B_well:"
+                  << "\n";
         for (uint comp_index = 0; comp_index < comp_names.size(); comp_index++)
           {
-            std::cout << std::setw(col_width) << comp_names[comp_index];
-          }
-        std::cout << "\n";
-        for (uint comp_index = 0; comp_index < comp_names.size(); comp_index++)
-          {
-            std::cout << std::setw(col_width) << phase.B_well[comp_index];
+            std::cout << std::setw(col_width) << comp_names[comp_index]
+                      << std::setw(col_width) << phase.B_well[comp_index] << "\n";
           }
         std::cout << "\n";
 

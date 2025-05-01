@@ -136,6 +136,7 @@ private:
           {
             sys_for_print.mu[comp_index].val = mu0[comp_index];
           }
+        sys_for_print.calculate_deltas();
         sys_for_print.calculate_omega_phase();
 
         std::cout << phase.name << ":\n"
