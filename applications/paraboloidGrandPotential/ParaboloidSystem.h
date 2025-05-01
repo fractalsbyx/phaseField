@@ -129,6 +129,7 @@ public:
     for (const auto &[phase_name, phase_data] : j.at("phases").items())
       {
         Phase phase;
+        phase.name    = phase_name;
         phase._mu_int = phase_data.at("mu_int").get<double>();
         phase._sigma  = phase_data.at("sigma").get<double>();
         phase._f_min  = phase_data.at("f_min").get<double>();
