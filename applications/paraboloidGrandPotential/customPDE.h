@@ -131,10 +131,9 @@ private:
           }
         });
 
-        boost_vector<double> mu0 = prod(phase.A_well, phase.c0);
         for (uint comp_index = 0; comp_index < isoSys.num_comps; comp_index++)
           {
-            sys_for_print.mu[comp_index].val = mu0[comp_index];
+            sys_for_print.mu[comp_index].val = phase.mu0[comp_index];
           }
         sys_for_print.calculate_deltas();
         sys_for_print.calculate_omega_phase();
@@ -146,7 +145,7 @@ private:
         for (uint comp_index = 0; comp_index < isoSys.num_comps; comp_index++)
           {
             std::cout << "mu_" << isoSys.comp_names.at(comp_index) << ":\t"
-                      << mu0[comp_index] << "\n";
+                      << phase.mu0[comp_index] << "\n";
           }
         std::cout << "\n";
       }
