@@ -1,3 +1,6 @@
+#ifndef FIELDCONTAINER_H
+#define FIELDCONTAINER_H
+
 #include <deal.II/base/tensor.h>
 #include <deal.II/base/vectorization.h>
 
@@ -364,3 +367,5 @@ operator*(const Variation<dim> &variation, const FieldContainer<dim> &field)
 {
   return field * variation;
 }
+
+#endif // FIELDCONTAINER_H
