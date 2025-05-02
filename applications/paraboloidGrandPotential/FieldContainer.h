@@ -187,6 +187,14 @@ operator/(const number &other, const FieldContainer<dim> &field)
 }
 
 template <unsigned int dim>
+FieldContainer<dim>
+sqrt(const FieldContainer<dim> &field)
+{
+  typename FieldContainer<dim>::scalarValue sqrt_val = sqrt(field.val);
+  return FieldContainer<dim> {sqrt_val, field.grad / (2.0 * sqrt_val)};
+}
+
+template <unsigned int dim>
 struct Variation
 {
   using scalarValue = dealii::VectorizedArray<double>;
