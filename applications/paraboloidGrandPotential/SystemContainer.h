@@ -291,6 +291,7 @@ public:
   calculate_local_mobility()
   {
     M = boost_symmet<scalarValue>(isoSys.num_comps);
+    M.clear();
     for (uint phase_index = 0; phase_index < phase_data.size(); phase_index++)
       {
         PhaseData                     &phase      = phase_data[phase_index];
