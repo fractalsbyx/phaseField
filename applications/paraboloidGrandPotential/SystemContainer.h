@@ -16,10 +16,11 @@
 #include <map>
 #include <string>
 
-template <typename number>
-using boost_vector = boost::numeric::ublas::vector<number>;
-template <typename number>
-using boost_matrix = boost::numeric::ublas::symmetric_matrix<number>;
+// template <typename number>
+// using boost_vector = boost::numeric::ublas::vector<number>;
+// template <typename number>
+// using boost_symmet = boost::numeric::ublas::symmetric_matrix<number>;
+#include "LinAlg.h"
 
 namespace boost::numeric::ublas
 {
@@ -85,7 +86,7 @@ public:
 
   boost_vector<FieldContainer<dim>> mu;
   boost_vector<Variation<dim>>      dmudt;
-  boost_matrix<scalarValue>         M;
+  boost_symmet<scalarValue>         M;
 
   /**
    * @brief Values associated with each order parameter
@@ -105,7 +106,7 @@ public:
     , phase_data(std::vector<PhaseData>(isoSys.phases.size()))
     , mu(boost_vector<FieldContainer<dim>>(isoSys.num_comps))
     , dmudt(boost_vector<Variation<dim>>(isoSys.num_comps))
-    , M(boost_matrix<scalarValue>(isoSys.num_comps))
+    , M(boost_symmet<scalarValue>(isoSys.num_comps))
     , op_data({})
     , sum_sq_eta({})
   {}
@@ -289,18 +290,18 @@ public:
   void
   calculate_local_mobility()
   {
-    M = boost_matrix<scalarValue>(isoSys.num_comps);
+    M = boost_symmet<scalarValue>(isoSys.num_comps);
     for (uint phase_index = 0; phase_index < phase_data.size(); phase_index++)
       {
         PhaseData                     &phase      = phase_data[phase_index];
         const ParaboloidSystem::Phase &phase_info = isoSys.phases.at(phase_index);
         const double                  &D          = phase_info.D;
-        const boost_matrix<double>    &suscept    = phase_info.suscept;
+        const boost_symmet<double>    &suscept    = phase_info.suscept;
         /* M += phase.h.val * isoSys.phases.at(phase_index).D *
              isoSys.phases.at(phase_index).suscept; */ // NOTATION
         for (uint comp_row = 0; comp_row < isoSys.num_comps; comp_row++)
           {
-            for (uint comp_col = 0; comp_col < isoSys.num_comps; comp_col++)
+            for (uint comp_col = 0; comp_col <= comp_row; comp_col++)
               {
                 M(comp_row, comp_col) += phase.h.val * D * suscept(comp_row, comp_col);
               }
@@ -317,8 +318,7 @@ public:
   calculate_dmudt()
   {
     // Get the local susceptibility
-    boost_matrix<FieldContainer<dim>> local_suscept_inv(isoSys.num_comps,
-                                                        isoSys.num_comps);
+    boost_symmet<FieldContainer<dim>> local_suscept(isoSys.num_comps, isoSys.num_comps);
     for (uint phase_index = 0; phase_index < phase_data.size(); phase_index++)
       {
         const ParaboloidSystem::Phase &phase_info = isoSys.phases[phase_index];
@@ -326,13 +326,15 @@ public:
         // NOTATION
         for (uint comp_row = 0; comp_row < isoSys.num_comps; comp_row++)
           {
-            for (uint comp_col = 0; comp_col < isoSys.num_comps; comp_col++)
+            for (uint comp_col = 0; comp_col <= comp_row; comp_col++)
               {
-                local_suscept_inv(comp_row, comp_col) +=
+                local_suscept(comp_row, comp_col) +=
                   phase_info.suscept(comp_row, comp_col) * phase_data[phase_index].h;
               }
           }
       }
+    boost_matrix<FieldContainer<dim>> local_suscept_inv =
+      inverse_from_cholesky(local_suscept);
 
     // // Get just the gradient of mu
     // boost_vector<scalarGrad> mu_grad(isoSys.num_comps);

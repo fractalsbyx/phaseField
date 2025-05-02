@@ -19,7 +19,7 @@
 template <typename number>
 using boost_vector = boost::numeric::ublas::vector<number>;
 template <typename number>
-using boost_matrix = boost::numeric::ublas::symmetric_matrix<number>;
+using boost_symmet = boost::numeric::ublas::symmetric_matrix<number>;
 
 /**
  * @brief Class containing the thermodynamic and kinetic parameters needed for the grand
@@ -38,7 +38,7 @@ public:
     double      _D, D;
     double      _sigma, sigma;
 
-    boost_matrix<double> _A_well, A_well, suscept;
+    boost_symmet<double> _A_well, A_well, suscept;
     boost_vector<double> _B_well, B_well, c_ref, c0, mu0;
     double               _D_well, D_well;
   };
@@ -144,7 +144,7 @@ public:
         phase._sigma  = phase_data.at("sigma").get<double>();
         phase._D      = phase_data.at("D").get<double>();
 
-        phase._A_well = boost_matrix<double>(num_comps, num_comps);
+        phase._A_well = boost_symmet<double>(num_comps, num_comps);
         phase._B_well = boost_vector<double>(num_comps);
         phase._D_well = phase_data.at("D_well").get<double>();
         phase.c_ref   = boost_vector<double>(num_comps);
@@ -234,7 +234,7 @@ public:
           }
         dealii::FullMatrix<double> helper_inv(num_comps);
         helper_inv.invert(helper);
-        phase.suscept = boost_matrix<double>(num_comps, num_comps);
+        phase.suscept = boost_symmet<double>(num_comps, num_comps);
         for (size_t i = 0; i < num_comps; ++i)
           {
             for (size_t j = 0; j < num_comps; ++j)
