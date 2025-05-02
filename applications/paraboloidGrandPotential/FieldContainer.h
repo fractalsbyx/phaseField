@@ -190,7 +190,7 @@ template <unsigned int dim>
 FieldContainer<dim>
 sqrt(const FieldContainer<dim> &field)
 {
-  typename FieldContainer<dim>::scalarValue sqrt_val = sqrt(field.val);
+  typename FieldContainer<dim>::scalarValue sqrt_val = std::sqrt(field.val);
   return FieldContainer<dim> {sqrt_val, field.grad / (2.0 * sqrt_val)};
 }
 
