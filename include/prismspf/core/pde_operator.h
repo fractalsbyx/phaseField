@@ -5,6 +5,7 @@
 
 #include <deal.II/base/point.h>
 
+#include <prismspf/core/simulation_time.h>
 #include <prismspf/core/types.h>
 
 #include <prismspf/config.h>
@@ -29,7 +30,9 @@ public:
   /**
    * @brief Constructor.
    */
-  explicit PDEOperator(const UserInputParameters<dim> &_user_inputs);
+  explicit PDEOperator(const UserInputParameters<dim> &user_inputs)
+    : delta_t(user_inputs.get_temporal_discretization().get_timestep())
+  {}
 
   /**
    * @brief Destructor.
@@ -62,6 +65,7 @@ public:
    */
   virtual void
   compute_explicit_rhs(VariableContainer<dim, degree, number> &variable_list,
+                       const SimulationTime                   &simulation_time,
                        const dealii::Point<dim, SizeType>     &q_point_loc,
                        const SizeType                         &element_volume,
                        Types::Index                            solve_block) const = 0;
@@ -71,6 +75,7 @@ public:
    */
   virtual void
   compute_nonexplicit_rhs(VariableContainer<dim, degree, number> &variable_list,
+                          const SimulationTime                   &simulation_time,
                           const dealii::Point<dim, SizeType>     &q_point_loc,
                           const SizeType                         &element_volume,
                           Types::Index                            solve_block,
@@ -81,6 +86,7 @@ public:
    */
   virtual void
   compute_nonexplicit_lhs(VariableContainer<dim, degree, number> &variable_list,
+                          const SimulationTime                   &simulation_time,
                           const dealii::Point<dim, SizeType>     &q_point_loc,
                           const SizeType                         &element_volume,
                           Types::Index                            solve_block,
@@ -91,27 +97,16 @@ public:
    */
   virtual void
   compute_postprocess_explicit_rhs(VariableContainer<dim, degree, number> &variable_list,
-                                   const dealii::Point<dim, SizeType>     &q_point_loc,
-                                   const SizeType                         &element_volume,
+                                   const SimulationTime               &simulation_time,
+                                   const dealii::Point<dim, SizeType> &q_point_loc,
+                                   const SizeType                     &element_volume,
                                    Types::Index solve_block) const = 0;
-
-  /**
-   * @brief Get the user inputs (constant reference).
-   */
-  [[nodiscard]] const UserInputParameters<dim> &
-  get_user_inputs() const;
-
-  /**
-   * @brief Get the timestep (copy).
-   */
-  [[nodiscard]] number
-  get_timestep() const;
 
 private:
   /**
-   * @brief The user-inputs.
+   * @brief the timestep.
    */
-  const UserInputParameters<dim> *user_inputs;
+  number delta_t;
 };
 
 PRISMS_PF_END_NAMESPACE
