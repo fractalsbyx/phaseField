@@ -13,6 +13,8 @@
 
 #include <prismspf/config.h>
 
+#include "prismspf/core/simulation_time.h"
+
 #if DEAL_II_VERSION_MAJOR >= 9 && DEAL_II_VERSION_MINOR >= 7
 #  include <deal.II/base/enable_observer_pointer.h>
 #  define MATRIX_FREE_OPERATOR_BASE dealii::EnableObserverPointer
@@ -260,6 +262,11 @@ private:
    * @brief PDE operator object for user defined PDEs.
    */
   std::shared_ptr<const PDEOperator<dim, degree, number>> pde_operator;
+
+  /**
+   * @brief The current simulation time.
+   */
+  SimulationTime simulation_time;
 
   /**
    * @brief The solve block that is being evaluated

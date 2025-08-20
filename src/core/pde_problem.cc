@@ -43,6 +43,8 @@
 
 #include <prismspf/config.h>
 
+#include "prismspf/core/simulation_time.h"
+
 #include <memory>
 #include <mpi.h>
 #include <ostream>
@@ -254,8 +256,7 @@ PDEProblem<dim, degree, number>::init_system()
 
   // Print the l2-norms and integrals of each solution
   ConditionalOStreams::pout_base()
-    << "Iteration: " << user_inputs->get_temporal_discretization().get_increment()
-    << "\n";
+    << "Iteration: " << solver_context.get_simulation_time().current_increment() << "\n";
   for (const auto &[index, vector] : solution_handler.get_solution_vector())
     {
       ConditionalOStreams::pout_base()
@@ -323,12 +324,12 @@ PDEProblem<dim, degree, number>::solve_increment()
   // update ghosts that need to be. It's wasteful to over communicate.
   bool update_postprocssed =
     user_inputs->get_spatial_discretization().should_refine_mesh(
-      user_inputs->get_temporal_discretization().get_increment()) ||
+      solver_context.get_simulation_time().current_increment()) ||
     user_inputs->get_output_parameters().should_output(
-      user_inputs->get_temporal_discretization().get_increment());
+      solver_context.get_simulation_time().current_increment());
 
   // Solve a single increment
-  solver_handler.solve(user_inputs->get_temporal_discretization().get_increment(),
+  solver_handler.solve(solver_context.get_simulation_time().current_increment(),
                        update_postprocssed);
 }
 
@@ -359,23 +360,24 @@ PDEProblem<dim, degree, number>::solve()
        "  Solve\n"
     << "================================================\n"
     << std::flush;
-  while (user_inputs->get_temporal_discretization().get_increment() <
+  SimulationTime &simulation_time = solver_context.get_simulation_time();
+  while (simulation_time.current_increment() <
          user_inputs->get_temporal_discretization().get_total_increments())
     {
-      user_inputs->get_temporal_discretization().update_increment();
-      user_inputs->get_temporal_discretization().update_time();
+      simulation_time.increment(
+        user_inputs->get_temporal_discretization().get_timestep());
 
       Timer::start_section("Solve Increment");
       solve_increment();
       Timer::end_section("Solve Increment");
 
       if (user_inputs->get_spatial_discretization().should_refine_mesh(
-            user_inputs->get_temporal_discretization().get_increment()))
+            solver_context.get_simulation_time().current_increment()))
         {
           // Perform grid refinement
           ConditionalOStreams::pout_base()
             << "performing grid refinement at increment "
-            << user_inputs->get_temporal_discretization().get_increment() << "...\n"
+            << solver_context.get_simulation_time().current_increment() << "...\n"
             << std::flush;
           Timer::start_section("Grid refinement");
           grid_refiner.do_adaptive_refinement();
@@ -390,7 +392,7 @@ PDEProblem<dim, degree, number>::solve()
           Timer::end_section("Update ghosts");
         }
       if (user_inputs->get_output_parameters().should_output(
-            user_inputs->get_temporal_discretization().get_increment()))
+            simulation_time.current_increment()))
         {
           Timer::start_section("Output");
           SolutionOutput<dim, number>(solution_handler.get_solution_vector(),
@@ -401,7 +403,7 @@ PDEProblem<dim, degree, number>::solve()
 
           // Print the l2-norms and integrals of each solution
           ConditionalOStreams::pout_base()
-            << "Iteration: " << user_inputs->get_temporal_discretization().get_increment()
+            << "Iteration: " << solver_context.get_simulation_time().current_increment()
             << "\n";
           for (const auto &[index, vector] : solution_handler.get_solution_vector())
             {

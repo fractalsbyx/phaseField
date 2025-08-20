@@ -9,26 +9,35 @@
 
 PRISMS_PF_BEGIN_NAMESPACE
 
-struct SimulationTime
+class SimulationTime
 {
-  /**
-   * @brief The current simulation time.
-   */
-  double current_time = 0.0;
-
-  /**
-   * @brief The time increment for the next simulation step.
-   */
-  unsigned int current_increment = 0;
-
+public:
   /**
    * @brief Reset the simulation time and increment to 0.
    */
   void
   reset()
   {
-    current_time      = 0.0;
-    current_increment = 0;
+    _time      = 0.0;
+    _increment = 0;
+  }
+
+  /**
+   * @brief Get the current simulation time.
+   */
+  [[nodiscard]] double
+  current_time() const
+  {
+    return curr_time;
+  }
+
+  /**
+   * @brief Get the current increment.
+   */
+  [[nodiscard]] unsigned int
+  current_increment() const
+  {
+    return curr_increment;
   }
 
   /**
@@ -37,9 +46,20 @@ struct SimulationTime
   void
   increment(double time_step)
   {
-    current_time += time_step;
-    ++current_increment;
+    curr_time += time_step;
+    ++curr_increment;
   }
+
+private:
+  /**
+   * @brief The current simulation time.
+   */
+  double curr_time = 0.0;
+
+  /**
+   * @brief The time increment for the next simulation step.
+   */
+  unsigned int curr_increment = 0;
 };
 
 PRISMS_PF_END_NAMESPACE

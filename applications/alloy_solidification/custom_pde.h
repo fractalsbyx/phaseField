@@ -88,6 +88,7 @@ private:
   void
   compute_explicit_rhs(
     VariableContainer<dim, degree, number>                    &variable_list,
+    const SimulationTime                                      &simulation_time,
     const dealii::Point<dim, dealii::VectorizedArray<number>> &q_point_loc,
     const dealii::VectorizedArray<number>                     &element_volume,
     Types::Index solve_block) const override;
@@ -98,6 +99,7 @@ private:
   void
   compute_nonexplicit_rhs(
     VariableContainer<dim, degree, number>                    &variable_list,
+    const SimulationTime                                      &simulation_time,
     const dealii::Point<dim, dealii::VectorizedArray<number>> &q_point_loc,
     const dealii::VectorizedArray<number>                     &element_volume,
     Types::Index                                               solve_block,
@@ -109,6 +111,7 @@ private:
   void
   compute_nonexplicit_lhs(
     VariableContainer<dim, degree, number>                    &variable_list,
+    const SimulationTime                                      &simulation_time,
     const dealii::Point<dim, dealii::VectorizedArray<number>> &q_point_loc,
     const dealii::VectorizedArray<number>                     &element_volume,
     Types::Index                                               solve_block,
@@ -120,6 +123,7 @@ private:
   void
   compute_postprocess_explicit_rhs(
     VariableContainer<dim, degree, number>                    &variable_list,
+    const SimulationTime                                      &simulation_time,
     const dealii::Point<dim, dealii::VectorizedArray<number>> &q_point_loc,
     const dealii::VectorizedArray<number>                     &element_volume,
     Types::Index solve_block) const override;

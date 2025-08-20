@@ -8,6 +8,8 @@
 #include <prismspf/core/simulation_time.h>
 #include <prismspf/core/types.h>
 
+#include <prismspf/user_inputs/user_constants.h>
+
 #include <prismspf/config.h>
 
 PRISMS_PF_BEGIN_NAMESPACE
@@ -32,7 +34,14 @@ public:
    */
   explicit PDEOperator(const UserInputParameters<dim> &user_inputs)
     : delta_t(user_inputs.get_temporal_discretization().get_timestep())
+    , domain_extents(user_inputs.get_spatial_discretization().get_size())
+    , user_constants(user_inputs.get_user_constants())
   {}
+
+  /**
+   * @brief Delete default constructor.
+   */
+  PDEOperator() = delete;
 
   /**
    * @brief Destructor.
@@ -107,6 +116,16 @@ private:
    * @brief the timestep.
    */
   number delta_t;
+
+  /**
+   * @brief The spatial extents of the domain.
+   */
+  dealii::Tensor<1, dim> domain_extents;
+
+  /**
+   * @brief the user constants.
+   */
+  UserConstants<dim> user_constants;
 };
 
 PRISMS_PF_END_NAMESPACE

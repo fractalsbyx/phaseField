@@ -22,6 +22,8 @@
 
 #include <prismspf/config.h>
 
+#include "prismspf/core/simulation_time.h"
+
 #include <map>
 #include <memory>
 #include <utility>
@@ -332,6 +334,7 @@ MatrixFreeOperator<dim, degree, number>::compute_local_explicit_update(
            const SizeType                         &element_volume)
     {
       this->pde_operator->compute_explicit_rhs(var_list,
+                                               simulation_time,
                                                q_point_loc,
                                                element_volume,
                                                solve_block);
@@ -363,6 +366,7 @@ MatrixFreeOperator<dim, degree, number>::compute_local_postprocess_explicit_upda
            const SizeType                         &element_volume)
     {
       this->pde_operator->compute_postprocess_explicit_rhs(var_list,
+                                                           simulation_time,
                                                            q_point_loc,
                                                            element_volume,
                                                            solve_block);
@@ -394,6 +398,7 @@ MatrixFreeOperator<dim, degree, number>::compute_local_nonexplicit_auxiliary_upd
            const SizeType                         &element_volume)
     {
       this->pde_operator->compute_nonexplicit_rhs(var_list,
+                                                  simulation_time,
                                                   q_point_loc,
                                                   element_volume,
                                                   solve_block,
@@ -426,6 +431,7 @@ MatrixFreeOperator<dim, degree, number>::compute_local_residual(
            const SizeType                         &element_volume)
     {
       this->pde_operator->compute_nonexplicit_rhs(var_list,
+                                                  simulation_time,
                                                   q_point_loc,
                                                   element_volume,
                                                   solve_block,
@@ -460,6 +466,7 @@ MatrixFreeOperator<dim, degree, number>::compute_local_newton_update(
            const SizeType                         &element_volume)
     {
       this->pde_operator->compute_nonexplicit_lhs(var_list,
+                                                  simulation_time,
                                                   q_point_loc,
                                                   element_volume,
                                                   solve_block,
@@ -518,6 +525,7 @@ MatrixFreeOperator<dim, degree, number>::local_compute_diagonal(
            const SizeType                         &element_volume)
     {
       this->pde_operator->compute_nonexplicit_lhs(var_list,
+                                                  simulation_time,
                                                   q_point_loc,
                                                   element_volume,
                                                   solve_block,
