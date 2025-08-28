@@ -37,7 +37,7 @@ set boundary condition for n = Periodic
 set boundary condition for nucleation_rate = Periodic
 
 subsection nucleation
-  set nucleus exclusion distance = 20.0
+  set nucleus exclusion distance = 10.0
   set nucleation period = 2500
 end
 

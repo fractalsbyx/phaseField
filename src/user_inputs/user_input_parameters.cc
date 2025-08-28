@@ -439,8 +439,9 @@ UserInputParameters<dim>::assign_miscellaneous_parameters(
 {
   parameter_handler.enter_subsection("miscellaneous");
   {
-    misc_parameters.set_random_seed(
-      static_cast<unsigned int>(parameter_handler.get_integer("random seed")));
+    misc_parameters.set_random_seed(static_cast<unsigned int>(
+      parameter_handler.get_integer("random seed") +
+      dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)));
   }
   parameter_handler.leave_subsection();
 }

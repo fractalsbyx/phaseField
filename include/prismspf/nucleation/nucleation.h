@@ -136,11 +136,14 @@ NucleationHandler<dim, degree, number>::attempt_nucleation(
                       unsigned int nucleating_index =
                         variable
                           .get_nucleating_field_indices()[nucleating_index_dist(rng)];
-
                       new_nuclei_list.emplace_back(nucleating_index,
                                                    nucleus_location,
                                                    seed_time,
                                                    seed_increment);
+                      std::cout
+                        << dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD)
+                        << ": " << new_nuclei_list.back().location() << " "
+                        << new_nuclei_list.back().location_arr[0] << "\n";
                     }
                 }
             }
@@ -151,6 +154,15 @@ NucleationHandler<dim, degree, number>::attempt_nucleation(
               // Gather to root process
               std::vector<Nucleus<dim>> new_nuclei(new_nuclei_list.begin(),
                                                    new_nuclei_list.end());
+
+              for (const auto &nuc : new_nuclei_list)
+                {
+                  std::cout << "List before gather: " << nuc.location() << "\n";
+                }
+              for (const auto &nuc : new_nuclei)
+                {
+                  std::cout << "Vector before gather: " << nuc.location() << "\n";
+                }
               mpi_gather_nuclei(new_nuclei);
               if (dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) == 0)
                 {
@@ -165,13 +177,15 @@ NucleationHandler<dim, degree, number>::attempt_nucleation(
 
                   while (!new_nuclei.empty())
                     {
+                      std::cout << new_nuclei.back().field_index << " "
+                                << new_nuclei.back().location() << "\n";
                       Nucleus<dim> *nuc = &new_nuclei.back();
                       for (const auto &existing_nucleus : nuclei)
                         {
-                          if (nuc->location.distance(existing_nucleus.location) <
+                          if (nuc->location().distance(existing_nucleus.location()) <
                                 nucleation_parameters.get_exclusion_distance() ||
                               (nuc->field_index == existing_nucleus.field_index &&
-                               nuc->location.distance(existing_nucleus.location) <
+                               nuc->location().distance(existing_nucleus.location()) <
                                  nucleation_parameters
                                    .get_same_field_exclusion_distance()))
                             {
@@ -217,7 +231,9 @@ NucleationHandler<dim, degree, number>::mpi_gather_nuclei(
   int              local_count = local_nuclei.size();
   std::vector<int> nuclei_counts_per_rank;
   if (rank == 0)
-    nuclei_counts_per_rank.resize(num_procs);
+    {
+      nuclei_counts_per_rank.resize(num_procs);
+    }
 
   MPI_Gather(&local_count,
              1,
@@ -252,6 +268,12 @@ NucleationHandler<dim, degree, number>::mpi_gather_nuclei(
               Nucleus<dim>::mpi_datatype(),
               0,
               MPI_COMM_WORLD);
+  if (rank == 0)
+    {
+      std::cout << local_nuclei[0].location() << " ; " << gathered_nuclei[0].location()
+                << "\n";
+    }
+  local_nuclei = gathered_nuclei;
 }
 
 template <unsigned int dim, unsigned int degree, typename number>

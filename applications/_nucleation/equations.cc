@@ -160,7 +160,7 @@ CustomPDE<dim, degree, number>::seed_nucleus(
       const dealii::Point<dim, ScalarValue> loc_as_arr = [&]()
       {
         dealii::Point<dim, ScalarValue> result;
-        const dealii::Point<dim>       &point = nucleus.location;
+        const dealii::Point<dim>       &point = nucleus.location();
         for (unsigned int d = 0; d < dim; ++d)
           {
             result[d] = ScalarValue(point[d]);
@@ -171,11 +171,11 @@ CustomPDE<dim, degree, number>::seed_nucleus(
       // Seed a nucleus if it was added to the list of nuclei recently
       if (current_time < nucleus.seed_time + seeding_duration)
         {
-          gamma = 0.5 * (1.0 + std::tanh((dist - r_freeze) / interface_coeff));
+          gamma *= 0.5 * (1.0 + std::tanh((dist - r_freeze) / interface_coeff));
         }
       if (nucleus.seed_increment == current_increment - 1)
         {
-          source_term = 0.5 * (1.0 - std::tanh((dist - r_nuc) / interface_coeff));
+          source_term += 0.5 * (1.0 - std::tanh((dist - r_nuc) / interface_coeff));
         }
     }
 }
