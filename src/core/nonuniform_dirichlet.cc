@@ -16,10 +16,10 @@ PRISMS_PF_BEGIN_NAMESPACE
 
 template <unsigned int dim, unsigned int degree, typename number>
 NonuniformDirichlet<dim, degree, number>::NonuniformDirichlet(
-  unsigned int                                                   _index,
-  unsigned int                                                   _boundary_id,
-  const std::shared_ptr<const PDEOperator<dim, degree, number>> &_pde_operator,
-  unsigned int                                                   spacedim)
+  unsigned int                                                       _index,
+  unsigned int                                                       _boundary_id,
+  const std::shared_ptr<const PDEOperatorBase<dim, degree, number>> &_pde_operator,
+  unsigned int                                                       spacedim)
   : dealii::Function<dim, number>(spacedim)
   , index(_index)
   , boundary_id(_boundary_id)

@@ -39,18 +39,18 @@ public:
    * @brief Constructor.
    */
   SolverContext(
-    const UserInputParameters<dim>                         &_user_inputs,
-    const MatrixFreeContainer<dim, number>                 &_matrix_free_container,
-    const TriangulationHandler<dim>                        &_triangulation_handler,
-    const InvmHandler<dim, degree, number>                 &_invm_handler,
-    const ConstraintHandler<dim, degree, number>           &_constraint_handler,
-    const DofHandler<dim>                                  &_dof_handler,
-    const dealii::MappingQ1<dim>                           &_mapping,
-    const ElementVolumeContainer<dim, degree, number>      &_element_volume_container,
-    const MGInfo<dim>                                      &_mg_info,
-    SolutionHandler<dim, number>                           &_solution_handler,
-    std::shared_ptr<const PDEOperator<dim, degree, number>> _pde_operator,
-    std::shared_ptr<const PDEOperator<dim, degree, float>>  _pde_operator_float)
+    const UserInputParameters<dim>                             &_user_inputs,
+    const MatrixFreeContainer<dim, number>                     &_matrix_free_container,
+    const TriangulationHandler<dim>                            &_triangulation_handler,
+    const InvmHandler<dim, degree, number>                     &_invm_handler,
+    const ConstraintHandler<dim, degree, number>               &_constraint_handler,
+    const DofHandler<dim>                                      &_dof_handler,
+    const dealii::MappingQ1<dim>                               &_mapping,
+    const ElementVolumeContainer<dim, degree, number>          &_element_volume_container,
+    const MGInfo<dim>                                          &_mg_info,
+    SolutionHandler<dim, number>                               &_solution_handler,
+    std::shared_ptr<const PDEOperatorBase<dim, degree, number>> _pde_operator,
+    std::shared_ptr<const PDEOperatorBase<dim, degree, float>>  _pde_operator_float)
     : user_inputs(&_user_inputs)
     , matrix_free_container(&_matrix_free_container)
     , triangulation_handler(&_triangulation_handler)
@@ -172,7 +172,7 @@ public:
   /**
    * @brief Get a shared pointer to the pde operator.
    */
-  [[nodiscard]] const std::shared_ptr<const PDEOperator<dim, degree, number>> &
+  [[nodiscard]] const std::shared_ptr<const PDEOperatorBase<dim, degree, number>> &
   get_pde_operator() const
   {
     Assert(pde_operator != nullptr, dealii::ExcNotInitialized());
@@ -182,7 +182,7 @@ public:
   /**
    * @brief Get a shared pointer to the pde operator for float precision.
    */
-  [[nodiscard]] const std::shared_ptr<const PDEOperator<dim, degree, float>> &
+  [[nodiscard]] const std::shared_ptr<const PDEOperatorBase<dim, degree, float>> &
   get_pde_operator_float() const
   {
     Assert(pde_operator_float != nullptr, dealii::ExcNotInitialized());
@@ -243,12 +243,12 @@ private:
   /**
    * @brief PDE operator.
    */
-  std::shared_ptr<const PDEOperator<dim, degree, number>> pde_operator;
+  std::shared_ptr<const PDEOperatorBase<dim, degree, number>> pde_operator;
 
   /**
    * @brief PDE operator for float precision.
    */
-  std::shared_ptr<const PDEOperator<dim, degree, float>> pde_operator_float;
+  std::shared_ptr<const PDEOperatorBase<dim, degree, float>> pde_operator_float;
 };
 
 PRISMS_PF_END_NAMESPACE

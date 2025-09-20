@@ -20,9 +20,9 @@ PRISMS_PF_BEGIN_NAMESPACE
 
 template <unsigned int dim, unsigned int degree, typename number>
 InitialCondition<dim, degree, number>::InitialCondition(
-  const unsigned int                                            &_index,
-  const FieldType                                               &field_type,
-  const std::shared_ptr<const PDEOperator<dim, degree, number>> &_pde_operator)
+  const unsigned int                                                &_index,
+  const FieldType                                                   &field_type,
+  const std::shared_ptr<const PDEOperatorBase<dim, degree, number>> &_pde_operator)
   : dealii::Function<dim, number>((field_type == FieldType::Vector) ? dim : 1)
   , index(_index)
   , pde_operator(_pde_operator)

@@ -44,7 +44,7 @@ public:
  * @tparam number Datatype to use. Either double or float.
  */
 template <unsigned int dim, unsigned int degree, typename number>
-class CustomPDE : public PDEOperator<dim, degree, number>
+class CustomPDE : public PDEOperatorBase<dim, degree, number>
 {
 public:
   using ScalarValue = dealii::VectorizedArray<number>;
@@ -59,7 +59,7 @@ public:
    */
   explicit CustomPDE(const UserInputParameters<dim> &_user_inputs,
                      PhaseFieldTools<dim>           &_pf_tools)
-    : PDEOperator<dim, degree, number>(_user_inputs, _pf_tools)
+    : PDEOperatorBase<dim, degree, number>(_user_inputs, _pf_tools)
   {
     c_dependent_misfit = false;
     for (unsigned int i = 0; i < dim; i++)

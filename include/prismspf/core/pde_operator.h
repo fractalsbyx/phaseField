@@ -24,7 +24,7 @@ struct PhaseFieldTools;
  * @brief This class contains the user implementation of each PDE operator.
  */
 template <unsigned int dim, unsigned int degree, typename number>
-class PDEOperator
+class PDEOperatorBase
 {
 public:
   using SizeType = dealii::VectorizedArray<number>;
@@ -32,13 +32,13 @@ public:
   /**
    * @brief Constructor.
    */
-  explicit PDEOperator(const UserInputParameters<dim> &_user_inputs,
-                       const PhaseFieldTools<dim>     &pf_tools);
+  explicit PDEOperatorBase(const UserInputParameters<dim> &_user_inputs,
+                           const PhaseFieldTools<dim>     &pf_tools);
 
   /**
    * @brief Destructor.
    */
-  virtual ~PDEOperator() = default;
+  virtual ~PDEOperatorBase() = default;
 
   /**
    * @brief User-implemented class for the setting initial conditions.

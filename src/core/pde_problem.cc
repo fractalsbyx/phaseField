@@ -61,10 +61,10 @@ PRISMS_PF_BEGIN_NAMESPACE
 
 template <unsigned int dim, unsigned int degree, typename number>
 PDEProblem<dim, degree, number>::PDEProblem(
-  const UserInputParameters<dim>                                &_user_inputs,
-  PhaseFieldTools<dim>                                          &_pf_tools,
-  const std::shared_ptr<const PDEOperator<dim, degree, number>> &_pde_operator,
-  const std::shared_ptr<const PDEOperator<dim, degree, float>>  &_pde_operator_float)
+  const UserInputParameters<dim>                                    &_user_inputs,
+  PhaseFieldTools<dim>                                              &_pf_tools,
+  const std::shared_ptr<const PDEOperatorBase<dim, degree, number>> &_pde_operator,
+  const std::shared_ptr<const PDEOperatorBase<dim, degree, float>>  &_pde_operator_float)
   : user_inputs(&_user_inputs)
   , pf_tools(&_pf_tools)
   , mg_info(_user_inputs)

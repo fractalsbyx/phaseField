@@ -55,7 +55,7 @@ template <unsigned int dim, typename number>
 class SolutionHandler;
 
 template <unsigned int dim, unsigned int degree, typename number>
-class PDEOperator;
+class PDEOperatorBase;
 
 /**
  * @brief Base class that handles the assembly and linear solving of a field.
@@ -318,7 +318,7 @@ protected:
   /**
    * @brief Get the pde operator.
    */
-  [[nodiscard]] const std::shared_ptr<const PDEOperator<dim, degree, number>> &
+  [[nodiscard]] const std::shared_ptr<const PDEOperatorBase<dim, degree, number>> &
   get_pde_operator() const
   {
     return solver_context->get_pde_operator();
@@ -327,7 +327,7 @@ protected:
   /**
    * @brief Get the pde operator for float.
    */
-  [[nodiscard]] const std::shared_ptr<const PDEOperator<dim, degree, float>> &
+  [[nodiscard]] const std::shared_ptr<const PDEOperatorBase<dim, degree, float>> &
   get_pde_operator_float() const
   {
     return solver_context->get_pde_operator_float();

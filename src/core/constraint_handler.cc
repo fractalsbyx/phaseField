@@ -36,10 +36,10 @@ PRISMS_PF_BEGIN_NAMESPACE
 
 template <unsigned int dim, unsigned int degree, typename number>
 ConstraintHandler<dim, degree, number>::ConstraintHandler(
-  const UserInputParameters<dim>                                &_user_inputs,
-  const MGInfo<dim>                                             &_mg_info,
-  const std::shared_ptr<const PDEOperator<dim, degree, number>> &_pde_operator,
-  const std::shared_ptr<const PDEOperator<dim, degree, float>>  &_pde_operator_float)
+  const UserInputParameters<dim>                                    &_user_inputs,
+  const MGInfo<dim>                                                 &_mg_info,
+  const std::shared_ptr<const PDEOperatorBase<dim, degree, number>> &_pde_operator,
+  const std::shared_ptr<const PDEOperatorBase<dim, degree, float>>  &_pde_operator_float)
   : user_inputs(&_user_inputs)
   , mg_info(&_mg_info)
   , pde_operator(_pde_operator)

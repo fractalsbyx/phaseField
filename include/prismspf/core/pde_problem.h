@@ -22,7 +22,7 @@ template <unsigned int dim>
 struct PhaseFieldTools;
 
 template <unsigned int dim, unsigned int degree, typename number>
-class PDEOperator;
+class PDEOperatorBase;
 
 template <unsigned int dim, unsigned int degree, typename number>
 class ConstraintHandler;
@@ -75,10 +75,11 @@ public:
    * @brief Constructor.
    */
   PDEProblem(
-    const UserInputParameters<dim>                                &_user_inputs,
-    PhaseFieldTools<dim>                                          &_pf_tools,
-    const std::shared_ptr<const PDEOperator<dim, degree, number>> &_pde_operator,
-    const std::shared_ptr<const PDEOperator<dim, degree, float>>  &_pde_operator_float);
+    const UserInputParameters<dim>                                    &_user_inputs,
+    PhaseFieldTools<dim>                                              &_pf_tools,
+    const std::shared_ptr<const PDEOperatorBase<dim, degree, number>> &_pde_operator,
+    const std::shared_ptr<const PDEOperatorBase<dim, degree, float>>
+      &_pde_operator_float);
 
   /**
    * @brief Run initialization and solving steps of the given problem.

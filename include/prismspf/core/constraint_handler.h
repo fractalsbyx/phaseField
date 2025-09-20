@@ -23,7 +23,7 @@ template <unsigned int dim>
 class MGInfo;
 
 template <unsigned int dim, unsigned int degree, typename number>
-class PDEOperator;
+class PDEOperatorBase;
 
 /**
  * @brief The class handles the generation and application of boundary conditions based on
@@ -37,10 +37,11 @@ public:
    * @brief Constructor.
    */
   ConstraintHandler(
-    const UserInputParameters<dim>                                &_user_inputs,
-    const MGInfo<dim>                                             &_mg_info,
-    const std::shared_ptr<const PDEOperator<dim, degree, number>> &_pde_operator,
-    const std::shared_ptr<const PDEOperator<dim, degree, float>>  &_pde_operator_float);
+    const UserInputParameters<dim>                                    &_user_inputs,
+    const MGInfo<dim>                                                 &_mg_info,
+    const std::shared_ptr<const PDEOperatorBase<dim, degree, number>> &_pde_operator,
+    const std::shared_ptr<const PDEOperatorBase<dim, degree, float>>
+      &_pde_operator_float);
 
   /**
    * @brief Getter function for the constraints.
@@ -232,12 +233,12 @@ private:
   /**
    * @brief PDE operator number.
    */
-  std::shared_ptr<const PDEOperator<dim, degree, number>> pde_operator;
+  std::shared_ptr<const PDEOperatorBase<dim, degree, number>> pde_operator;
 
   /**
    * @brief PDE operator float.
    */
-  std::shared_ptr<const PDEOperator<dim, degree, float>> pde_operator_float;
+  std::shared_ptr<const PDEOperatorBase<dim, degree, float>> pde_operator_float;
 
   /**
    * @brief Whether we have multigrid.

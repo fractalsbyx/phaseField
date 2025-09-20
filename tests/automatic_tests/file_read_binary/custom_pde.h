@@ -44,7 +44,7 @@ public:
  * @tparam number Datatype to use. Either double or float.
  */
 template <unsigned int dim, unsigned int degree, typename number>
-class CustomPDE : public PDEOperator<dim, degree, number>
+class CustomPDE : public PDEOperatorBase<dim, degree, number>
 {
 public:
   using ScalarValue = dealii::VectorizedArray<number>;
@@ -58,7 +58,7 @@ public:
    * @brief Constructor.
    */
   explicit CustomPDE(const UserInputParameters<dim> &_user_inputs)
-    : PDEOperator<dim, degree, number>(_user_inputs)
+    : PDEOperatorBase<dim, degree, number>(_user_inputs)
   {}
 
 private:

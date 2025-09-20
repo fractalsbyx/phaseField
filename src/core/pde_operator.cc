@@ -14,7 +14,7 @@
 PRISMS_PF_BEGIN_NAMESPACE
 
 template <unsigned int dim, unsigned int degree, typename number>
-PDEOperator<dim, degree, number>::PDEOperator(
+PDEOperatorBase<dim, degree, number>::PDEOperatorBase(
   const UserInputParameters<dim> &_user_inputs,
   const PhaseFieldTools<dim>     &pf_tools)
   : user_inputs(&_user_inputs)
@@ -23,7 +23,7 @@ PDEOperator<dim, degree, number>::PDEOperator(
 
 template <unsigned int dim, unsigned int degree, typename number>
 const UserInputParameters<dim> &
-PDEOperator<dim, degree, number>::get_user_inputs() const
+PDEOperatorBase<dim, degree, number>::get_user_inputs() const
 {
   Assert(user_inputs != nullptr, dealii::ExcNotInitialized());
   return *user_inputs;
@@ -31,7 +31,7 @@ PDEOperator<dim, degree, number>::get_user_inputs() const
 
 template <unsigned int dim, unsigned int degree, typename number>
 number
-PDEOperator<dim, degree, number>::get_timestep() const
+PDEOperatorBase<dim, degree, number>::get_timestep() const
 {
   Assert(user_inputs != nullptr, dealii::ExcNotInitialized());
   return user_inputs->get_temporal_discretization().get_timestep();
@@ -39,7 +39,7 @@ PDEOperator<dim, degree, number>::get_timestep() const
 
 template <unsigned int dim, unsigned int degree, typename number>
 const PhaseFieldTools<dim> &
-PDEOperator<dim, degree, number>::get_pf_tools() const
+PDEOperatorBase<dim, degree, number>::get_pf_tools() const
 {
   Assert(pf_tools != nullptr, dealii::ExcNotInitialized());
   return *pf_tools;
