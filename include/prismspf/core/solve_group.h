@@ -9,6 +9,7 @@
 #include <prismspf/core/dependencies.h>
 #include <prismspf/core/type_enums.h>
 #include <prismspf/core/types.h>
+#include <prismspf/core/variable_attributes.h>
 
 #include <prismspf/config.h>
 
@@ -28,6 +29,7 @@ class SolveGroup
 {
 public:
   using EvalFlags = dealii::EvaluationFlags::EvaluationFlags;
+  using FieldType = FieldInfo::TensorRank;
 
   explicit SolveGroup(int                    _id       = -1,
                       PDEType                _pde_type = PDEType::ExplicitTimeDependent,
