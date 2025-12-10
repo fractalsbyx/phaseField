@@ -6,6 +6,7 @@
 #include <deal.II/base/exceptions.h>
 #include <deal.II/matrix_free/evaluation_flags.h>
 
+#include <prismspf/core/dependencies.h>
 #include <prismspf/core/type_enums.h>
 #include <prismspf/core/types.h>
 
@@ -19,37 +20,6 @@ PRISMS_PF_BEGIN_NAMESPACE
 
 // NOLINTBEGIN(misc-non-private-member-variables-in-classes, hicpp-explicit-conversions)
 // readability-simplify-boolean-expr
-struct Dependency
-{
-  using EvalFlags = dealii::EvaluationFlags::EvaluationFlags;
-  Types::Index field_index;
-  EvalFlags    eval_flags       = EvalFlags::nothing;
-  unsigned int past_value_depth = 0;
-
-  Dependency(Types::Index index,
-             EvalFlags    flags = EvalFlags::nothing,
-             unsigned int depth = 0)
-    : field_index(index)
-    , eval_flags(flags)
-    , past_value_depth(depth)
-  {}
-};
-
-struct ChangeDependency
-{
-  using EvalFlags = dealii::EvaluationFlags::EvaluationFlags;
-  Types::Index field_index;
-  EvalFlags    eval_flags       = EvalFlags::nothing;
-  unsigned int past_value_depth = 0;
-
-  ChangeDependency(Types::Index index, EvalFlags flags = EvalFlags::nothing)
-    : field_index(index)
-    , eval_flags(flags)
-  {}
-};
-
-using DependencySet       = std::set<Dependency>;
-using ChangeDependencySet = std::set<ChangeDependency>;
 
 /**
  * @brief Structure to hold the attributes of a solve-group.
@@ -61,16 +31,14 @@ public:
 
   explicit SolveGroup(int                    _id       = -1,
                       PDEType                _pde_type = PDEType::ExplicitTimeDependent,
-                      std::set<Types::Index> _field_indices       = {},
-                      DependencySet          _dependencies_rhs    = {},
-                      DependencySet          _dependencies_lhs    = {},
-                      ChangeDependencySet    _dependencies_change = {})
+                      std::set<Types::Index> _field_indices    = {},
+                      DependencySet          _dependencies_rhs = {},
+                      DependencySet          _dependencies_lhs = {})
     : id(_id)
     , pde_type(_pde_type)
     , field_indices(std::move(_field_indices))
     , dependencies_rhs(std::move(_dependencies_rhs))
     , dependencies_lhs(std::move(_dependencies_lhs))
-    , dependencies_change(std::move(_dependencies_change))
   {}
 
   /**
@@ -98,10 +66,6 @@ public:
    * @brief Dependencies for the lhs equation(s)
    */
   DependencySet dependencies_lhs;
-  /**
-   * @brief Dependencies for the lhs equation(s) that are change terms
-   */
-  ChangeDependencySet dependencies_change;
 
 private:
   /**
