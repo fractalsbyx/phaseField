@@ -148,8 +148,8 @@ using Dependencies::Dependency;
 using DependencySet = std::map<Types::Index, Dependency>;
 
 DependencySet
-make_dependencies_set(const std::vector<FieldAttributes> &field_attributes,
-                      const std::set<std::string>        &dependency_strings)
+make_dependency_set(const std::vector<FieldAttributes> &field_attributes,
+                    const std::set<std::string>        &dependency_strings)
 {
   static const std::set<std::pair<std::pair<std::string, std::string>, EvalFlags>>
     reg_delimiters = {
@@ -196,13 +196,13 @@ make_dependencies_set(const std::vector<FieldAttributes> &field_attributes,
 }
 
 DependencySet
-make_dependencies_set(const std::vector<FieldAttributes> &field_attributes,
-                      const std::string                  &dependency_string)
+make_dependency_set(const std::vector<FieldAttributes> &field_attributes,
+                    const std::string                  &dependency_string)
 {
   auto dependency_strings = dealii::Utilities::split_string_list(dependency_string);
-  return make_dependencies_set(field_attributes,
-                               std::set<std::string>(dependency_strings.begin(),
-                                                     dependency_strings.end()));
+  return make_dependency_set(field_attributes,
+                             std::set<std::string>(dependency_strings.begin(),
+                                                   dependency_strings.end()));
 }
 
 PRISMS_PF_END_NAMESPACE
