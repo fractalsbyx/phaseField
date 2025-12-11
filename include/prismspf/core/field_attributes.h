@@ -8,6 +8,7 @@
 
 #include <prismspf/core/type_enums.h>
 #include <prismspf/core/types.h>
+#include <prismspf/core/variable_attributes.h>
 
 #include <prismspf/config.h>
 
@@ -17,6 +18,7 @@
 
 PRISMS_PF_BEGIN_NAMESPACE
 using EvalFlags = dealii::EvaluationFlags::EvaluationFlags;
+using Rank      = FieldInfo::TensorRank;
 
 // NOLINTBEGIN(misc-non-private-member-variables-in-classes)
 /**
@@ -30,7 +32,7 @@ struct FieldAttributes
    */
   explicit FieldAttributes(
     std::string               _name                        = "",
-    FieldType                 _field_type                  = Numbers::invalid_field_type,
+    Rank                      _field_type                  = Rank::Undefined,
     EvalFlags                 _eval_flags_rhs              = EvalFlags::nothing,
     EvalFlags                 _eval_flags_lhs              = EvalFlags::nothing,
     bool                      _is_nucleation_rate_variable = false,
@@ -53,7 +55,7 @@ struct FieldAttributes
    * @brief Field type (Scalar/Vector).
    * @remark User-set
    */
-  FieldType field_type = Numbers::invalid_field_type;
+  Rank field_type = Rank::Undefined;
 
   /**
    * @brief Evaluation flags for the types of residual the user is expected to submit to
