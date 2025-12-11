@@ -54,39 +54,35 @@ namespace Dependencies
     Dependency
     operator|(const Dependency &other) const
     {
-      return {
-        static_cast<EvalFlags>(static_cast<unsigned int>(flag) |
-                               static_cast<unsigned int>(other.flag)),
-        static_cast<EvalFlags>(static_cast<unsigned int>(change_flag) |
-                               static_cast<unsigned int>(other.change_flag)),
-        {static_cast<EvalFlags>(static_cast<unsigned int>(old_flags[0]) |
-                                static_cast<unsigned int>(other.old_flags[0])),
-                                            static_cast<EvalFlags>(static_cast<unsigned int>(old_flags[1]) |
-                                static_cast<unsigned int>(other.old_flags[1])),
-                                            static_cast<EvalFlags>(static_cast<unsigned int>(old_flags[2]) |
-                                static_cast<unsigned int>(other.old_flags[2])),
-                                            static_cast<EvalFlags>(static_cast<unsigned int>(old_flags[3]) |
-                                static_cast<unsigned int>(other.old_flags[3]))}
-      };
+      Dependency result(static_cast<EvalFlags>(static_cast<unsigned int>(flag) |
+                                               static_cast<unsigned int>(other.flag)),
+                        static_cast<EvalFlags>(
+                          static_cast<unsigned int>(change_flag) |
+                          static_cast<unsigned int>(other.change_flag)));
+      for (unsigned int i = 0; i < Numbers::max_saved_increments; ++i)
+        {
+          result.old_flags.at(i) =
+            static_cast<EvalFlags>(static_cast<unsigned int>(old_flags.at(i)) |
+                                   static_cast<unsigned int>(other.old_flags.at(i)));
+        }
+      return result;
     }
 
     Dependency
     operator&(const Dependency &other) const
     {
-      return {
-        static_cast<EvalFlags>(static_cast<unsigned int>(flag) &
-                               static_cast<unsigned int>(other.flag)),
-        static_cast<EvalFlags>(static_cast<unsigned int>(change_flag) &
-                               static_cast<unsigned int>(other.change_flag)),
-        {static_cast<EvalFlags>(static_cast<unsigned int>(old_flags[0]) &
-                                static_cast<unsigned int>(other.old_flags[0])),
-                                            static_cast<EvalFlags>(static_cast<unsigned int>(old_flags[1]) &
-                                static_cast<unsigned int>(other.old_flags[1])),
-                                            static_cast<EvalFlags>(static_cast<unsigned int>(old_flags[2]) &
-                                static_cast<unsigned int>(other.old_flags[2])),
-                                            static_cast<EvalFlags>(static_cast<unsigned int>(old_flags[3]) &
-                                static_cast<unsigned int>(other.old_flags[3]))}
-      };
+      Dependency result(static_cast<EvalFlags>(static_cast<unsigned int>(flag) &
+                                               static_cast<unsigned int>(other.flag)),
+                        static_cast<EvalFlags>(
+                          static_cast<unsigned int>(change_flag) &
+                          static_cast<unsigned int>(other.change_flag)));
+      for (unsigned int i = 0; i < Numbers::max_saved_increments; ++i)
+        {
+          result.old_flags.at(i) =
+            static_cast<EvalFlags>(static_cast<unsigned int>(old_flags.at(i)) &
+                                   static_cast<unsigned int>(other.old_flags.at(i)));
+        }
+      return result;
     }
 
     Dependency &
@@ -96,18 +92,12 @@ namespace Dependencies
                                     static_cast<unsigned int>(other.flag));
       change_flag = static_cast<EvalFlags>(static_cast<unsigned int>(change_flag) |
                                            static_cast<unsigned int>(other.change_flag));
-      old_flags[0] =
-        static_cast<EvalFlags>(static_cast<unsigned int>(old_flags[0]) |
-                               static_cast<unsigned int>(other.old_flags[0]));
-      old_flags[1] =
-        static_cast<EvalFlags>(static_cast<unsigned int>(old_flags[1]) |
-                               static_cast<unsigned int>(other.old_flags[1]));
-      old_flags[2] =
-        static_cast<EvalFlags>(static_cast<unsigned int>(old_flags[2]) |
-                               static_cast<unsigned int>(other.old_flags[2]));
-      old_flags[3] =
-        static_cast<EvalFlags>(static_cast<unsigned int>(old_flags[3]) |
-                               static_cast<unsigned int>(other.old_flags[3]));
+      for (unsigned int i = 0; i < Numbers::max_saved_increments; ++i)
+        {
+          old_flags.at(i) =
+            static_cast<EvalFlags>(static_cast<unsigned int>(old_flags.at(i)) |
+                                   static_cast<unsigned int>(other.old_flags.at(i)));
+        }
 
       return *this;
     }
@@ -119,18 +109,12 @@ namespace Dependencies
                                     static_cast<unsigned int>(other.flag));
       change_flag = static_cast<EvalFlags>(static_cast<unsigned int>(change_flag) &
                                            static_cast<unsigned int>(other.change_flag));
-      old_flags[0] =
-        static_cast<EvalFlags>(static_cast<unsigned int>(old_flags[0]) &
-                               static_cast<unsigned int>(other.old_flags[0]));
-      old_flags[1] =
-        static_cast<EvalFlags>(static_cast<unsigned int>(old_flags[1]) &
-                               static_cast<unsigned int>(other.old_flags[1]));
-      old_flags[2] =
-        static_cast<EvalFlags>(static_cast<unsigned int>(old_flags[2]) &
-                               static_cast<unsigned int>(other.old_flags[2]));
-      old_flags[3] =
-        static_cast<EvalFlags>(static_cast<unsigned int>(old_flags[3]) &
-                               static_cast<unsigned int>(other.old_flags[3]));
+      for (unsigned int i = 0; i < Numbers::max_saved_increments; ++i)
+        {
+          old_flags.at(i) =
+            static_cast<EvalFlags>(static_cast<unsigned int>(old_flags.at(i)) &
+                                   static_cast<unsigned int>(other.old_flags.at(i)));
+        }
 
       return *this;
     }
@@ -187,7 +171,7 @@ make_dependency_set(const std::vector<FieldAttributes> &field_attributes,
                                 "(" + attr.name + ")" + delimiter.second;
               if (dependency_strings.contains(potential_match))
                 {
-                  result[i].old_flags[old_index] |= flag;
+                  result[i].old_flags.at(old_index) |= flag;
                 }
             }
         }
