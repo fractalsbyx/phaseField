@@ -41,6 +41,7 @@ ConstraintManager<dim, degree, number>::ConstraintManager(
   , dof_manager(&_dof_manager)
   , pde_operator(&_pde_operator)
   , constraints(field_attributes.size())
+  , mg_constraints(field_attributes.size())
   , generic_constraints()
 {
   /* TODO (fractalsbyx) figure out mg depth. Careful. Aux fields inherit this from
@@ -75,6 +76,27 @@ ConstraintManager<dim, degree, number>::get_constraint(Types::Index index,
                                                        unsigned int relative_level) const
 {
   return constraints[index][relative_level];
+}
+
+template <unsigned int dim, unsigned int degree, typename number>
+std::vector<const dealii::MGConstrainedDoFs *>
+ConstraintManager<dim, degree, number>::get_mg_constraints(
+  const std::set<Types::Index> &field_indices) const
+{
+  std::vector<const dealii::MGConstrainedDoFs *> selected_constraints;
+  selected_constraints.reserve(field_indices.size());
+  for (const auto index : field_indices)
+    {
+      selected_constraints.push_back(&(mg_constraints[index]));
+    }
+  return selected_constraints;
+}
+
+template <unsigned int dim, unsigned int degree, typename number>
+const dealii::MGConstrainedDoFs &
+ConstraintManager<dim, degree, number>::get_mg_constraint(Types::Index index) const
+{
+  return mg_constraints[index];
 }
 
 template <unsigned int dim, unsigned int degree, typename number>
@@ -159,6 +181,28 @@ ConstraintManager<dim, degree, number>::reinit(
       for (dealii::AffineConstraints<number> &constraint : constraints_vector)
         {
           constraint.close();
+        }
+    }
+  for (unsigned int field_index = 0; field_index < field_attributes.size(); field_index++)
+    {
+      unsigned int level          = 0; // TODO top-relative_level
+      unsigned int relative_level = level;
+      for (unsigned int relative_level = 0; relative_level < generic_constraints.size();
+           ++relative_level)
+        {
+          if constexpr (std::is_same_v<number, double>)
+            {
+              mg_constraints[field_index]
+                .add_user_constraints(level, constraints[field_index][relative_level]);
+            }
+          else
+            {
+              dealii::AffineConstraints<double> double_precision_constraint;
+              double_precision_constraint.copy_from(
+                constraints[field_index][relative_level]);
+              mg_constraints[field_index]
+                .add_user_constraints(level, double_precision_constraint);
+            }
         }
     }
 }
