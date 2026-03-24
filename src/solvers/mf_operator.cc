@@ -79,48 +79,46 @@ MFOperator<dim, degree, number>::compute_local_operator(
 // void
 // MFOperator<dim, degree, number>::compute_diagonal()
 //{
-//   inverse_diagonal_entries.reset(new dealii::DiagonalMatrix<SolutionVector<number>>());
-//   SolutionVector<number> &inverse_diagonal = inverse_diagonal_entries->get_vector();
-//   data->initialize_dof_vector(inverse_diagonal, field_index);
-//   const unsigned int dummy = 0;
-//   data->cell_loop(&MFOperator::compute_local_diagonal, this, inverse_diagonal, dummy);
-//
-//   set_constrained_entries_to_one(inverse_diagonal);
-//
-//   for (unsigned int i = 0; i < inverse_diagonal.locally_owned_size(); ++i)
-//     {
-//       Assert(inverse_diagonal.local_element(i) > static_cast<number>(0.0),
-//              dealii::ExcMessage(
-//                "No diagonal entry in a positive definite operator should be zero"));
-//       inverse_diagonal.local_element(i) = number(1.0) /
-//       inverse_diagonal.local_element(i);
-//     }
+//   // inverse_diagonal_entries.reset(new dealii::DiagonalMatrix<BlockVector<number>>());
+//   // BlockVector<number> &inverse_diagonal = inverse_diagonal_entries->get_vector();
+//   // // Todo: initialize the diagonal vectors
+//   // const unsigned int dummy = 0;
+//   // data->cell_loop(&MFOperator::compute_local_diagonal, this, inverse_diagonal,
+//   dummy);
+//   //
+//   // set_constrained_entries_to_one(inverse_diagonal);
+//   //
+//   // for (unsigned int i = 0; i < inverse_diagonal.locally_owned_size(); ++i)
+//   //  {
+//   //    Assert(inverse_diagonal.local_element(i) > static_cast<number>(0.0),
+//   //           dealii::ExcMessage(
+//   //             "No diagonal entry in a positive definite operator should be zero"));
+//   //    inverse_diagonal.local_element(i) = number(1.0) /
+//   //   inverse_diagonal.local_element(i);
+//   //  }
 // }
-
+//
 // template <unsigned int dim, unsigned int degree, typename number>
 // void
 // MFOperator<dim, degree, number>::compute_local_diagonal(
-//   const MatrixFree<dim, number>
-//   &_data, BlockVector<number> &diagonal,
-//   [[maybe_unused]] const unsigned int                                    &dummy,
+//   const MatrixFree<dim, number>               &_data,
+//   BlockVector<number>                         &diagonal,
+//   [[maybe_unused]] const unsigned int         &dummy,
 //   const std::pair<unsigned int, unsigned int> &cell_range) const
-// {
+//{
 //   // Construct FEEvaluation objects
 //   // The reason this is constructed here, rather than as a private member is because
 //   // compute_local_rhs is called by cell_loop, which multithreads. There would be data
 //   // races.
-//   FieldContainer<dim, degree, number> variable_list(1 /*args*/);
-//   DSTContainer<dim, degree, number>   dst_fields(solve_block.field_indices,
-//                                                field_attributes,
-//                                                *data,
-//                                                field_to_block_index);
+//   FieldContainer<dim, degree, number> variable_list(field_attributes,
+//                                                     *solution_indexer,
+//                                                     relative_level,
+//                                                     dependency_map,
+//                                                     solve_group,
+//                                                     _data);
 //
 //   for (unsigned int cell = cell_range.first; cell < cell_range.second; ++cell)
 //     {
-//       // Reinit the cell for all the dependencies
-//       variable_list.reinit_and_eval(cell);
-//       dst_fields.reinit(cell);
-//
 //       // To get the diagonal of the "matrix", repeatedly "multiply the matrix" by a
 //       test x
 //       // vector (change vector) and store the solution in the i-th position in the y
@@ -161,15 +159,14 @@ MFOperator<dim, degree, number>::compute_local_operator(
 //         }
 //     }
 // }
-
+//
 // template <unsigned int dim, unsigned int degree, typename number>
-// template <MFOperator<dim, degree, number>::TensorRank Rank>
+// template <TensorRank Rank>
 // auto
 // MFOperator<dim, degree, number>::compute_field_diagonal(
 //   FieldContainer<dim, degree, number> &variable_list,
-//   DSTContainer<dim, degree, number>   &dst_fields,
 //   unsigned int field_index) const -> dealii::AlignedVector<Value<Rank>>
-// {
+//{
 //   unsigned int n_dofs_per_cell = variable_list.get_dofs_per_component(field_index);
 //   dealii::AlignedVector<Value<Rank>> cell_diagonal(n_dofs_per_cell, zero<Rank>());
 //   // vector_feeval_ptr->dofs_per_component;
@@ -178,9 +175,9 @@ MFOperator<dim, degree, number>::compute_local_operator(
 //     {
 //       for (unsigned int j = 0; j < n_dofs_per_cell; ++j)
 //         {
-//           dst_fields.set_dof_value(field_index,
-//                                    i == j ? identity<Rank>() : zero<Rank>(),
-//                                    j);
+//           variable_list.set_dof_value(field_index,
+//                                       i == j ? identity<Rank>() : zero<Rank>(),
+//                                       j);
 //         }
 //
 //       // Evaluate the dependencies based on the flags
@@ -190,19 +187,18 @@ MFOperator<dim, degree, number>::compute_local_operator(
 //       for (unsigned int quad = 0; quad < variable_list.get_n_q_points(); ++quad)
 //         {
 //           variable_list.set_q_point(quad);
-//           dst_fields.set_q_point(quad);
-//           pde_operator->pde_op(variable_list, dst_fields);
+//           (pde_operator->*pde_op)(variable_list, *sim_timer, solve_group.id);
 //         }
 //
 //       // Integrate the diagonal
-//       dst_fields.integrate(field_index);
+//       variable_list.integrate(field_index);
 //
 //       // TODO: fix this
-//       dst_fields.eval();
+//       variable_list.eval();
 //       cell_diagonal[i] =
-//         dst_fields.get_dof_value(field_index,
-//                                  i,
-//                                  variable_list.get_dof_value(field_index, i));
+//         variable_list.get_dof_value(field_index,
+//                                     i,
+//                                     variable_list.get_dof_value(field_index, i));
 //     }
 //   return cell_diagonal;
 // }
@@ -240,27 +236,7 @@ void
 MFOperator<dim, degree, number>::clear()
 {
   data = nullptr;
-  diagonal_entries.reset();
-  inverse_diagonal_entries.reset();
 }
-
-// template <unsigned int dim, unsigned int degree, typename number>
-// void
-// MFOperator<dim, degree, number>::set_constrained_entries_to_one(SolutionVector<number>
-// &dst) const
-// {
-//   for (unsigned int j = 0; j < dealii::MatrixFreeOperators::BlockHelper::n_blocks(dst);
-//   ++j)
-//     {
-//       const std::vector<unsigned int> &constrained_dofs =
-//         data->get_constrained_dofs(selected_fields[j]);
-//       for (const auto constrained_dof : constrained_dofs)
-//         {
-//           dealii::MatrixFreeOperators::BlockHelper::subblock(dst, j).local_element(
-//             constrained_dof) = 1.0;
-//         }
-//     }
-// }
 
 template <unsigned int dim, unsigned int degree, typename number>
 const MatrixFree<dim, number> *
@@ -270,11 +246,9 @@ MFOperator<dim, degree, number>::get_matrix_free() const
 }
 
 template <unsigned int dim, unsigned int degree, typename number>
-const std::shared_ptr<dealii::DiagonalMatrix<SolutionVector<number>>> &
+const std::shared_ptr<dealii::DiagonalMatrix<BlockVector<number>>> &
 MFOperator<dim, degree, number>::get_matrix_diagonal_inverse() const
 {
-  Assert(inverse_diagonal_entries.get() != nullptr && inverse_diagonal_entries->m() > 0,
-         dealii::ExcNotInitialized());
   return inverse_diagonal_entries;
 }
 

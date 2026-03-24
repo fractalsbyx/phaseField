@@ -180,8 +180,8 @@ private:
   //    * @brief Local computation of the diagonal of the operator.
   //    */
   //   void
-  //   compute_local_diagonal(const MatrixFree<dim, number> &_data,
-  //                          BlockVector<number>                                 &dst,
+  //   compute_local_diagonal(const MatrixFree<dim, number>               &_data,
+  //                          BlockVector<number>                         &dst,
   //                          const unsigned int                          &dummy,
   //                          const std::pair<unsigned int, unsigned int> &cell_range)
   //                          const;
@@ -189,7 +189,6 @@ private:
   //   template <TensorRank Rank>
   //   dealii::AlignedVector<Value<Rank>>
   //   compute_field_diagonal(FieldContainer<dim, degree, number> &variable_list,
-  //                          DSTContainer<dim, degree, number>   &dst_fields,
   //                          unsigned int                         field_index) const;
 
 public:
@@ -226,12 +225,6 @@ public:
   clear();
 
   /**
-   * @brief Set constrained entries to one.
-   */
-  // void
-  // set_constrained_entries_to_one(SolutionVector<number> &dst) const;
-
-  /**
    * @brief Get read access to the MatrixFree<dim, number> object stored with this
    * operator.
    */
@@ -241,7 +234,7 @@ public:
   /**
    * @brief Get read access to the inverse diagonal of this operator.
    */
-  const std::shared_ptr<dealii::DiagonalMatrix<SolutionVector<number>>> &
+  const std::shared_ptr<dealii::DiagonalMatrix<BlockVector<number>>> &
   get_matrix_diagonal_inverse() const;
 
   /**
@@ -334,13 +327,12 @@ private:
   /**
    * @brief The diagonal matrix.
    */
-  std::shared_ptr<dealii::DiagonalMatrix<SolutionVector<number>>> diagonal_entries;
+  std::shared_ptr<dealii::DiagonalMatrix<BlockVector<number>>> diagonal_entries;
 
   /**
    * @brief The inverse diagonal matrix.
    */
-  std::shared_ptr<dealii::DiagonalMatrix<SolutionVector<number>>>
-    inverse_diagonal_entries;
+  std::shared_ptr<dealii::DiagonalMatrix<BlockVector<number>>> inverse_diagonal_entries;
 };
 
 PRISMS_PF_END_NAMESPACE
