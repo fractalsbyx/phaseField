@@ -288,11 +288,11 @@ private:
       solve_context->get_field_attributes(),
       solve_context->get_solution_indexer(),
       0,
-      solve_group.dependencies_lhs,
+      solve_block.dependencies_lhs,
       solve_context->get_simulation_timer());
     for (unsigned level = min_level; level < max_level; ++level)
       {
-        const unsigned int relative_level = level - min_level;
+        const unsigned int relative_level = max_level - level;
         mg_lhs_operators[level]           = lhs_operators[relative_level];
         /* mg_lhs_operators[level]           = MFOperator<dim, degree, number>(
           solve_context->get_pde_operator(),
@@ -300,14 +300,14 @@ private:
           solve_context->get_field_attributes(),
           solve_context->get_solution_indexer(),
           relative_level,
-          solve_group.dependencies_lhs,
+          solve_block.dependencies_lhs,
           solve_context->get_simulation_timer());
         mg_lhs_operators[level].initialize(solutions);
         mg_lhs_operators[level].set_scaling_diagonal(
           true,
           solve_context->get_invm_manager().get_invm_sqrt(
             solve_context->get_field_attributes(),
-            solve_group.field_indices,
+            solve_block.field_indices,
             relative_level)); */
       }
 
@@ -320,7 +320,7 @@ private:
     MGTransferType                    mg_transfer(mg_trans_mf); // Constraints?
     // NOTE: dof_handler.distribute_mg_dofs() must have been called
     mg_transfer.build(
-      solve_context->get_dof_manager().get_field_dof_handlers(solve_group.field_indices,
+      solve_context->get_dof_manager().get_field_dof_handlers(solve_block.field_indices,
                                                               0));
 
     // 4. MG Smoother (takes in operators) This is similar to a solver, but is
@@ -338,7 +338,7 @@ private:
         smoother_data[level].smoothing_range     = lin_params.smoothing_range;
         smoother_data[level].degree              = lin_params.smoother_degree;
         smoother_data[level].eig_cg_n_iterations = lin_params.eig_cg_n_iterations;
-        smoother_data[level].preconditioner; // todo
+        // smoother_data[level].preconditioner; // todo
         smoother_data[level].constraints.close();
 
         unsigned int        relative_level = level - min_level;
@@ -377,7 +377,7 @@ private:
     // 7. Turn MG into a preconditioner object
     multigrid_preconditioner =
       std::make_shared<dealii::PreconditionMG<dim, BlockVector<number>, MGTransferType>>(
-        solve_context->get_dof_manager().get_field_dof_handlers(solve_group.field_indices,
+        solve_context->get_dof_manager().get_field_dof_handlers(solve_block.field_indices,
                                                                 0),
         multigrid,
         mg_transfer);

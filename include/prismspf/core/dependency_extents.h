@@ -8,6 +8,10 @@
 
 #include <prismspf/config.h>
 
+#include "prismspf/core/solve_block.h"
+
+#include <vector>
+
 PRISMS_PF_BEGIN_NAMESPACE
 inline unsigned int
 oldest(Dependency dependencies)
@@ -46,6 +50,55 @@ struct DependencyExtents
               {
                 oldest_age = std::max(oldest_age, oldest(dep_pair_it->second));
               }
+          }
+      }
+  }
+};
+
+struct NewDependencyExtents
+{
+  std::vector<unsigned int> max_age_per_level;
+
+  // TODO: update this to account multigrid levels. Will need more
+  // than std::list<DependencyMap>
+  NewDependencyExtents(const std::set<unsigned int> &field_indices,
+                       const std::list<SolveBlock>  &solve_blocks)
+  {
+    for (const SolveBlock &solve_block : solve_blocks)
+      {
+        const unsigned int max_level = 0; // solve_block.max_level;
+        for (unsigned int field_index : field_indices)
+          {
+            {
+              const auto &dep_pair_it = solve_block.dependencies_rhs.find(field_index);
+              if (dep_pair_it != solve_block.dependencies_rhs.end())
+                {
+                  unsigned int age = oldest(dep_pair_it->second);
+                  if (max_level >= max_age_per_level.size())
+                    {
+                      max_age_per_level.resize(max_level + 1, 0);
+                    }
+                  for (unsigned int level = 0; level <= max_level; ++level)
+                    {
+                      max_age_per_level[level] = std::max(max_age_per_level[level], age);
+                    }
+                }
+            }
+            {
+              const auto &dep_pair_it = solve_block.dependencies_lhs.find(field_index);
+              if (dep_pair_it != solve_block.dependencies_lhs.end())
+                {
+                  unsigned int age = oldest(dep_pair_it->second);
+                  if (max_level >= max_age_per_level.size())
+                    {
+                      max_age_per_level.resize(max_level + 1, 0);
+                    }
+                  for (unsigned int level = 0; level <= max_level; ++level)
+                    {
+                      max_age_per_level[level] = std::max(max_age_per_level[level], age);
+                    }
+                }
+            }
           }
       }
   }
