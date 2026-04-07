@@ -11,11 +11,18 @@ for ( dimension : SPACE_DIMENSIONS; degree : ELEMENT_DEGREE; number : REAL_SCALA
     template void GroupSolutionHandler<dimension, number>::init(
       const DoFManager<dimension, degree>                &dof_manager,
       const ConstraintManager<dimension, degree, number> &constraint_manager,
-      unsigned int                                        num_old_saved);
+      const std::vector<unsigned int>                    &max_age_per_level);
   }
 for ( dimension : SPACE_DIMENSIONS; degree : ELEMENT_DEGREE; number : REAL_SCALARS)
   {
     template void GroupSolutionHandler<dimension, number>::reinit(
       const DoFManager<dimension, degree>                &dof_manager,
       const ConstraintManager<dimension, degree, number> &constraint_manager);
+  }
+for ( dimension : SPACE_DIMENSIONS; degree : ELEMENT_DEGREE; number : REAL_SCALARS)
+  {
+    template void GroupSolutionHandler<dimension, number>::mg_transfer_down(
+      const DoFManager<dimension, degree> &dof_manager,
+      unsigned int                   finest_level,
+      bool                           transfer_old_solutions);
   }

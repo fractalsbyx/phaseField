@@ -23,8 +23,6 @@
 
 #include <prismspf/config.h>
 
-#include <memory>
-
 PRISMS_PF_BEGIN_NAMESPACE
 
 template <unsigned int dim, unsigned int degree, typename number>
@@ -80,12 +78,12 @@ public:
    * @brief Initialize the solver.
    */
   virtual void
-  init(const std::list<DependencyMap> &all_dependeny_sets)
+  init(const std::list<SolveBlock> &all_solve_blocks)
   {
-    DependencyExtents extents(solve_block.field_indices, all_dependeny_sets);
+    NewDependencyExtents extents(solve_block.field_indices, all_solve_blocks);
     solutions.init(solve_context->get_dof_manager(),
                    solve_context->get_constraint_manager(),
-                   extents.oldest_age);
+                   extents.max_age_per_level);
 
     // Apply constraints.
     solutions.apply_constraints();

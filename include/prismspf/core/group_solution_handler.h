@@ -8,6 +8,7 @@
 #include <deal.II/lac/la_parallel_block_vector.h>
 #include <deal.II/lac/la_parallel_vector.h>
 #include <deal.II/matrix_free/matrix_free.h>
+#include <deal.II/multigrid/mg_transfer_global_coarsening.h>
 
 #include <prismspf/core/constraint_manager.h>
 #include <prismspf/core/dof_manager.h>
@@ -193,7 +194,7 @@ public:
   void
   init(const DoFManager<dim, degree>                &dof_manager,
        const ConstraintManager<dim, degree, number> &constraint_manager,
-       unsigned int                                  num_old_saved);
+       const std::vector<unsigned int>              &max_age_per_level);
 
   /**
    * @brief Reinitialize the solution set.
@@ -265,6 +266,15 @@ public:
   void
   execute_solution_transfer();
 
+  /**
+   * @brief Transfer solutions to mg levels
+   */
+  template <unsigned int degree>
+  void
+  mg_transfer_down(const DoFManager<dim, degree> &dof_manager,
+                   unsigned int                   finest_level,
+                   bool                           transfer_old_solutions = false);
+
 private:
   /**
    * @brief Information about the solve block this handler is responsible for.
@@ -295,6 +305,12 @@ private:
    * solution transfers as we do here. I don't know if this affects performance. todo
    */
   std::vector<SolutionTransfer> block_solution_transfer;
+
+  /**
+   * @brief Utility object to transfer solutions between multigrid levels.
+   */
+  dealii::MGTransferBlockMF<dim, number> mg_transfer;
+  // dealii::MGTransferBlockMatrixFreeBase<dim, number, dealii::MGTransferMF<dim, number>>
 };
 
 PRISMS_PF_END_NAMESPACE
