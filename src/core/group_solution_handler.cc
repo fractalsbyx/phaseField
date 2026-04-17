@@ -23,6 +23,7 @@ GroupSolutionHandler<dim, number>::GroupSolutionHandler(
   SolveBlock                          _solve_block,
   const std::vector<FieldAttributes> &_attributes_list)
   : solve_block(std::move(_solve_block))
+  , mg_transfer(dealii::MGTransferMF<dim, number>())
 {
   block_to_global_index.assign(solve_block.field_indices.begin(),
                                solve_block.field_indices.end());
