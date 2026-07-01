@@ -39,12 +39,10 @@ ConstraintManager<dim, degree, number>::init(
   const DoFManager<dim, degree>              &_dof_manager,
   const PDEOperatorBase<dim, degree, number> &_pde_operator)
 {
-  boundary_parameters     = &_boundary_parameters;
-  spatial_discretization  = &_spatial_discretization;
-  dof_manager             = &_dof_manager;
-  pde_operator            = &_pde_operator;
-  unsigned int num_levels = dof_manager->has_mg() ? dof_manager->num_levels() : 0;
-  mg_generic_constraints.resize(num_levels);
+  boundary_parameters    = &_boundary_parameters;
+  spatial_discretization = &_spatial_discretization;
+  dof_manager            = &_dof_manager;
+  pde_operator           = &_pde_operator;
 }
 
 template <unsigned int dim, unsigned int degree, typename number>
@@ -143,7 +141,9 @@ ConstraintManager<dim, degree, number>::reinit(
   const std::vector<FieldAttributes> &field_attributes)
 {
   field_constraints.resize(field_attributes.size());
-  mg_field_constraints.resize(mg_generic_constraints.size());
+  unsigned int num_levels = dof_manager->has_mg() ? dof_manager->num_levels() : 0;
+  mg_generic_constraints.resize(num_levels);
+  mg_field_constraints.resize(num_levels);
   for (auto &constraint_level : mg_field_constraints)
     {
       constraint_level.resize(field_attributes.size());
