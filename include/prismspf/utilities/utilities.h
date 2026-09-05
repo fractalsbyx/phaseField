@@ -1,10 +1,9 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #pragma once
 
 #include <deal.II/base/config.h>
-#include <deal.II/base/exceptions.h>
 #include <deal.II/base/logstream.h>
 #include <deal.II/base/mpi.h>
 #include <deal.II/base/point.h>
@@ -381,63 +380,6 @@ stabilization_parameter(const T                         &element_volume,
   return T(1) / sqrt(term_adv);
 }
 
-/**
- * @brief Remove whitespace from strings
- */
-inline std::string
-strip_whitespace(const std::string &_text)
-{
-  std::string text = _text;
-  boost::range::remove_erase_if(text, ::isspace);
-  return text;
-}
-
-/**
- * @brief Convert bool to string.
- */
-inline const char *
-bool_to_string(bool boolean)
-{
-  return boolean ? "true" : "false";
-}
-
-/**
- * @brief Convert evaluation flags to string.
- */
-inline std::string
-eval_flags_to_string(dealii::EvaluationFlags::EvaluationFlags flag)
-{
-  std::string result;
-
-  if ((flag & dealii::EvaluationFlags::EvaluationFlags::values) != 0U)
-    {
-      result += "values";
-    }
-  if ((flag & dealii::EvaluationFlags::EvaluationFlags::gradients) != 0U)
-    {
-      if (!result.empty())
-        {
-          result += " | ";
-        }
-      result += "gradients";
-    }
-  if ((flag & dealii::EvaluationFlags::EvaluationFlags::hessians) != 0U)
-    {
-      if (!result.empty())
-        {
-          result += " | ";
-        }
-      result += "hessians";
-    }
-
-  if (result.empty())
-    {
-      return "nothing";
-    }
-
-  return result;
-}
-
 template <unsigned int dim, typename number>
 inline DEAL_II_ALWAYS_INLINE std::vector<number>
 dealii_point_to_vector(const dealii::Point<dim, number> &point)
@@ -446,16 +388,24 @@ dealii_point_to_vector(const dealii::Point<dim, number> &point)
 
   std::vector<number> vec(3, 0.0);
 
-  // NOLINTBEGIN(cppcoreguidelines-pro-bounds-constant-array-index)
-
   for (unsigned int i = 0; i < dim; ++i)
     {
       vec[i] = point[i];
     }
 
-  // NOLINTEND(cppcoreguidelines-pro-bounds-constant-array-index)
-
   return vec;
+}
+
+/**
+ * @brief Give the CFL timestep for a given coefficient, dim, degree, and element size
+ * @todo Add template for higher order space derivatives
+ */
+template <unsigned int dim, unsigned int element_degree>
+inline DEAL_II_ALWAYS_INLINE double
+cfl_timestep(double coefficient, double dx)
+{
+  constexpr double prefactor = 1.0 / (2.0 * dim * element_degree * element_degree);
+  return prefactor * dx * dx / coefficient;
 }
 
 PRISMS_PF_END_NAMESPACE

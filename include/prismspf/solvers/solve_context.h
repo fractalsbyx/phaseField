@@ -1,9 +1,7 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #pragma once
-
-#include <deal.II/base/exceptions.h>
 
 #include <prismspf/core/constraint_manager.h>
 #include <prismspf/core/dof_manager.h>
@@ -36,26 +34,24 @@ public:
   /**
    * @brief Constructor.
    */
-  SolveContext(std::vector<FieldAttributes>            _field_attributes,
+  SolveContext(const std::vector<FieldAttributes>     &_field_attributes,
                const UserInputParameters<dim>         &_user_inputs,
                TriangulationManager<dim>              &_triangulation_manager,
                DoFManager<dim, degree>                &_dof_manager,
                ConstraintManager<dim, degree, number> &_constraint_manager,
                SolutionIndexer<dim, number>           &_solution_indexer,
                PDEOperatorBase<dim, degree, number>   &_pde_operator)
-    : field_attributes(std::move(_field_attributes))
+    : field_attributes(&_field_attributes)
     , user_inputs(&_user_inputs)
     , triangulation_manager(&_triangulation_manager)
     , dof_manager(&_dof_manager)
     , constraint_manager(&_constraint_manager)
     , matrix_free_manager()
     , solution_indexer(&_solution_indexer)
-    , invm_manager(*dof_manager, *constraint_manager, true, true)
-    , sim_timer(user_inputs->temporal_discretization.dt)
-    , pde_operator(&_pde_operator)
-  {
-    matrix_free_manager.reinit(*dof_manager, *constraint_manager);
-  };
+    , invm_manager()
+    , sim_timer(user_inputs->temporal_discretization.dt,
+                user_inputs->temporal_discretization.initial_time)
+    , pde_operator(&_pde_operator) {};
 
   /**
    * @brief Get the field attributes.
@@ -63,7 +59,8 @@ public:
   [[nodiscard]] const std::vector<FieldAttributes> &
   get_field_attributes() const
   {
-    return field_attributes;
+    Assert(field_attributes != nullptr, dealii::ExcNotInitialized());
+    return *field_attributes;
   }
 
   /**
@@ -224,7 +221,7 @@ private:
   /**
    * @brief Field attributes.
    */
-  std::vector<FieldAttributes> field_attributes;
+  const std::vector<FieldAttributes> *field_attributes;
 
   /**
    * @brief User-inputs.

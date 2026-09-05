@@ -1,10 +1,9 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #pragma once
 
 #include <deal.II/base/data_out_base.h>
-#include <deal.II/base/exceptions.h>
 #include <deal.II/dofs/dof_handler.h>
 #include <deal.II/lac/la_parallel_vector.h>
 #include <deal.II/numerics/data_component_interpretation.h>
@@ -19,8 +18,10 @@
 
 #include <prismspf/solvers/solve_context.h>
 
-#include <prismspf/user_inputs/output_parameters.h>
+#include <prismspf/user_inputs/io_parameters.h>
 #include <prismspf/user_inputs/user_input_parameters.h>
+
+#include <prismspf/utilities/assert.h>
 
 #include <prismspf/config.h>
 
@@ -56,10 +57,10 @@ public:
                  const std::string                  &file_prefix,
                  const UserInputParameters<dim>     &user_inputs)
   {
-    const OutputParameters &output_parameters = user_inputs.output_parameters;
+    const FieldOutputParameters &output_parameters = user_inputs.output_parameters;
     // Some stuff to determine the actual name of the output file.
     const auto n_trailing_digits = static_cast<unsigned int>(
-      std::floor(std::log10(user_inputs.temporal_discretization.num_increments)) + 1);
+      std::floor(std::log10(user_inputs.temporal_discretization.n_increments)) + 1);
 
     // Init data out
     dealii::DataOut<dim> data_out;
@@ -113,8 +114,8 @@ public:
 
     // Write to file based on the user input.
     const unsigned int increment = sim_timer.get_increment();
-    const std::string &file_type = output_parameters.file_type;
-    if (file_type == "vtu")
+    const auto         file_type = output_parameters.file_type;
+    if (file_type == FieldOutputParameters::OutputType::VTU)
       {
         std::ostringstream increment_stream;
         increment_stream << std::setw(static_cast<int>(n_trailing_digits))
@@ -122,7 +123,7 @@ public:
         const std::string filename = file_prefix + "_" + increment_stream.str() + ".vtu";
         data_out.write_vtu_in_parallel(filename, MPI_COMM_WORLD);
       }
-    else if (file_type == "pvtu")
+    else if (file_type == FieldOutputParameters::OutputType::PVTU)
       {
         std::filesystem::path output_path = file_prefix;
         std::string           filename    = output_path.filename();
@@ -133,7 +134,7 @@ public:
                                             MPI_COMM_WORLD,
                                             n_trailing_digits);
       }
-    else if (file_type == "vtk")
+    else if (file_type == FieldOutputParameters::OutputType::VTK)
       {
         std::ostringstream increment_stream;
         increment_stream << std::setw(static_cast<int>(n_trailing_digits))
@@ -142,9 +143,9 @@ public:
         std::ofstream     vtk_output(filename);
         data_out.write_vtk(vtk_output);
       }
-    else if (file_type == "xdmf")
+    else if (file_type == FieldOutputParameters::OutputType::XDMF)
       {
-#ifdef DEAL_II_WITH_HDF5
+#ifdef PRISMS_PF_WITH_HDF5
         std::ostringstream increment_stream;
         increment_stream << std::setw(static_cast<int>(n_trailing_digits))
                          << std::setfill('0') << increment;
@@ -171,16 +172,16 @@ public:
 
         data_out.write_xdmf_file(xdmf_entries, xdmf_filename, MPI_COMM_WORLD);
 #else
-        AssertThrow(
+        ASSERT(
           false,
-          dealii::ExcMessage(
-            "You are trying to write an XDMF file as an output; however, deal.II "
-            "was not built with HDF5. Please reconfig deal.II with HDF5."));
+          "You are trying to write an XDMF file as an output; however, PRISMS-PF was "
+          "not built with HDF5. Please reconfigure PRISMS-PF with HDF5 or use a "
+          "different output type.");
 #endif
       }
     else
       {
-        AssertThrow(false, UnreachableCode());
+        UNREACHABLE("Invalid OutputType", file_type);
       }
 
     // Update the ghost values again to allow for read access

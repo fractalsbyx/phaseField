@@ -1,16 +1,10 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
-
-#include <deal.II/base/function.h>
-#include <deal.II/base/point.h>
-#include <deal.II/lac/vector.h>
 
 #include <prismspf/core/dirichlet.h>
 #include <prismspf/core/pde_operator_base.h>
 
 #include <prismspf/config.h>
-
-#include <memory>
 
 PRISMS_PF_BEGIN_NAMESPACE
 
@@ -19,14 +13,14 @@ DirichletConditions<dim, degree, number>::DirichletConditions(
   unsigned int                                _index,
   unsigned int                                _boundary_id,
   const PDEOperatorBase<dim, degree, number> &_pde_operator,
+  const SimulationTimer                      &_sim_timer,
   unsigned int                                spacedim)
   : dealii::Function<dim, number>(spacedim)
   , index(_index)
   , boundary_id(_boundary_id)
   , pde_operator(&_pde_operator)
+  , sim_timer(&_sim_timer)
 {}
-
-// NOLINTBEGIN(readability-identifier-length)
 
 template <unsigned int dim, unsigned int degree, typename number>
 number
@@ -39,8 +33,13 @@ DirichletConditions<dim, degree, number>::value(
   dealii::Vector<number> temp_vector_value(dim);
 
   // Pass variables to user-facing function to evaluate
-  pde_operator
-    ->set_dirichlet(index, boundary_id, 0, p, temp_scalar_value, temp_vector_value[0]);
+  pde_operator->set_dirichlet(index,
+                              boundary_id,
+                              0,
+                              p,
+                              *sim_timer,
+                              temp_scalar_value,
+                              temp_vector_value[0]);
 
   return temp_scalar_value;
 }
@@ -65,14 +64,13 @@ DirichletConditions<dim, degree, number>::vector_value(
                                   boundary_id,
                                   i,
                                   p,
+                                  *sim_timer,
                                   temp_scalar_value,
                                   temp_vector_value[i]);
     }
 
   value = temp_vector_value;
 }
-
-// NOLINTEND(readability-identifier-length)
 
 #include "core/dirichlet.inst"
 

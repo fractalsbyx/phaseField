@@ -1,3 +1,5 @@
+set mesh type = rectangular
+
 subsection Rectangular mesh
   set x size = 800.0
   set y size = 800.0
@@ -26,7 +28,6 @@ set number steps = 50000
 subsection output
   set condition = EQUAL_SPACING
   set number = 80
-  set file type = pvtu
 end
 
 subsection nucleation

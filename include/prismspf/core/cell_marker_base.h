@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #pragma once
@@ -24,8 +24,8 @@ template <unsigned int dim>
 class CellMarkerBase
 {
 public:
-  using CellIterator =
-    dealii::CellAccessor<dim>; // dealii::TriaActiveIterator<dealii::CellAccessor<dim>>;
+  using CellIterator = dealii::CellAccessor<dim>;
+
   /**
    * @brief Destructor.
    */

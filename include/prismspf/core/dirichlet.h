@@ -1,12 +1,11 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #pragma once
 
 #include <deal.II/base/function.h>
-#include <deal.II/base/point.h>
-#include <deal.II/lac/vector.h>
 
+#include <prismspf/core/simulation_timer.h>
 #include <prismspf/core/type_enums.h>
 
 #include <prismspf/config.h>
@@ -32,9 +31,8 @@ public:
   DirichletConditions(unsigned int                                _index,
                       unsigned int                                _boundary_id,
                       const PDEOperatorBase<dim, degree, number> &_pde_operator,
+                      const SimulationTimer                      &_sim_timer,
                       unsigned int                                spacedim);
-
-  // NOLINTBEGIN(readability-identifier-length, readability-avoid-const-params-in-decls)
 
   /**
    * @brief Scalar value.
@@ -48,14 +46,14 @@ public:
   void
   vector_value(const dealii::Point<dim> &p, dealii::Vector<number> &value) const override;
 
-  // NOLINTEND(readability-identifier-length, readability-avoid-const-params-in-decls)
-
 private:
   unsigned int index;
 
   unsigned int boundary_id;
 
-  const PDEOperatorBase<dim, degree, number> *pde_operator;
+  const PDEOperatorBase<dim, degree, number> *pde_operator = nullptr;
+
+  const SimulationTimer *sim_timer = nullptr;
 };
 
 PRISMS_PF_END_NAMESPACE

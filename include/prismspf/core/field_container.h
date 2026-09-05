@@ -1,10 +1,9 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #pragma once
 
 #include <deal.II/base/config.h>
-#include <deal.II/base/exceptions.h>
 #include <deal.II/base/point.h>
 #include <deal.II/base/symmetric_tensor.h>
 #include <deal.II/base/tensor.h>
@@ -1355,12 +1354,12 @@ FieldContainer<dim, degree, number>::submit_dof_value(Types::Index   field_index
                    dealii::ExcMessage("Error: Field index " +
                                       std::to_string(field_index) +
                                       " is not associated with any field."));
-  auto &relevant_feeval_vector =
+  auto &relevant_feevals =
     get_relevant_feeval_vector<RankFromVal<ValType>>()[field_index];
   try
     {
-      relevant_feeval_vector.template get<DependencyType::DST>()
-        .submit_dof_value(val, dof_index);
+      relevant_feevals.template get<DependencyType::DST>().submit_dof_value(val,
+                                                                            dof_index);
     }
   catch (...)
     {

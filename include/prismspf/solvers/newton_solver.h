@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #pragma once
@@ -44,19 +44,16 @@ public:
   NewtonSolver(SolveBlock                               _solve_block,
                const SolveContext<dim, degree, number> &_solve_context)
     : LinearSolver<dim, degree, number>(_solve_block, _solve_context)
-    , newton_params(
-        solve_context->get_user_inputs().nonlinear_solve_parameters.newton_solvers.at(
-          solve_block.id))
   {}
 
   /**
    * @brief Initialize the solver.
    */
   void
-  init(const std::list<DependencyMap> &all_dependeny_sets) override
+  init(const std::list<SolveBlock> &all_solve_blocks) override
   {
-    LinearSolver<dim, degree, number>::init(all_dependeny_sets);
-    newton_update.reinit(solutions.get_solution_full_vector(0));
+    LinearSolver<dim, degree, number>::init(all_solve_blocks);
+    newton_update.reinit(solutions.get_solution_full_vector());
   }
 
   /**
@@ -66,7 +63,7 @@ public:
   reinit() override
   {
     LinearSolver<dim, degree, number>::reinit();
-    newton_update.reinit(solutions.get_solution_full_vector(0));
+    newton_update.reinit(solutions.get_solution_full_vector());
   }
 
   /**
@@ -75,19 +72,21 @@ public:
   void
   solve_impl() override
   {
-    const number newton_step_length = newton_params.step_length;
-    const number newton_tolerance = newton_params.tolerance_value * normalization_value();
-    unsigned int newton_max_iterations = newton_params.max_iterations;
+    Timer::Scope scope("Nonlinear Solver");
+
+    const number newton_step_length = newton_params().step_length;
+    const number newton_tolerance =
+      newton_params().tolerance_value * normalization_value();
+    unsigned int newton_max_iterations = newton_params().max_iterations;
 
     BlockVector<number>             &newton_residual = rhs_vector;
     MFOperator<dim, degree, number> &rhs_op          = rhs_operator;
     MFOperator<dim, degree, number> &lhs_op          = lhs_operator;
     // TODO: setup initial guess for solution vector. Maybe use old_solution if
     // available.
-    if (!solutions.get_solution_level(0).old_solutions.empty())
+    if (!solutions.get_primary_solutions().old_solutions.empty())
       {
-        solutions.get_solution_full_vector(0) =
-          solutions.get_old_solution_full_vector(0, 0);
+        solutions.get_solution_full_vector() = solutions.get_old_solution_full_vector(0);
       }
 
     // Newton iteration loop.
@@ -98,13 +97,11 @@ public:
     while (newton_unconverged && iter < newton_max_iterations)
       {
         // Apply constraints to solution vector
-        solutions.apply_constraints(0);
-        solutions.update_ghosts(0);
+        solutions.apply_constraints();
+        solutions.update_ghosts();
 
         // Solve for Newton-residual (r)
-        Timer::start_section("Zero ghosts");
         newton_residual.zero_out_ghost_values();
-        Timer::end_section("Zero ghosts");
         rhs_op.compute_operator(newton_residual);
         newton_residual.update_ghost_values();
 
@@ -117,19 +114,24 @@ public:
           }
 
         // Solve for Newton update. (-dr/du|Du)
+        if (solutions.num_levels() > 1)
+          {
+            solutions.mg_transfer_down(
+              solve_context->get_dof_manager(),
+              solve_context->get_user_inputs().spatial_discretization.global_refinement,
+              false);
+          }
         total_lin_iters += do_linear_solve(newton_residual, lhs_op, newton_update);
         newton_update.update_ghost_values();
 
         // Zero out the ghosts
-        solutions.get_solution_full_vector(0).zero_out_ghost_values();
+        solutions.get_solution_full_vector().zero_out_ghost_values();
 
         // Perform Newton update.
-        solutions.get_solution_full_vector(0).add(newton_step_length, newton_update);
+        solutions.get_solution_full_vector().add(newton_step_length, newton_update);
 
         // Update the ghosts
-        Timer::start_section("Update ghosts");
-        solutions.update_ghosts(0);
-        Timer::end_section("Update ghosts");
+        solutions.update_ghosts();
 
         iter++;
         // Todo: implement some super simple backtracking. Something like if the residual
@@ -138,25 +140,29 @@ public:
     if (solve_context->get_user_inputs().output_parameters.should_output(
           solve_context->get_simulation_timer().get_increment()))
       {
-        ConditionalOStreams::pout_summary()
-          << " Newton solve final residual : " << l2_norm / normalization_value()
-          << " Newton steps: " << iter << " Total linear steps: " << total_lin_iters
-          << "\n"
-          << std::flush;
+        Logger::instance() << " Newton solve final residual : "
+                           << l2_norm / normalization_value() << " Newton steps: " << iter
+                           << " Total linear steps: " << total_lin_iters << "\n"
+                           << std::flush;
       }
     if (iter >= newton_max_iterations)
       {
-        ConditionalOStreams::pout_base()
-          << "[Increment " << solve_context->get_simulation_timer().get_increment()
-          << "] "
-          << "Warning: Newton solver did not converge before " << newton_max_iterations
-          << " iterations.\n\n";
+        Logger::instance() << "[Increment "
+                           << solve_context->get_simulation_timer().get_increment()
+                           << "] "
+                           << "Warning: Newton solver did not converge before "
+                           << newton_max_iterations << " iterations.\n\n";
       }
   }
 
-protected:
-  BlockVector<number>       newton_update; //"change" term
-  NonlinearSolverParameters newton_params;
+private:
+  BlockVector<number> newton_update; //"change" term
+
+  [[nodiscard]] const NonlinearSolverParameters &
+  newton_params() const
+  {
+    return solve_block.nonlinear_solver_parameters;
+  };
 };
 
 PRISMS_PF_END_NAMESPACE

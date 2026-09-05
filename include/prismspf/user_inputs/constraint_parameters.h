@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #pragma once
@@ -11,64 +11,29 @@
 
 #include <boost/algorithm/string/predicate.hpp>
 
-#include <prismspf/core/conditional_ostreams.h>
 #include <prismspf/core/exceptions.h>
-#include <prismspf/core/field_attributes.h>
 #include <prismspf/core/type_enums.h>
 #include <prismspf/core/types.h>
 
+#include <prismspf/user_inputs/parameter_base.h>
+
 #include <prismspf/config.h>
 
-#include <algorithm>
 #include <map>
 #include <string>
-#include <unordered_set>
 
 PRISMS_PF_BEGIN_NAMESPACE
 
 /**
  * @brief Condition of boundary condition.
  */
-enum Condition : std::uint8_t
+enum Condition
 {
   Natural,
   Dirichlet,
   Neumann,
-  TimeDependentDirichlet,
-  TimeDependentNeumann,
-  UniformDirichlet,
-  UniformNeumann,
   Periodic,
 };
-
-/**
- * @brief Enum to string for type
- */
-[[nodiscard]] inline std::string
-to_string(Condition boundary_type)
-{
-  switch (boundary_type)
-    {
-      case Condition::Natural:
-        return "Natural";
-      case Condition::Dirichlet:
-        return "Dirichlet";
-      case Condition::Neumann:
-        return "Neumann";
-      case Condition::TimeDependentDirichlet:
-        return "TimeDependentDirichlet";
-      case Condition::TimeDependentNeumann:
-        return "TimeDependentNeumann";
-      case Condition::UniformDirichlet:
-        return "UniformDirichlet";
-      case Condition::UniformNeumann:
-        return "UniformNeumann";
-      case Condition::Periodic:
-        return "Periodic";
-      default:
-        return "UNKNOWN";
-    }
-}
 
 /**
  * @brief Enum to string for type
@@ -88,22 +53,6 @@ condition_from_string(const std::string &boundary_string)
     {
       return Condition::Neumann;
     }
-  if (boundary_string == "TimeDependentDirichlet")
-    {
-      return Condition::TimeDependentDirichlet;
-    }
-  if (boundary_string == "TimeDependentNeumann")
-    {
-      return Condition::TimeDependentNeumann;
-    }
-  if (boundary_string == "UniformDirichlet")
-    {
-      return Condition::UniformDirichlet;
-    }
-  if (boundary_string == "UniformNeumann")
-    {
-      return Condition::UniformNeumann;
-    }
   if (boundary_string == "Periodic")
     {
       return Condition::Periodic;
@@ -113,220 +62,48 @@ condition_from_string(const std::string &boundary_string)
 }
 
 /**
- * @brief Struct that stores relevant information for boundary conditions of a certain
- * field.
+ * @brief Map of boundary conditions and domain boundary for which they correspond to.
+ * For a simple geometry like a square the boundary ids are marked, in order, by x=0,
+ * x=max, y=0, y=max.
  */
-struct ComponentConditions
+using ComponentConditions = std::map<unsigned int, Condition>;
+
+struct BoundaryConditionSet
 {
-  // Map of boundary conditions and domain boundary for which they correspond to. For a
-  // simple geometry like a square the boundary ids are marked, in order, by x=0, x=max,
-  // y=0, y=max. More complex geometries can have somewhat arbitrary ordering, but will
-  // render some of our assertions moot.
-  std::map<unsigned int, Condition> conditions;
+  std::map<unsigned int, ComponentConditions> component_constraints;
 
-  [[nodiscard]] bool
-  has_time_dependent_bcs() const
-  {
-    return std::any_of(conditions.begin(),
-                       conditions.end(),
-                       [](const auto &dir_cond)
-                       {
-                         return dir_cond.second == Condition::TimeDependentDirichlet ||
-                                dir_cond.second == Condition::TimeDependentNeumann;
-                       });
-  }
-};
-
-template <unsigned int dim>
-struct FieldConstraints
-{
-  std::array<ComponentConditions, dim> component_constraints;
-
-  [[nodiscard]] bool
-  has_time_dependent_bcs() const
-  {
-    return std::any_of(component_constraints.begin(),
-                       component_constraints.end(),
-                       [](const ComponentConditions &comp)
-                       {
-                         return comp.has_time_dependent_bcs();
-                       });
-  }
+  bool time_dependent = false;
 };
 
 /**
  * @brief Struct that holds boundary parameters.
  */
-template <unsigned int dim>
 struct BoundaryParameters
 {
-public:
   /**
-   * @brief Postprocess and validate parameters.
+   * @brief Declare the parameters to be read from file.
+   */
+  static void
+  declare(dealii::ParameterHandler &parameter_handler,
+          unsigned int              n_subsections = Numbers::default_subsections);
+
+  /**
+   * @brief Assign the parameters from file.
+   */
+  template <unsigned int dim = 3>
+  void
+  assign(dealii::ParameterHandler &parameter_handler,
+         unsigned int              n_subsections = Numbers::default_subsections);
+
+  /**
+   * @brief Validate.
    */
   void
-  validate();
+  validate(const std::vector<FieldAttributes> &field_attributes,
+           const std::vector<SolveBlock>      &solve_blocks) const;
 
-  /**
-   * @brief Print parameters to summary.log
-   */
-  void
-  print_parameter_summary() const;
-
-  /**
-   * @brief Whether there are time-dependent boundary conditions.
-   */
-  [[nodiscard]] bool
-  has_time_dependent_bcs() const
-  { // todo
-    return false;
-  }
-
-  /**
-   * @brief Declare the parameters to be read from an input file.
-   */
-  void
-  declare_parameters(dealii::ParameterHandler &parameter_handler,
-                     unsigned int              max_criteria = 5) const;
-
-  /**
-   * @brief Assign the parameters read from an input file to this object.
-   */
-  void
-  assign_parameters(dealii::ParameterHandler &parameter_handler,
-                    unsigned int              max_criteria = 5);
-
-  // Map of boundary conditions. The first key is the field index.
-  std::unordered_map<std::string, FieldConstraints<dim>> boundary_condition_list;
+  // Map of boundary conditions. The first key is the field name.
+  std::unordered_map<std::string, BoundaryConditionSet> boundary_condition_list;
 };
-
-template <unsigned int dim>
-inline void
-BoundaryParameters<dim>::validate()
-{ // todo
-}
-
-template <unsigned int dim>
-inline void
-BoundaryParameters<dim>::print_parameter_summary() const
-{
-  ConditionalOStreams::pout_summary()
-    << "================================================\n"
-    << "  Boundary Parameters\n"
-    << "================================================\n";
-
-  for (const auto &[index, component_map] : boundary_condition_list)
-    {
-      // Todo
-    }
-
-  ConditionalOStreams::pout_summary() << "\n" << std::flush;
-}
-
-template <unsigned int dim>
-inline void
-BoundaryParameters<dim>::declare_parameters(dealii::ParameterHandler &parameter_handler,
-                                            unsigned int              max_criteria) const
-{
-  for (unsigned int criterion_id = 0; criterion_id < max_criteria; criterion_id++)
-    {
-      std::string subsection_text =
-        "boundary conditions: " + std::to_string(criterion_id);
-      parameter_handler.enter_subsection(subsection_text);
-      {
-        parameter_handler.declare_entry(
-          "variables",
-          "",
-          dealii::Patterns::Anything(),
-          "The names of the fields that will use these constraints.");
-        parameter_handler.declare_entry("conditions",
-                                        "",
-                                        dealii::Patterns::Anything(),
-                                        "List of conditions.");
-      }
-      parameter_handler.leave_subsection();
-    }
-}
-
-template <unsigned int dim>
-inline void
-BoundaryParameters<dim>::assign_parameters(dealii::ParameterHandler &parameter_handler,
-                                           unsigned int              max_criteria)
-{
-  static const std::vector<std::string> axis_labels = {"x", "y", "z"};
-  for (unsigned int criterion_id = 0; criterion_id < max_criteria; criterion_id++)
-    {
-      std::string subsection_text =
-        "boundary conditions: " + std::to_string(criterion_id);
-      parameter_handler.enter_subsection(subsection_text);
-      {
-        std::vector<std::string> field_names =
-          dealii::Utilities::split_string_list(parameter_handler.get("variables"));
-        std::vector<std::string> conditions_strings =
-          dealii::Utilities::split_string_list(parameter_handler.get("conditions"));
-
-        ComponentConditions component_conditions;
-        if (conditions_strings.size() == 1)
-          {
-            // all the same
-            for (unsigned int boundary_id = 0; boundary_id < 2 * dim; boundary_id++)
-              {
-                component_conditions.conditions[boundary_id] =
-                  condition_from_string(conditions_strings[0]);
-              }
-          }
-        else
-          {
-            for (unsigned int boundary_id = 0; boundary_id < conditions_strings.size();
-                 boundary_id++)
-              {
-                component_conditions.conditions[boundary_id] =
-                  condition_from_string(conditions_strings[boundary_id]);
-              }
-          }
-
-        // Attach conditions to fields
-        for (const auto &field_comp_name : field_names)
-          {
-            int                    pos = field_comp_name.length() - 2;
-            const std::string      end = field_comp_name.substr(pos > 0 ? pos : 0);
-            std::string            field_name;
-            std::set<unsigned int> comps;
-            if (end == ":x")
-              {
-                comps      = {0};
-                field_name = field_comp_name.substr(0, pos);
-              }
-            else if (end == ":y")
-              {
-                comps      = {1};
-                field_name = field_comp_name.substr(0, pos);
-              }
-            else if (end == ":z")
-              {
-                comps      = {2};
-                field_name = field_comp_name.substr(0, pos);
-              }
-            else
-              {
-                for (unsigned int comp = 0; comp < dim; ++comp)
-                  {
-                    comps.insert(comp);
-                  }
-                field_name = field_comp_name;
-              }
-            for (unsigned int component : comps)
-              {
-                if (component < dim)
-                  {
-                    boundary_condition_list[field_name].component_constraints.at(
-                      component) = component_conditions;
-                  }
-              }
-          }
-      }
-      parameter_handler.leave_subsection();
-    }
-}
 
 PRISMS_PF_END_NAMESPACE

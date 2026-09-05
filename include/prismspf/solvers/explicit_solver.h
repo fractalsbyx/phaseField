@@ -1,13 +1,14 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #pragma once
 
-#include <prismspf/core/timer.h>
 #include <prismspf/core/types.h>
 
 #include <prismspf/solvers/mf_operator.h>
 #include <prismspf/solvers/solver_base.h>
+
+#include <prismspf/utilities/timer.h>
 
 #include <prismspf/config.h>
 
@@ -34,28 +35,25 @@ public:
   ExplicitSolver(SolveBlock                               _solve_block,
                  const SolveContext<dim, degree, number> &_solve_context)
     : SolverBase<dim, degree, number>(_solve_block, _solve_context)
-    , rhs_operator(solve_context->get_pde_operator(),
-                   &PDEOperatorBase<dim, degree, number>::compute_rhs,
-                   solve_context->get_field_attributes(),
-                   solve_context->get_solution_indexer(),
-                   solve_context->get_matrix_free_manager(),
-                   solve_block.dependencies_rhs,
-                   solve_context->get_simulation_timer())
   {}
 
   void
-  init(const std::list<DependencyMap> &all_dependeny_sets) override
+  init(const std::list<SolveBlock> &all_solve_blocks) override
   {
-    SolverBase<dim, degree, number>::init(all_dependeny_sets);
-    unsigned int num_levels =
-      solve_context->get_dof_manager().get_dof_handlers_levels().size();
-    // Initialize rhs_operators
-    rhs_operator.initialize(solutions);
+    SolverBase<dim, degree, number>::init(all_solve_blocks);
+    // Initialize rhs_operator
+    rhs_operator.init(solve_context->get_pde_operator(),
+                      &PDEOperatorBase<dim, degree, number>::compute_rhs,
+                      solve_context->get_field_attributes(),
+                      solve_context->get_solution_indexer(),
+                      solve_context->get_matrix_free_manager(),
+                      solve_context->get_simulation_timer(),
+                      solve_block,
+                      solve_block.dependencies_rhs);
     rhs_operator.set_scaling_diagonal(
       true,
       solve_context->get_invm_manager().get_invm(solve_context->get_field_attributes(),
-                                                 solve_block.field_indices,
-                                                 0));
+                                                 solve_block.field_indices));
   }
 
   /**
@@ -64,20 +62,18 @@ public:
   void
   solve_impl() override
   {
-    // Zero out the ghosts
-    Timer::start_section("Zero ghosts");
-    solutions.zero_out_ghosts(0);
-    Timer::end_section("Zero ghosts");
+    Timer::Scope scope("Explicit Solver");
 
-    rhs_operator.compute_operator(solutions.get_solution_full_vector(0));
+    // Zero out the ghosts
+    solutions.zero_out_ghosts();
+
+    rhs_operator.compute_operator(solutions.get_solution_full_vector());
 
     // Apply constraints
-    solutions.apply_constraints(0);
+    solutions.apply_constraints();
 
     // Update the ghosts
-    Timer::start_section("Update ghosts");
-    solutions.update_ghosts(0);
-    Timer::end_section("Update ghosts");
+    solutions.update_ghosts();
   }
 
 private:

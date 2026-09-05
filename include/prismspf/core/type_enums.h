@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #pragma once
@@ -13,7 +13,7 @@ PRISMS_PF_BEGIN_NAMESPACE
 /**
  * @brief Type of PDE that is being solved.
  */
-enum SolveType : std::uint8_t
+enum SolveType
 {
   /**
    * Fields remain constant in time. Be sure to set the solve_timing to `Initialized`.
@@ -48,7 +48,7 @@ enum SolveType : std::uint8_t
  *
  * Currently, only scalar and vectors are supported.
  */
-enum TensorRank : unsigned int
+enum TensorRank
 {
   Undefined = static_cast<unsigned int>(-1),
   Scalar    = 0,
@@ -58,7 +58,7 @@ enum TensorRank : unsigned int
 /**
  * @brief Symmetry of elastic tensor.
  */
-enum ElasticityModel : std::uint8_t
+enum ElasticityModel
 {
   Isotropic,
   Transverse,
@@ -69,7 +69,7 @@ enum ElasticityModel : std::uint8_t
 /**
  * @brief State of stress.
  */
-enum StressState : std::uint8_t
+enum StressState
 {
   /**
    * General 3D stress state.
@@ -90,7 +90,7 @@ enum StressState : std::uint8_t
 /**
  * @brief Internal classification for types of variable dependencies.
  */
-enum DependencyType : int
+enum DependencyType
 {
   DST      = -2,
   SRC      = -1,
@@ -108,7 +108,7 @@ enum DependencyType : int
 /**
  * @brief Solver tolerance type.
  */
-enum SolverToleranceType : std::uint8_t
+enum SolverToleranceType
 {
   /**
    * @brief Legacy
@@ -139,144 +139,11 @@ enum SolverToleranceType : std::uint8_t
 /**
  * @brief Preconditioner type.
  */
-enum PreconditionerType : std::uint8_t
+enum PreconditionerType
 {
   None,
   Chebyshev,
   GMG
 };
-
-/**
- * @brief Data formats for input initial conditions.
- * LastEntry is used for loop bounds.
- */
-enum DataFormatType : std::uint8_t
-{
-  VTKUnstructuredGrid,
-  FlatBinary,
-  LastEntry
-};
-
-/**
- * @brief Enum to string for ElasticityModel
- */
-inline std::string
-to_string(ElasticityModel type)
-{
-  switch (type)
-    {
-      case ElasticityModel::Isotropic:
-        return "Isotropic";
-      case ElasticityModel::Transverse:
-        return "Transverse";
-      case ElasticityModel::Orthotropic:
-        return "Orthotropic";
-      case ElasticityModel::Anisotropic:
-        return "Anisotropic";
-      default:
-        return "UNKNOWN";
-    }
-}
-
-/**
- * @brief Enum to string for StressState
- */
-inline std::string
-to_string(StressState type)
-{
-  switch (type)
-    {
-      case StressState::ThreeDimension:
-        return "ThreeDimension";
-      case StressState::PlaneStrain:
-        return "PlaneStrain";
-      case StressState::PlaneStress:
-        return "PlaneStress";
-      default:
-        return "UNKNOWN";
-    }
-}
-
-/**
- * @brief Enum to string for DependencyType
- */
-inline std::string
-to_string(DependencyType type)
-{
-  switch (type)
-    {
-      case DependencyType::Current:
-        return "Current";
-      case DependencyType::Change:
-        return "Change";
-      case DependencyType::OldOne:
-        return "OldOne";
-      case DependencyType::OldTwo:
-        return "OldTwo";
-      case DependencyType::OldThree:
-        return "OldThree";
-      case DependencyType::OldFour:
-        return "OldFour";
-      default:
-        return "UNKNOWN";
-    }
-}
-
-/**
- * @brief Enum to string for SolverToleranceType
- */
-inline std::string
-to_string(SolverToleranceType type)
-{
-  switch (type)
-    {
-      case SolverToleranceType::AbsoluteResidual:
-        return "AbsoluteResidual";
-      case SolverToleranceType::RMSEPerField:
-        return "RMSEPerField";
-      case SolverToleranceType::RMSETotal:
-        return "RMSETotal";
-      case SolverToleranceType::IntegratedPerField:
-        return "IntegratedPerField";
-      case SolverToleranceType::IntegratedTotal:
-        return "IntegratedTotal";
-      default:
-        return "UNKNOWN";
-    }
-}
-
-/**
- * @brief Enum to string for PreconditionerType
- */
-inline std::string
-to_string(PreconditionerType type)
-{
-  switch (type)
-    {
-      case PreconditionerType::None:
-        return "None";
-      case PreconditionerType::GMG:
-        return "GMG";
-      default:
-        return "UNKNOWN";
-    }
-}
-
-/**
- * @brief Enum to string for DataFormatType
- */
-inline std::string
-to_string(DataFormatType type)
-{
-  switch (type)
-    {
-      case DataFormatType::VTKUnstructuredGrid:
-        return "vtk_unstructured_grid";
-      case DataFormatType::FlatBinary:
-        return "flat_binary";
-      default:
-        return "unknown";
-    }
-}
 
 PRISMS_PF_END_NAMESPACE

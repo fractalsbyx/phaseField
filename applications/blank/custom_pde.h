@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #include <prismspf/core/pde_operator_base.h>
@@ -35,6 +35,7 @@ private:
                 [[maybe_unused]] const unsigned int       &boundary_id,
                 [[maybe_unused]] const unsigned int       &component,
                 [[maybe_unused]] const dealii::Point<dim> &point,
+                [[maybe_unused]] const SimulationTimer    &sim_timer,
                 [[maybe_unused]] number                   &scalar_value,
                 [[maybe_unused]] number &vector_component_value) const override {};
 

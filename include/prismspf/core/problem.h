@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #pragma once
@@ -14,6 +14,7 @@
 #include <prismspf/solvers/solve_context.h>
 
 #include <prismspf/utilities/integrator.h>
+#include <prismspf/utilities/logger.h>
 
 #include <prismspf/config.h>
 
@@ -43,7 +44,6 @@ public:
   void
   solve();
 
-private:
   /**
    * @brief Solve a single increment of the given PDEs. Returns nonzero if any exit_early
    * condition is raised.
@@ -58,11 +58,12 @@ private:
   init_system();
 
   /**
-   * @brief Reinitialize the system.
+   * @brief Get the solve context object.
    */
-  void
-  reinit_system();
+  const SolveContext<dim, degree, number> &
+  get_solve_context() const;
 
+private:
   /**
    * @brief Field attributes.
    */
@@ -99,7 +100,7 @@ private:
   ConstraintManager<dim, degree, number> constraint_manager;
 
   /**
-   * @brief Solver context.
+   * @brief Solve context.
    */
   SolveContext<dim, degree, number> solve_context;
 

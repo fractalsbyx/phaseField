@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #include "custom_pde.h"
@@ -50,6 +50,7 @@ main(int argc, char *argv[])
   UserInputParameters<2> user_inputs(parameters_filename);
   user_inputs.spatial_discretization.rectangular_mesh.size =
     dealii::Tensor<1, 2>({200.0, 200.0});
+
   // Output at times specified by the benchmark spec.
   for (double output_time : {1000, 10000, 100000, 1000000})
     {

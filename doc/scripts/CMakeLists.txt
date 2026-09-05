@@ -1,0 +1,2 @@
+add_subdirectory(scrape_parameters)
+add_subdirectory(scrape_applications)

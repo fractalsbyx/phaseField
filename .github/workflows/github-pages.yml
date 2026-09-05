@@ -11,18 +11,21 @@ concurrency:
 
 jobs:
   docs:
+    if: github.repository == 'prisms-center/phaseField' # Don't run on forks
     runs-on: ubuntu-latest
     container:
-      image: landinjm/pagoma-dependencies:alpine-minimal
+      image: landinjm/prisms-pf-dependencies:alpine-minimal
       options: --user root
     permissions:
       # Write perms to we can copy-paste doxygen docs
       contents: write
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         submodules: true # Check out submodules so we get doxygen awesome
+        fetch-depth: 0   # Fetch complete history
+        fetch-tags: true # Fetch tags to determine default doc version
 
     - name: Install dependencies
       run: |
@@ -39,6 +42,11 @@ jobs:
       run: |
         cmake --workflow --preset docs
         rm -rf build/docs/doc/doxygen
+        rm -rf build/docs/doc/scripts
+        rm -rf build/docs/doc/CMakeFiles
+        rm -rf build/docs/doc/cmake_install.cmake
+        rm -rf build/docs/doc/CTestTestfile.cmake
+        rm -rf build/docs/doc/parameters.json
 
     - name: Update version selector
       run: |
@@ -56,7 +64,7 @@ jobs:
 
     - name: Deploy to GitHub pages
       uses: JamesIves/github-pages-deploy-action@v4
-      if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/4.0-dev'
+      if: github.ref == 'refs/heads/master' # Can add other branches here
       with:
         branch: gh-pages
         folder: build/docs/doc

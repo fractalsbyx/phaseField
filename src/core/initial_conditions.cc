@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #include <deal.II/base/function.h>
@@ -29,8 +29,6 @@ InitialCondition<dim, degree, number>::InitialCondition(
   , field_type(_field_type)
   , pde_operator(&_pde_operator)
 {}
-
-// NOLINTBEGIN(readability-identifier-length)
 
 template <unsigned int dim, unsigned int degree, typename number>
 void
@@ -63,8 +61,6 @@ InitialCondition<dim, degree, number>::vector_value(const dealii::Point<dim> &p,
   value = vector_value;
 }
 
-// NOLINTEND(readability-identifier-length)
-
 template <unsigned int dim, typename number>
 ReadInitialCondition<dim, number>::ReadInitialCondition(
   std::string                       _field_name,
@@ -76,8 +72,6 @@ ReadInitialCondition<dim, number>::ReadInitialCondition(
   , field_type(_field_type)
   , reader(create_reader<dim, number>(ic_file, spatial_discretization))
 {}
-
-// NOLINTBEGIN(readability-identifier-length)
 
 template <unsigned int dim, typename number>
 void
@@ -99,8 +93,6 @@ ReadInitialCondition<dim, number>::vector_value(const dealii::Point<dim> &p,
 
   value = vector_value;
 }
-
-// NOLINTEND(readability-identifier-length)
 
 #include "core/initial_conditions.inst"
 

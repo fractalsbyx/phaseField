@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #pragma once
@@ -14,8 +14,9 @@ class SimulationTimer
 public:
   SimulationTimer() = default;
 
-  explicit SimulationTimer(double step_size)
+  explicit SimulationTimer(double step_size, double start_time = 0.0)
     : time_step_size(step_size)
+    , current_time(start_time)
   {}
 
   [[nodiscard]] unsigned int

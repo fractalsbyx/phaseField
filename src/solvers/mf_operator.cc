@@ -1,16 +1,16 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
-#include <deal.II/base/exceptions.h>
 #include <deal.II/base/types.h>
 #include <deal.II/base/vectorization.h>
 
 #include <prismspf/core/exceptions.h>
 #include <prismspf/core/field_container.h>
+#include <prismspf/core/group_solution_handler.h>
 
 #include <prismspf/solvers/mf_operator.h>
 
-#include "prismspf/core/group_solution_handler.h"
+#include <prismspf/utilities/assert.h>
 
 PRISMS_PF_BEGIN_NAMESPACE
 
@@ -19,6 +19,8 @@ void
 MFOperator<dim, degree, number>::compute_operator(BlockVector<number>       &dst,
                                                   const BlockVector<number> &src) const
 {
+  Timer::Scope scope("Compute Operator");
+
   data->cell_loop(&MFOperator::compute_local_operator, this, dst, src, true);
   if (scale_by_diagonal)
     {
@@ -84,7 +86,13 @@ MFOperator<dim, degree, number>::compute_diagonal(BlockVector<number>       &dst
 {
   dst.reinit(src);
   data->cell_loop(&MFOperator::compute_local_diagonal, this, dst, src);
-
+  if (scale_by_diagonal)
+    {
+      for (unsigned int block_index = 0; block_index < dst.n_blocks(); block_index++)
+        {
+          dst.block(block_index).scale(*(scaling_diagonal[block_index]));
+        }
+    }
   // This is to make sure the preconditioner doesn't break down when there are
   // Dirichlet conditions (which lead to zero diagonal entries). The actual value
   // of these entries doesn't matter since they get overwritten by the constraints
@@ -152,7 +160,18 @@ MFOperator<dim, degree, number>::compute_local_field_diagonal(
     {
       for (unsigned int i = 0; i < dofs_per_component; ++i)
         {
-          variable_list.submit_dof_value(some_field_index, zero<Rank>(), i);
+          if (field_attributes[some_field_index].field_type == TensorRank::Scalar)
+            {
+              variable_list.submit_dof_value(some_field_index,
+                                             zero<TensorRank::Scalar>(),
+                                             i);
+            }
+          else if (field_attributes[some_field_index].field_type == TensorRank::Vector)
+            {
+              variable_list.submit_dof_value(some_field_index,
+                                             zero<TensorRank::Vector>(),
+                                             i);
+            }
         }
     }
   // Object to hold the local diagonal
@@ -200,10 +219,25 @@ MFOperator<dim, degree, number>::compute_local_field_diagonal(
 
 template <unsigned int dim, unsigned int degree, typename number>
 void
-MFOperator<dim, degree, number>::reinit_matrix_diagonal(const BlockVector<number> &shape)
+MFOperator<dim, degree, number>::reinit_matrix_diagonal()
 {
-  diagonal_entries->get_vector().reinit(shape);
-  inverse_diagonal_entries->get_vector().reinit(shape);
+  if (relative_level == -1)
+    {
+      matrix_free_manager->initialize_block_vector(diagonal_entries->get_vector(),
+                                                   solve_block.field_indices);
+      matrix_free_manager->initialize_block_vector(inverse_diagonal_entries->get_vector(),
+                                                   solve_block.field_indices);
+    }
+  else
+    {
+      matrix_free_manager->initialize_mg_block_vector(diagonal_entries->get_vector(),
+                                                      solve_block.field_indices,
+                                                      relative_level);
+      matrix_free_manager->initialize_mg_block_vector(
+        inverse_diagonal_entries->get_vector(),
+        solve_block.field_indices,
+        relative_level);
+    }
 }
 
 template <unsigned int dim, unsigned int degree, typename number>
@@ -212,7 +246,7 @@ MFOperator<dim, degree, number>::eval_matrix_diagonal()
 {
   auto &diag     = diagonal_entries->get_vector();
   auto &inv_diag = inverse_diagonal_entries->get_vector();
-  compute_diagonal(diag, diag);
+  compute_diagonal(diag, inv_diag); // using inv_diag as dummy
   for (unsigned int i : diag.locally_owned_elements())
     {
       number diag_el = diag[i];
@@ -238,7 +272,7 @@ number
 MFOperator<dim, degree, number>::el([[maybe_unused]] const unsigned int &row,
                                     [[maybe_unused]] const unsigned int &col) const
 {
-  AssertThrow(false, FeatureNotImplemented("el()"));
+  ASSERT(false, "el() hasn't been implemented");
   return 0.0;
 }
 
@@ -275,8 +309,6 @@ MFOperator<dim, degree, number>::vmult(BlockVector<number>       &dst,
   compute_operator(dst, src);
 }
 
-// NOLINTBEGIN(readability-identifier-naming)
-
 template <unsigned int dim, unsigned int degree, typename number>
 void
 MFOperator<dim, degree, number>::Tvmult(BlockVector<number>       &dst,
@@ -284,8 +316,6 @@ MFOperator<dim, degree, number>::Tvmult(BlockVector<number>       &dst,
 {
   vmult(dst, src);
 }
-
-// NOLINTEND(readability-identifier-naming)
 
 #include "solvers/mf_operator.inst"
 

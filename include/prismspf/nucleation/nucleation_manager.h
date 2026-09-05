@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #pragma once
@@ -6,7 +6,6 @@
 #include <deal.II/base/mpi.h>
 #include <deal.II/fe/fe_values.h>
 
-#include <prismspf/core/conditional_ostreams.h>
 #include <prismspf/core/phase_field_tools.h>
 #include <prismspf/core/simulation_timer.h>
 #include <prismspf/core/system_wide.h>
@@ -20,8 +19,6 @@
 #include <prismspf/user_inputs/nucleation_parameters.h>
 #include <prismspf/user_inputs/temporal_discretization.h>
 #include <prismspf/user_inputs/user_input_parameters.h>
-
-#include <prismspf/utilities/periodic_distance.h>
 
 #include <prismspf/config.h>
 
@@ -101,17 +98,17 @@ NucleationManager<dim, degree, number>::attempt_nucleation(
   const UserInputParameters<dim> &user_inputs = solve_context.get_user_inputs();
   const NucleationParameters     &nuc_params  = user_inputs.nucleation_parameters;
   const SimulationTimer          &time_info   = solve_context.get_simulation_timer();
-  const double delta_t = nuc_params.get_nucleation_period() * time_info.get_timestep();
+  const double delta_t = nuc_params.nucleation_period * time_info.get_timestep();
   auto        &rng     = user_inputs.misc_parameters.rng;
 
-  // Set up FEValues
-  unsigned int num_quad_points = SystemWide<dim, degree>::quadrature.size();
-  // Made static because initialization was taking a LOT of time
   static dealii::FEValues<dim> fe_values(SystemWide<dim, degree>::fe_systems[0],
                                          SystemWide<dim, degree>::quadrature,
                                          dealii::UpdateFlags::update_values |
                                            dealii::UpdateFlags::update_JxW_values);
-  std::list<Nucleus<dim>>      new_nuclei_list;
+
+  unsigned int num_quad_points = SystemWide<dim, degree>::quadrature.size();
+
+  std::list<Nucleus<dim>> new_nuclei_list;
   // Loop over nucleation rate variables and attempt seeding at each cell
   for (unsigned int index = 0; index < solve_context.get_field_attributes().size();
        ++index)
@@ -192,6 +189,8 @@ NucleationManager<dim, degree, number>::gather_exclude_broadcast_nuclei(
   const UserInputParameters<dim> &user_inputs,
   const SimulationTimer          &time_info)
 {
+  // TODO: Redo the logger for this section to adhere to other standards
+
   // dont waste time if no nuclei appeared
   if (!bool(dealii::Utilities::MPI::sum(new_nuclei_list.size(), MPI_COMM_WORLD)))
     {
@@ -209,10 +208,11 @@ NucleationManager<dim, degree, number>::gather_exclude_broadcast_nuclei(
   if (dealii::Utilities::MPI::this_mpi_process(MPI_COMM_WORLD) == 0)
     {
       // Remove nuclei within their exclusion distance and add to nuclei list
-      ConditionalOStreams::pout_base()
-        << "[Increment " << time_info.get_increment() << "] : Nucleation\n"
-        << "  " << new_nuclei.size() << " nuclei generated before exclusion.\n"
-        << "  Excluding nuclei...\n";
+      Logger::instance() << "[Increment " << time_info.get_increment()
+                         << "] : Nucleation\n"
+                         << "  " << new_nuclei.size()
+                         << " nuclei generated before exclusion.\n"
+                         << "  Excluding nuclei...\n";
       unsigned int count = 0;
 
       // remove bias from cell order
@@ -220,22 +220,21 @@ NucleationManager<dim, degree, number>::gather_exclude_broadcast_nuclei(
 
       while (!new_nuclei.empty())
         {
-          const Nucleus<dim> &nuc = new_nuclei.back();
-          bool                valid =
-            std::none_of(global_nuclei.begin(),
-                         global_nuclei.end(),
-                         [&](const Nucleus<dim> &existing_nucleus)
-                         {
-                           const double distance = prismspf::distance<dim, double>(
-                             nuc.location,
-                             existing_nucleus.location,
-                             user_inputs.spatial_discretization.rectangular_mesh);
-                           return nuc_params.check_active(existing_nucleus, time_info) &&
-                                  (distance < nuc_params.get_exclusion_distance() ||
-                                   (nuc.field_index == existing_nucleus.field_index &&
-                                    distance <
-                                      nuc_params.get_same_field_exclusion_distance()));
-                         });
+          const Nucleus<dim> &nuc   = new_nuclei.back();
+          bool                valid = std::none_of(
+            global_nuclei.begin(),
+            global_nuclei.end(),
+            [&](const Nucleus<dim> &existing_nucleus)
+            {
+              const double distance =
+                user_inputs.spatial_discretization.distance(nuc.location,
+                                                            existing_nucleus.location);
+
+              return nuc_params.check_active(existing_nucleus, time_info) &&
+                     (distance < nuc_params.nucleus_exclusion_distance ||
+                      (nuc.field_index == existing_nucleus.field_index &&
+                       distance < nuc_params.same_field_nucleus_exclusion_distance));
+            });
           if (valid)
             {
               // Note: Using push_back() in a loop is not good use for
@@ -247,18 +246,17 @@ NucleationManager<dim, degree, number>::gather_exclude_broadcast_nuclei(
               // assume that the total number of nuclei is not enough to
               // cause significant performance issues.
               global_nuclei.push_back(nuc);
-              ConditionalOStreams::pout_base()
-                << "  New nucleus at: " << nuc.location << "\n";
+              Logger::instance() << "  New nucleus at: " << nuc.location << "\n";
               ++count;
               any_nucleation_occurred = true;
             }
           new_nuclei.pop_back();
         }
-      ConditionalOStreams::pout_base() << "  " << count
-                                       << " new nuclei after exclusion.\n"
-                                          "  "
-                                       << global_nuclei.size() << " total nuclei.\n\n"
-                                       << std::flush;
+      Logger::instance() << "  " << count
+                         << " new nuclei after exclusion.\n"
+                            "  "
+                         << global_nuclei.size() << " total nuclei.\n\n"
+                         << std::flush;
     }
   MPI_Bcast(&any_nucleation_occurred, 1, MPI_CXX_BOOL, 0, MPI_COMM_WORLD);
   mpi_broadcast_nuclei(global_nuclei);

@@ -1,9 +1,7 @@
-// SPDX-FileCopyrightText: © 2025 PRISMS Center at the University of Michigan
+// SPDX-FileCopyrightText: © 2026 PRISMS Center at the University of Michigan
 // SPDX-License-Identifier: GNU Lesser General Public Version 2.1
 
 #pragma once
-
-#include <deal.II/base/exceptions.h>
 
 #include <prismspf/core/types.h>
 
@@ -18,7 +16,7 @@ PRISMS_PF_BEGIN_NAMESPACE
 /**
  * @brief Flags for refinement criterion.
  */
-enum RefinementFlags : std::uint8_t
+enum RefinementFlags
 {
   /**
    * @brief No adaptive refinement criterion.
@@ -71,8 +69,6 @@ operator&=(RefinementFlags &flag_1, const RefinementFlags flag_2)
 /**
  * This class holds information for a determining whether the mesh should be
  * refined.
- *
- * TODO (landinjm): This should likely be part of VariableAttributes
  */
 struct RefinementCriterion
 {

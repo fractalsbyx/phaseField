@@ -3,16 +3,21 @@ set(
   _sources
   integrator.cc
   utilities.cc
+  logger.cc
+  timer.cc
 )
 
 set(
   _headers
   ${PROJECT_SOURCE_DIR}/include/prismspf/utilities/integrator.h
-  ${PROJECT_SOURCE_DIR}/include/prismspf/utilities/periodic_distance.h
   ${PROJECT_SOURCE_DIR}/include/prismspf/utilities/utilities.h
   ${PROJECT_SOURCE_DIR}/include/prismspf/utilities/vectorized_operations.h
   ${PROJECT_SOURCE_DIR}/include/prismspf/utilities/symmetry.h
   ${PROJECT_SOURCE_DIR}/include/prismspf/utilities/mechanics.h
+  ${PROJECT_SOURCE_DIR}/include/prismspf/utilities/assert.h
+  ${PROJECT_SOURCE_DIR}/include/prismspf/utilities/logger.h
+  ${PROJECT_SOURCE_DIR}/include/prismspf/utilities/terminal.h
+  ${PROJECT_SOURCE_DIR}/include/prismspf/utilities/timer.h
 )
 
 set(_inst_bases integrator)
