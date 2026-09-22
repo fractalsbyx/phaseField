@@ -44,8 +44,8 @@ template <unsigned int dim, typename number>
 class MatrixFreeManager
 {
 public:
-  using ScalarValue = dealii::VectorizedArray<number>;
-  using VectorValue = dealii::Tensor<1, dim, ScalarValue>;
+  using ScalarValue = VectorizedArray<number>;
+  using VectorValue = Tensor<1, dim, ScalarValue>;
 
   /**
    * @brief Constructor.

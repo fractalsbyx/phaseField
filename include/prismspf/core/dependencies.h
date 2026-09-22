@@ -29,8 +29,6 @@ PRISMS_PF_BEGIN_NAMESPACE
  */
 struct Dependency
 {
-  using EvalFlags = dealii::EvaluationFlags::EvaluationFlags;
-
   /**
    * @brief Evaluation flags for the current solution.
    */

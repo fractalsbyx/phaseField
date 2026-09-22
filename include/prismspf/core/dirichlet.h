@@ -38,13 +38,13 @@ public:
    * @brief Scalar value.
    */
   number
-  value(const dealii::Point<dim> &p, const unsigned int component = 0) const override;
+  value(const Point<dim> &p, const unsigned int component = 0) const override;
 
   /**
    * @brief Vector value.
    */
   void
-  vector_value(const dealii::Point<dim> &p, dealii::Vector<number> &value) const override;
+  vector_value(const Point<dim> &p, dealii::Vector<number> &value) const override;
 
 private:
   unsigned int index;

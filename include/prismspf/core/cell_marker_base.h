@@ -39,8 +39,8 @@ public:
   }
 
   [[nodiscard]] virtual bool
-  flag([[maybe_unused]] const dealii::Point<dim> &point,
-       [[maybe_unused]] const SimulationTimer    &time_info) const
+  flag([[maybe_unused]] const Point<dim>      &point,
+       [[maybe_unused]] const SimulationTimer &time_info) const
   {
     return false;
   }

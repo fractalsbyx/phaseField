@@ -53,8 +53,8 @@ template <unsigned int dim, unsigned int degree, typename number>
 class MFOperator : public MATRIX_FREE_OPERATOR_BASE
 {
 public:
-  using ScalarValue = dealii::VectorizedArray<number>;
-  using VectorValue = dealii::Tensor<1, dim, ScalarValue>;
+  using ScalarValue = VectorizedArray<number>;
+  using VectorValue = Tensor<1, dim, ScalarValue>;
 
   using Operator = void (PDEOperatorBase<dim, degree, number>::*)(
     FieldContainer<dim, degree, number> &, /* variable_list */
@@ -65,7 +65,7 @@ public:
   template <TensorRank Rank>
   using Value = std::conditional_t<Rank == TensorRank::Scalar || dim == 1,
                                    ScalarValue,
-                                   dealii::Tensor<int(Rank), dim, ScalarValue>>;
+                                   Tensor<int(Rank), dim, ScalarValue>>;
 
   template <TensorRank Rank>
   static Value<Rank>
@@ -78,14 +78,14 @@ public:
     else
       {
         static Value<Rank> ident = []()
-        {
-          Value<Rank> obj;
-          for (int i = 0; i < Value<Rank>::n_independent_components; ++i)
-            {
-              obj[Value<Rank>::unrolled_to_component_indices(i)] = 1.0;
-            }
-          return obj;
-        }();
+          {
+            Value<Rank> obj;
+            for (int i = 0; i < Value<Rank>::n_independent_components; ++i)
+              {
+                obj[Value<Rank>::unrolled_to_component_indices(i)] = 1.0;
+              }
+            return obj;
+          }();
         return ident;
       }
   }

@@ -54,11 +54,11 @@ reference_sin_psi(const T &nx, const T &ny, const T &nz)
   return std::sin(T(N) * std::atan2(std::sqrt(ny * ny + nx * nx), nz));
 }
 
-template <typename Number, std::size_t width = dealii::VectorizedArray<Number>::size()>
+template <typename Number, std::size_t width = VectorizedArray<Number>::size()>
 void
-check_all_lanes_abs(const dealii::VectorizedArray<Number, width> &result,
-                    const dealii::VectorizedArray<Number, width> &expected,
-                    const Number                                  tol)
+check_all_lanes_abs(const VectorizedArray<Number, width> &result,
+                    const VectorizedArray<Number, width> &expected,
+                    const Number                          tol)
 {
   for (std::size_t i = 0; i < width; ++i)
     {
@@ -71,7 +71,7 @@ TEMPLATE_TEST_CASE("Symmetry::cos_arctan matches std::cos(N*std::atan(x))",
                    float,
                    double)
 {
-  using VecArray     = dealii::VectorizedArray<TestType>;
+  using VecArray     = VectorizedArray<TestType>;
   constexpr auto tol = TestType(1e-5);
 
   std::array<VecArray, 5> inputs {VecArray(0.0),
@@ -156,7 +156,7 @@ TEMPLATE_TEST_CASE("Symmetry::sin_arctan matches std::sin(N*std::atan(x))",
                    float,
                    double)
 {
-  using VecArray     = dealii::VectorizedArray<TestType>;
+  using VecArray     = VectorizedArray<TestType>;
   constexpr auto tol = TestType(1e-5);
 
   std::array<VecArray, 5> inputs {VecArray(0.0),
@@ -241,7 +241,7 @@ TEMPLATE_TEST_CASE("Symmetry::cos_theta matches std::cos(N*std::atan2(ny,nx))",
                    float,
                    double)
 {
-  using VecArray     = dealii::VectorizedArray<TestType>;
+  using VecArray     = VectorizedArray<TestType>;
   constexpr auto tol = TestType(1e-5);
 
   std::array<std::pair<VecArray, VecArray>, 5> normals {
@@ -329,7 +329,7 @@ TEMPLATE_TEST_CASE("Symmetry::sin_theta matches std::sin(N*std::atan2(ny,nx))",
                    float,
                    double)
 {
-  using VecArray     = dealii::VectorizedArray<TestType>;
+  using VecArray     = VectorizedArray<TestType>;
   constexpr auto tol = TestType(1e-5);
 
   std::array<std::pair<VecArray, VecArray>, 5> normals {
@@ -418,7 +418,7 @@ TEMPLATE_TEST_CASE(
   float,
   double)
 {
-  using VecArray     = dealii::VectorizedArray<TestType>;
+  using VecArray     = VectorizedArray<TestType>;
   constexpr auto tol = TestType(1e-5);
 
   std::array<std::tuple<VecArray, VecArray, VecArray>, 5> normals {
@@ -510,7 +510,7 @@ TEMPLATE_TEST_CASE(
   float,
   double)
 {
-  using VecArray     = dealii::VectorizedArray<TestType>;
+  using VecArray     = VectorizedArray<TestType>;
   constexpr auto tol = TestType(1e-5);
 
   std::array<std::tuple<VecArray, VecArray, VecArray>, 5> normals {

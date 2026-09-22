@@ -56,7 +56,6 @@ enum SolveTiming
 class SolveBlock
 {
 public:
-  using EvalFlags = dealii::EvaluationFlags::EvaluationFlags;
   using FieldType = TensorRank;
 
   explicit SolveBlock(int                    _id               = -1,

@@ -63,13 +63,13 @@ public:
    * @brief Get scalar value for a given point
    */
   virtual number
-  get_scalar_value(const dealii::Point<dim> &point, const std::string &scalar_name) = 0;
+  get_scalar_value(const Point<dim> &point, const std::string &scalar_name) = 0;
 
   /**
    * @brief Get vector value for a given point
    */
   virtual dealii::Vector<number>
-  get_vector_value(const dealii::Point<dim> &point, const std::string &vector_name) = 0;
+  get_vector_value(const Point<dim> &point, const std::string &vector_name) = 0;
 
 protected:
   // info for file/discretization passed by dependency injection, class is non-copyable

@@ -153,7 +153,7 @@ NucleationManager<dim, degree, number>::attempt_nucleation(
             calculate_number_of_events(nuc_rate, delta_t, cell_volume, rng);
           for (unsigned int i = 0; i < num_nuclei_in_cell; ++i)
             {
-              dealii::Point<dim> nucleus_location_unit_cell;
+              Point<dim> nucleus_location_unit_cell;
               for (unsigned int d = 0; d < dim; ++d)
                 {
                   // Note: if we ever do non-rectangular cells, try a randomly weighted
@@ -163,7 +163,7 @@ NucleationManager<dim, degree, number>::attempt_nucleation(
                     1.0);
                   nucleus_location_unit_cell[d] = uniform_unit_interval(rng);
                 }
-              dealii::Point<dim> nucleus_location =
+              Point<dim> nucleus_location =
                 SystemWide<dim, 0>::mapping
                   .transform_unit_to_real_cell(cell, nucleus_location_unit_cell);
               double       seed_time      = time_info.get_time();
@@ -225,16 +225,16 @@ NucleationManager<dim, degree, number>::gather_exclude_broadcast_nuclei(
             global_nuclei.begin(),
             global_nuclei.end(),
             [&](const Nucleus<dim> &existing_nucleus)
-            {
-              const double distance =
-                user_inputs.spatial_discretization.distance(nuc.location,
-                                                            existing_nucleus.location);
+              {
+                const double distance =
+                  user_inputs.spatial_discretization.distance(nuc.location,
+                                                              existing_nucleus.location);
 
-              return nuc_params.check_active(existing_nucleus, time_info) &&
-                     (distance < nuc_params.nucleus_exclusion_distance ||
-                      (nuc.field_index == existing_nucleus.field_index &&
-                       distance < nuc_params.same_field_nucleus_exclusion_distance));
-            });
+                return nuc_params.check_active(existing_nucleus, time_info) &&
+                       (distance < nuc_params.nucleus_exclusion_distance ||
+                        (nuc.field_index == existing_nucleus.field_index &&
+                         distance < nuc_params.same_field_nucleus_exclusion_distance));
+              });
           if (valid)
             {
               // Note: Using push_back() in a loop is not good use for

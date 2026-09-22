@@ -49,21 +49,21 @@ public:
       {
         if (nuc_params->check_active(nucleus, time_info))
           {
-            static dealii::Point<dim> unit_corner = []()
-            {
-              dealii::Point<dim> p;
-              for (unsigned int d = 0; d < dim; ++d)
-                {
-                  p[d] = 1.0;
-                }
-              return p;
-            }();
+            static Point<dim> unit_corner = []()
+              {
+                Point<dim> p;
+                for (unsigned int d = 0; d < dim; ++d)
+                  {
+                    p[d] = 1.0;
+                  }
+                return p;
+              }();
             dealii::BoundingBox<dim> nucleus_bounding_box(
-              std::make_pair<dealii::Point<dim>, dealii::Point<dim>>(
-                dealii::Point<dim>(nucleus.location -
-                                   (unit_corner * nuc_params->refinement_radius)),
-                dealii::Point<dim>(nucleus.location +
-                                   (unit_corner * nuc_params->refinement_radius))));
+              std::make_pair<Point<dim>, Point<dim>>(
+                Point<dim>(nucleus.location -
+                           (unit_corner * nuc_params->refinement_radius)),
+                Point<dim>(nucleus.location +
+                           (unit_corner * nuc_params->refinement_radius))));
             if (cell.bounding_box().has_overlap_with(nucleus_bounding_box))
               {
                 return true;

@@ -31,7 +31,7 @@ public:
   integrate(const dealii::DoFHandler<dim> &dof_handler, const auto &solution_vector)
   {
     constexpr unsigned int expected_components =
-      dealii::Tensor<rank, dim>::n_independent_components;
+      Tensor<rank, dim>::n_independent_components;
     const unsigned int n_components = dof_handler.get_fe().n_components();
 
     DEBUG_ASSERT(n_components == expected_components,

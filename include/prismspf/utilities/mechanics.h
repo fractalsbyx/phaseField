@@ -1556,9 +1556,9 @@ namespace legacy::Mechanics
    */
   template <unsigned int dim, typename T>
   static inline DEAL_II_ALWAYS_INLINE void
-  compute_stress(const dealii::Tensor<2, voigt_tensor_size<dim>, T> &elasticity_tensor,
-                 const dealii::Tensor<1, voigt_tensor_size<dim>, T> &strain,
-                 dealii::Tensor<1, voigt_tensor_size<dim>, T>       &stress)
+  compute_stress(const Tensor<2, voigt_tensor_size<dim>, T> &elasticity_tensor,
+                 const Tensor<1, voigt_tensor_size<dim>, T> &strain,
+                 Tensor<1, voigt_tensor_size<dim>, T>       &stress)
   {
     stress = elasticity_tensor * strain;
   }
@@ -1570,12 +1570,12 @@ namespace legacy::Mechanics
    */
   template <unsigned int dim, typename T>
   static inline DEAL_II_ALWAYS_INLINE void
-  compute_stress(const dealii::Tensor<2, voigt_tensor_size<dim>, T> &elasticity_tensor,
-                 const dealii::Tensor<2, dim, T>                    &strain,
-                 dealii::Tensor<2, dim, T>                          &stress)
+  compute_stress(const Tensor<2, voigt_tensor_size<dim>, T> &elasticity_tensor,
+                 const Tensor<2, dim, T>                    &strain,
+                 Tensor<2, dim, T>                          &stress)
   {
-    dealii::Tensor<1, voigt_tensor_size<dim>, T> sigma;
-    dealii::Tensor<1, voigt_tensor_size<dim>, T> epsilon;
+    Tensor<1, voigt_tensor_size<dim>, T> sigma;
+    Tensor<1, voigt_tensor_size<dim>, T> epsilon;
 
     if constexpr (dim == 3)
       {

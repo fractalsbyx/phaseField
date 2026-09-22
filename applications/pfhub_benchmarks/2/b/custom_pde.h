@@ -11,12 +11,12 @@ template <unsigned int degree, typename number>
 class CustomPDE : public PDEOperatorBase<2, degree, number>
 {
 public:
-  using ScalarValue = dealii::VectorizedArray<number>;
-  using ScalarGrad  = dealii::Tensor<1, 2, ScalarValue>;
-  using ScalarHess  = dealii::Tensor<2, 2, ScalarValue>;
-  using VectorValue = dealii::Tensor<1, 2, ScalarValue>;
-  using VectorGrad  = dealii::Tensor<2, 2, ScalarValue>;
-  using VectorHess  = dealii::Tensor<3, 2, ScalarValue>;
+  using ScalarValue = VectorizedArray<number>;
+  using ScalarGrad  = Tensor<1, 2, ScalarValue>;
+  using ScalarHess  = Tensor<2, 2, ScalarValue>;
+  using VectorValue = Tensor<1, 2, ScalarValue>;
+  using VectorGrad  = Tensor<2, 2, ScalarValue>;
+  using VectorHess  = Tensor<3, 2, ScalarValue>;
   using PDEOperatorBase<2, degree, number>::get_user_inputs;
   using PDEOperatorBase<2, degree, number>::get_pf_tools;
 
@@ -45,10 +45,10 @@ public:
 
 private:
   void
-  set_initial_condition([[maybe_unused]] const unsigned int     &index,
-                        [[maybe_unused]] const unsigned int     &component,
-                        [[maybe_unused]] const dealii::Point<2> &point,
-                        [[maybe_unused]] number                 &scalar_value,
+  set_initial_condition([[maybe_unused]] const unsigned int &index,
+                        [[maybe_unused]] const unsigned int &component,
+                        [[maybe_unused]] const Point<2>     &point,
+                        [[maybe_unused]] number             &scalar_value,
                         [[maybe_unused]] number &vector_component_value) const override
   {
     using std::cos;
@@ -104,7 +104,7 @@ private:
   }
 
   ScalarValue
-  h(const dealii::AlignedVector<ScalarValue> &eta) const
+  h(const AlignedVector<ScalarValue> &eta) const
   {
     ScalarValue h_val = 0.0;
     for (unsigned int i = 0; i < p; ++i)
@@ -123,7 +123,7 @@ private:
   }
 
   ScalarValue
-  sum_eta_sq(const dealii::AlignedVector<ScalarValue> &eta) const
+  sum_eta_sq(const AlignedVector<ScalarValue> &eta) const
   {
     ScalarValue sum = 0.0;
     for (unsigned int i = 0; i < p; ++i)
@@ -135,8 +135,7 @@ private:
   }
 
   ScalarValue
-  g(const dealii::AlignedVector<ScalarValue> &eta,
-    const ScalarValue                        &sum_eta_sq_val) const
+  g(const AlignedVector<ScalarValue> &eta, const ScalarValue &sum_eta_sq_val) const
   {
     ScalarValue g_val = 0.0;
     for (unsigned int i = 0; i < p; ++i)
@@ -165,8 +164,8 @@ private:
     const double dt = sim_timer.get_timestep();
     if (solve_block_id == 0) // explicit
       {
-        dealii::AlignedVector<ScalarValue> eta_values(p);
-        dealii::AlignedVector<ScalarGrad>  eta_grads(p);
+        AlignedVector<ScalarValue> eta_values(p);
+        AlignedVector<ScalarGrad>  eta_grads(p);
         for (unsigned int i = 0; i < p; ++i)
           {
             eta_values[i] = variable_list.template get_value<Scalar, OldOne>(i);
@@ -175,8 +174,8 @@ private:
         ScalarValue c_val   = variable_list.template get_value<Scalar, OldOne>(p);
         ScalarGrad  mu_grad = variable_list.template get_gradient<Scalar, OldOne>(p + 1);
 
-        dealii::AlignedVector<ScalarValue> dF_deta_val(p);
-        dealii::AlignedVector<VectorValue> dF_deta_vec(p);
+        AlignedVector<ScalarValue> dF_deta_val(p);
+        AlignedVector<VectorValue> dF_deta_vec(p);
 
         const ScalarValue sum_eta_sq_val = sum_eta_sq(eta_values);
         for (unsigned int i = 0; i < p; ++i)
@@ -201,7 +200,7 @@ private:
       }
     else if (solve_block_id == 1) // mu
       {
-        dealii::AlignedVector<ScalarValue> eta_values(p);
+        AlignedVector<ScalarValue> eta_values(p);
         for (unsigned int i = 0; i < p; ++i)
           {
             eta_values[i] = variable_list.template get_value<Scalar, Current>(i);
@@ -219,8 +218,8 @@ private:
       }
     else if (solve_block_id == 2) // pp
       {
-        dealii::AlignedVector<ScalarValue> eta_values(p);
-        dealii::AlignedVector<ScalarGrad>  eta_grads(p);
+        AlignedVector<ScalarValue> eta_values(p);
+        AlignedVector<ScalarGrad>  eta_grads(p);
         for (unsigned int i = 0; i < p; ++i)
           {
             eta_values[i] = variable_list.template get_value<Scalar, Current>(i);

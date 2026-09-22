@@ -25,7 +25,7 @@ DirichletConditions<dim, degree, number>::DirichletConditions(
 template <unsigned int dim, unsigned int degree, typename number>
 number
 DirichletConditions<dim, degree, number>::value(
-  const dealii::Point<dim>           &p,
+  const Point<dim>                   &p,
   [[maybe_unused]] const unsigned int component) const
 {
   // Initialize passed variables to zero
@@ -47,8 +47,8 @@ DirichletConditions<dim, degree, number>::value(
 template <unsigned int dim, unsigned int degree, typename number>
 void
 DirichletConditions<dim, degree, number>::vector_value(
-  const dealii::Point<dim> &p,
-  dealii::Vector<number>   &value) const
+  const Point<dim>       &p,
+  dealii::Vector<number> &value) const
 {
   // TODO (landinjm): I think this function is not called for 1D vector and might break
   // when the user goes from 2D to 1D vector fields.

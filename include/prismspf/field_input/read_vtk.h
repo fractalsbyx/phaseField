@@ -68,15 +68,13 @@ public:
    * @brief Get scalar value for a given point
    */
   number
-  get_scalar_value(const dealii::Point<dim> &point,
-                   const std::string        &scalar_name) override;
+  get_scalar_value(const Point<dim> &point, const std::string &scalar_name) override;
 
   /**
    * @brief Get vector value for a given point
    */
   dealii::Vector<number>
-  get_vector_value(const dealii::Point<dim> &point,
-                   const std::string        &vector_name) override;
+  get_vector_value(const Point<dim> &point, const std::string &vector_name) override;
 
 private:
   /**
@@ -236,8 +234,8 @@ ReadUnstructuredVTK<dim, number>::get_vectors_names()
 
 template <unsigned int dim, typename number>
 inline number
-ReadUnstructuredVTK<dim, number>::get_scalar_value(const dealii::Point<dim> &point,
-                                                   const std::string        &scalar_name)
+ReadUnstructuredVTK<dim, number>::get_scalar_value(const Point<dim>  &point,
+                                                   const std::string &scalar_name)
 {
   // Check that the scalar name is in the vtk file
   auto scalars_names = get_scalars_names();
@@ -323,8 +321,8 @@ ReadUnstructuredVTK<dim, number>::get_scalar_value(const dealii::Point<dim> &poi
 
 template <unsigned int dim, typename number>
 inline dealii::Vector<number>
-ReadUnstructuredVTK<dim, number>::get_vector_value(const dealii::Point<dim> &point,
-                                                   const std::string        &vector_name)
+ReadUnstructuredVTK<dim, number>::get_vector_value(const Point<dim>  &point,
+                                                   const std::string &vector_name)
 {
   // Check that the scalar name is in the vtk file
   auto vectors_names = get_vectors_names();

@@ -5,12 +5,14 @@
 
 #include <deal.II/base/vectorization.h>
 
+#include <prismspf/core/types.h>
+
 #include <prismspf/config.h>
 
 #include <cmath>
 
 /**
- * This file provides some operations on dealii::VectorizedArray that are not provided by
+ * This file provides some operations on VectorizedArray that are not provided by
  * dealii. Use the std namespace so we can call them with std::function
  */
 namespace std
@@ -19,53 +21,53 @@ namespace std
   // readability-identifier-length)
 
   template <typename Number, std::size_t width>
-  inline ::dealii::VectorizedArray<Number, width>
-  erf(const ::dealii::VectorizedArray<Number, width> &x)
+  inline ::VectorizedArray<Number, width>
+  erf(const ::VectorizedArray<Number, width> &x)
   {
-    ::dealii::VectorizedArray<Number, width> out;
-    for (unsigned int i = 0; i < dealii::VectorizedArray<Number, width>::size(); ++i)
+    ::VectorizedArray<Number, width> out;
+    for (unsigned int i = 0; i < VectorizedArray<Number, width>::size(); ++i)
       out[i] = std::erf(x[i]);
     return out;
   }
 
   template <typename Number, std::size_t width>
-  inline ::dealii::VectorizedArray<Number, width>
-  erfc(const ::dealii::VectorizedArray<Number, width> &x)
+  inline ::VectorizedArray<Number, width>
+  erfc(const ::VectorizedArray<Number, width> &x)
   {
-    ::dealii::VectorizedArray<Number, width> out;
-    for (unsigned int i = 0; i < dealii::VectorizedArray<Number, width>::size(); ++i)
+    ::VectorizedArray<Number, width> out;
+    for (unsigned int i = 0; i < VectorizedArray<Number, width>::size(); ++i)
       out[i] = std::erfc(x[i]);
     return out;
   }
 
   template <typename Number, std::size_t width>
-  inline ::dealii::VectorizedArray<Number, width>
-  atan2(const ::dealii::VectorizedArray<Number, width> &y,
-        const ::dealii::VectorizedArray<Number, width> &x)
+  inline ::VectorizedArray<Number, width>
+  atan2(const ::VectorizedArray<Number, width> &y,
+        const ::VectorizedArray<Number, width> &x)
   {
-    ::dealii::VectorizedArray<Number, width> out;
-    for (unsigned int i = 0; i < dealii::VectorizedArray<Number, width>::size(); ++i)
+    ::VectorizedArray<Number, width> out;
+    for (unsigned int i = 0; i < VectorizedArray<Number, width>::size(); ++i)
       out[i] = std::atan2(y[i], x[i]);
     return out;
   }
 
   template <typename Number, std::size_t width>
-  inline ::dealii::VectorizedArray<Number, width>
-  fmod(const ::dealii::VectorizedArray<Number, width> &numer, const Number denom)
+  inline ::VectorizedArray<Number, width>
+  fmod(const ::VectorizedArray<Number, width> &numer, const Number denom)
   {
-    ::dealii::VectorizedArray<Number, width> out;
-    for (unsigned int i = 0; i < dealii::VectorizedArray<Number, width>::size(); ++i)
+    ::VectorizedArray<Number, width> out;
+    for (unsigned int i = 0; i < VectorizedArray<Number, width>::size(); ++i)
       out[i] = std::fmod(numer[i], denom);
     return out;
   }
 
   template <typename Number, std::size_t width>
-  inline ::dealii::VectorizedArray<Number, width>
-  fmod(const ::dealii::VectorizedArray<Number, width> &numer,
-       const ::dealii::VectorizedArray<Number, width> &denom)
+  inline ::VectorizedArray<Number, width>
+  fmod(const ::VectorizedArray<Number, width> &numer,
+       const ::VectorizedArray<Number, width> &denom)
   {
-    ::dealii::VectorizedArray<Number, width> out;
-    for (unsigned int i = 0; i < dealii::VectorizedArray<Number, width>::size(); ++i)
+    ::VectorizedArray<Number, width> out;
+    for (unsigned int i = 0; i < VectorizedArray<Number, width>::size(); ++i)
       out[i] = std::fmod(numer[i], denom[i]);
     return out;
   }

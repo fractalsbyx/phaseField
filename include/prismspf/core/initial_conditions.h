@@ -47,7 +47,7 @@ public:
    * @brief Scalar/Vector value.
    */
   void
-  vector_value(const dealii::Point<dim> &p, dealii::Vector<number> &value) const override;
+  vector_value(const Point<dim> &p, dealii::Vector<number> &value) const override;
 
 private:
   unsigned int index;
@@ -76,7 +76,7 @@ public:
    * @brief Scalar/Vector value.
    */
   void
-  vector_value(const dealii::Point<dim> &p, dealii::Vector<number> &value) const override;
+  vector_value(const Point<dim> &p, dealii::Vector<number> &value) const override;
 
 private:
   std::string field_name;

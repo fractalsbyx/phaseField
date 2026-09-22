@@ -32,7 +32,7 @@ PRISMS_PF_BEGIN_NAMESPACE
  *
  * @tparam dim The number of dimensions in the problem.
  * @tparam degree The polynomial degree of the shape functions.
- * @tparam number Datatype to use for `dealii::VectorizedArray<number>`. Either
+ * @tparam number Datatype to use for `VectorizedArray<number>`. Either
  * double or float.
  *
  * Importantly, this class is mostly a wrapper for the dealii::FEEvaluation class, which
@@ -48,65 +48,64 @@ public:
   /**
    * @brief Typedef for the basic value that the user manipulates.
    */
-  using ScalarValue = dealii::VectorizedArray<number>;
+  using ScalarValue = VectorizedArray<number>;
 
   /**
    * @brief Typedef for the basic vector that the user manipulates.
    */
-  using VectorValue = dealii::Tensor<1, dim, ScalarValue>;
+  using VectorValue = Tensor<1, dim, ScalarValue>;
 
   template <TensorRank Rank>
   using Value = std::conditional_t<Rank == TensorRank::Scalar || dim == 1,
                                    ScalarValue,
-                                   dealii::Tensor<int(Rank), dim, ScalarValue>>;
+                                   Tensor<int(Rank), dim, ScalarValue>>;
 
   template <TensorRank Rank>
-  using Gradient = dealii::Tensor<int(Rank) + 1, dim, ScalarValue>;
+  using Gradient = Tensor<int(Rank) + 1, dim, ScalarValue>;
 
   template <TensorRank Rank>
-  using Hessian = dealii::Tensor<int(Rank) + 2, dim, ScalarValue>;
+  using Hessian = Tensor<int(Rank) + 2, dim, ScalarValue>;
 
   template <TensorRank Rank>
-  using FEEval =
-    dealii::FEEvaluation<dim,
-                         degree,
-                         degree + 1,
-                         dealii::Tensor<int(Rank), dim>::n_independent_components,
-                         number,
-                         ScalarValue>;
+  using FEEval = dealii::FEEvaluation<dim,
+                                      degree,
+                                      degree + 1,
+                                      Tensor<int(Rank), dim>::n_independent_components,
+                                      number,
+                                      ScalarValue>;
 
   /**
    * @brief Return the tensor rank from the specified template value.
    */
   template <typename ValType>
   static constexpr TensorRank RankFromVal = []() constexpr
-  {
-    if constexpr (std::is_same_v<ValType, ScalarValue> ||
-                  std::is_same_v<ValType, typename ScalarValue::value_type>)
-      {
-        return TensorRank::Scalar;
-      }
-    else
-      {
-        return TensorRank(ValType::rank);
-      }
-  }();
+    {
+      if constexpr (std::is_same_v<ValType, ScalarValue> ||
+                    std::is_same_v<ValType, typename ScalarValue::value_type>)
+        {
+          return TensorRank::Scalar;
+        }
+      else
+        {
+          return TensorRank(ValType::rank);
+        }
+    }();
 
   /**
    * @brief Return the tensor rank from the specified template gradient.
    */
   template <typename GradType>
   static constexpr TensorRank RankFromGrad = []() constexpr
-  {
-    if constexpr (std::is_same_v<GradType, ScalarValue>)
-      {
-        return TensorRank::Scalar;
-      }
-    else
-      {
-        return TensorRank(GradType::rank - 1);
-      }
-  }();
+    {
+      if constexpr (std::is_same_v<GradType, ScalarValue>)
+        {
+          return TensorRank::Scalar;
+        }
+      else
+        {
+          return TensorRank(GradType::rank - 1);
+        }
+    }();
 
   /**
    * @brief Struct to hold the relevant dealii::FEEvaluation for a given solution block
@@ -406,20 +405,20 @@ public:
    * @brief Return the curl of the specified field.
    */
   template <TensorRank Rank, DependencyType type>
-  [[nodiscard]] dealii::Tensor<1, (dim == 2 ? 1 : dim), ScalarValue>
+  [[nodiscard]] Tensor<1, (dim == 2 ? 1 : dim), ScalarValue>
   get_curl(Types::Index field_index) const;
 
   /**
    * @brief Return the curl of the specified field.
    */
   template <TensorRank Rank>
-  [[nodiscard]] dealii::Tensor<1, (dim == 2 ? 1 : dim), ScalarValue>
+  [[nodiscard]] Tensor<1, (dim == 2 ? 1 : dim), ScalarValue>
   get_curl(Types::Index field_index, DependencyType type) const;
 
   /**
    * @brief Return the quadrature point location.
    */
-  [[nodiscard]] dealii::Point<dim, ScalarValue>
+  [[nodiscard]] Point<dim, ScalarValue>
   get_q_point_location() const;
 
   /**
@@ -495,9 +494,9 @@ private:
    * properly initialized.
    */
   void
-  access_valid(Types::Index                             field_index,
-               DependencyType                           dependency_type,
-               dealii::EvaluationFlags::EvaluationFlags flag) const;
+  access_valid(Types::Index   field_index,
+               DependencyType dependency_type,
+               EvalFlags      flag) const;
 
   /**
    * @brief Check that a value is valid for submission.
@@ -1202,9 +1201,9 @@ inline DEAL_II_ALWAYS_INLINE dealii::
 template <unsigned int dim, unsigned int degree, typename number>
 template <TensorRank Rank, DependencyType type>
 inline DEAL_II_ALWAYS_INLINE
-  dealii::Tensor<1,
-                 (dim == 2 ? 1 : dim),
-                 typename FieldContainer<dim, degree, number>::ScalarValue>
+  Tensor<1,
+         (dim == 2 ? 1 : dim),
+         typename FieldContainer<dim, degree, number>::ScalarValue>
   FieldContainer<dim, degree, number>::get_curl(Types::Index field_index) const
 {
   static_assert(Rank == 1, "Curl is only available for vector fields");
@@ -1218,9 +1217,9 @@ inline DEAL_II_ALWAYS_INLINE
 template <unsigned int dim, unsigned int degree, typename number>
 template <TensorRank Rank>
 inline DEAL_II_ALWAYS_INLINE
-  dealii::Tensor<1,
-                 (dim == 2 ? 1 : dim),
-                 typename FieldContainer<dim, degree, number>::ScalarValue>
+  Tensor<1,
+         (dim == 2 ? 1 : dim),
+         typename FieldContainer<dim, degree, number>::ScalarValue>
   FieldContainer<dim, degree, number>::get_curl(Types::Index   field_index,
                                                 DependencyType type) const
 {
@@ -1234,7 +1233,7 @@ inline DEAL_II_ALWAYS_INLINE
 
 template <unsigned int dim, unsigned int degree, typename number>
 inline DEAL_II_ALWAYS_INLINE
-  dealii::Point<dim, typename FieldContainer<dim, degree, number>::ScalarValue>
+  Point<dim, typename FieldContainer<dim, degree, number>::ScalarValue>
   FieldContainer<dim, degree, number>::get_q_point_location() const
 {
   return shared_feeval_scalar.quadrature_point(q_point);
@@ -1272,7 +1271,7 @@ FieldContainer<dim, degree, number>::set_value_term(Types::Index   field_index,
     {
       relevant_feeval_vector.template get<DependencyType::DST>().submit_value(val,
                                                                               q_point);
-      relevant_feeval_vector.integration_flags |= dealii::EvaluationFlags::values;
+      relevant_feeval_vector.integration_flags |= EvalFlags::values;
     }
   catch (...)
     {
@@ -1301,7 +1300,7 @@ FieldContainer<dim, degree, number>::set_gradient_term(Types::Index    field_ind
     {
       relevant_feeval_vector.template get<DependencyType::DST>().submit_gradient(val,
                                                                                  q_point);
-      relevant_feeval_vector.integration_flags |= dealii::EvaluationFlags::gradients;
+      relevant_feeval_vector.integration_flags |= EvalFlags::gradients;
     }
   catch (...)
     {
@@ -1423,9 +1422,9 @@ FieldContainer<dim, degree, number>::feevaluation_exists(
 template <unsigned int dim, unsigned int degree, typename number>
 inline DEAL_II_ALWAYS_INLINE void
 FieldContainer<dim, degree, number>::access_valid(
-  [[maybe_unused]] Types::Index                             field_index,
-  [[maybe_unused]] DependencyType                           dependency_type,
-  [[maybe_unused]] dealii::EvaluationFlags::EvaluationFlags flag) const
+  [[maybe_unused]] Types::Index   field_index,
+  [[maybe_unused]] DependencyType dependency_type,
+  [[maybe_unused]] EvalFlags      flag) const
 {
   // TODO
 }
