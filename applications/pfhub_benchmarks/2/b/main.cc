@@ -82,8 +82,7 @@ main(int argc, char *argv[])
   std::vector<SolveBlock> solve_blocks({explicit_block, mu_block, pp_block});
 
   UserInputParameters<2> user_inputs(parameters_filename);
-  user_inputs.spatial_discretization.rectangular_mesh.size =
-    dealii::Tensor<1, 2>({200.0, 200.0});
+  user_inputs.spatial_discretization.rectangular_mesh.size = Tensor<1, 2>({200.0, 200.0});
   // Output at times specified by the benchmark spec.
   for (double output_time : {1000, 10000, 100000, 1000000})
     {

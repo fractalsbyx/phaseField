@@ -52,15 +52,13 @@ public:
    * @brief Get scalar value for a given point
    */
   number
-  get_scalar_value(const dealii::Point<dim> &point,
-                   const std::string        &scalar_name) override;
+  get_scalar_value(const Point<dim> &point, const std::string &scalar_name) override;
 
   /**
    * @brief Get vector value for a given point
    */
   dealii::Vector<number>
-  get_vector_value(const dealii::Point<dim> &point,
-                   const std::string        &vector_name) override;
+  get_vector_value(const Point<dim> &point, const std::string &vector_name) override;
 
 private:
   /**
@@ -86,7 +84,7 @@ private:
    * last the furthest corner (increasing x, then y, and z).
    */
   dealii::Vector<number>
-  interpolate(const dealii::Point<dim> &point, const unsigned int n_components);
+  interpolate(const Point<dim> &point, const unsigned int n_components);
 
   /**
    * @brief Number of grid points.
@@ -223,8 +221,8 @@ ReadBinary<dim, number>::get_value(const dealii::types::global_dof_index index,
 
 template <unsigned int dim, typename number>
 inline dealii::Vector<number>
-ReadBinary<dim, number>::interpolate(const dealii::Point<dim> &point,
-                                     const unsigned int        n_components)
+ReadBinary<dim, number>::interpolate(const Point<dim>  &point,
+                                     const unsigned int n_components)
 {
   Assert(n_components == 1 || n_components == dim,
          dealii::ExcMessage(
@@ -406,7 +404,7 @@ ReadBinary<dim, number>::interpolate(const dealii::Point<dim> &point,
 
 template <unsigned int dim, typename number>
 inline number
-ReadBinary<dim, number>::get_scalar_value(const dealii::Point<dim>           &point,
+ReadBinary<dim, number>::get_scalar_value(const Point<dim>                   &point,
                                           [[maybe_unused]] const std::string &scalar_name)
 {
   Assert(n_values == n_points,
@@ -418,7 +416,7 @@ ReadBinary<dim, number>::get_scalar_value(const dealii::Point<dim>           &po
 
 template <unsigned int dim, typename number>
 inline dealii::Vector<number>
-ReadBinary<dim, number>::get_vector_value(const dealii::Point<dim>           &point,
+ReadBinary<dim, number>::get_vector_value(const Point<dim>                   &point,
                                           [[maybe_unused]] const std::string &vector_name)
 {
   Assert((n_values / dim) == n_points,

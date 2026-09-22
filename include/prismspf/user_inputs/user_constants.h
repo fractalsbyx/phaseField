@@ -34,9 +34,9 @@ public:
                                       int,
                                       bool,
                                       std::string,
-                                      dealii::Tensor<1, dim>,
-                                      dealii::Tensor<2, dim>,
-                                      dealii::Tensor<2, (2 * dim) - 1 + (dim / 3)>>;
+                                      Tensor<1, dim>,
+                                      Tensor<2, dim>,
+                                      Tensor<2, (2 * dim) - 1 + (dim / 3)>>;
 
   /**
    * @brief Assign the specified user constant to whatever type.
@@ -86,7 +86,7 @@ public:
    *
    * @param constant_name Name of the constant to retrieve.
    */
-  [[nodiscard]] dealii::Tensor<1, dim>
+  [[nodiscard]] Tensor<1, dim>
   get_rank_1_tensor(const std::string &constant_name) const;
 
   /**
@@ -95,7 +95,7 @@ public:
    *
    * @param constant_name Name of the constant to retrieve.
    */
-  [[nodiscard]] dealii::Tensor<2, dim>
+  [[nodiscard]] Tensor<2, dim>
   get_rank_2_tensor(const std::string &constant_name) const;
 
   /**
@@ -104,7 +104,7 @@ public:
    *
    * @param constant_name Name of the constant to retrieve.
    */
-  [[nodiscard]] dealii::Tensor<2, (2 * dim) - 1 + (dim / 3)>
+  [[nodiscard]] Tensor<2, (2 * dim) - 1 + (dim / 3)>
   get_elasticity_tensor(const std::string &constant_name) const;
 
   /**
@@ -176,14 +176,14 @@ private:
   /**
    * @brief Compute a 1st rank tensor from user inputs .
    */
-  dealii::Tensor<1, dim>
+  Tensor<1, dim>
   compute_rank_1_tensor_constant(const unsigned int             &n_elements,
                                  const std::vector<std::string> &tensor_elements);
 
   /**
    * @brief Compute a 2nd rank tensor from user inputs .
    */
-  dealii::Tensor<2, dim>
+  Tensor<2, dim>
   compute_rank_2_tensor_constant(const unsigned int             &n_elements,
                                  const std::vector<std::string> &tensor_elements);
 
@@ -193,12 +193,12 @@ private:
   InputVariant
   primitive_model_constant(std::vector<std::string> &model_constants_strings);
 
-  [[nodiscard]] dealii::Tensor<2, (2 * dim) - 1 + (dim / 3)>
+  [[nodiscard]] Tensor<2, (2 * dim) - 1 + (dim / 3)>
   get_cij_tensor(std::vector<double> elastic_constants,
                  const std::string  &elastic_const_symmetry,
                  const StressState  &stress_state) const;
 
-  [[nodiscard]] dealii::Tensor<2, (2 * dim) - 1 + (dim / 3)>
+  [[nodiscard]] Tensor<2, (2 * dim) - 1 + (dim / 3)>
   get_cij_matrix(const ElasticityModel     &model,
                  const std::vector<double> &constants,
                  const StressState         &stress_state) const;
@@ -262,7 +262,7 @@ UserConstants<dim>::get_string(const std::string &constant_name) const
 }
 
 template <unsigned int dim>
-inline dealii::Tensor<1, dim>
+inline Tensor<1, dim>
 UserConstants<dim>::get_rank_1_tensor(const std::string &constant_name) const
 {
   Assert(model_constants.find(constant_name) != model_constants.end(),
@@ -271,11 +271,11 @@ UserConstants<dim>::get_rank_1_tensor(const std::string &constant_name) const
            "CustomPDE.h. The constant that you attempted to access was " +
            constant_name + "."));
 
-  return boost::get<dealii::Tensor<1, dim>>(model_constants.at(constant_name));
+  return boost::get<Tensor<1, dim>>(model_constants.at(constant_name));
 }
 
 template <unsigned int dim>
-inline dealii::Tensor<2, dim>
+inline Tensor<2, dim>
 UserConstants<dim>::get_rank_2_tensor(const std::string &constant_name) const
 {
   Assert(model_constants.find(constant_name) != model_constants.end(),
@@ -284,11 +284,11 @@ UserConstants<dim>::get_rank_2_tensor(const std::string &constant_name) const
            "that you attempted to access was " +
            constant_name + "."));
 
-  return boost::get<dealii::Tensor<2, dim>>(model_constants.at(constant_name));
+  return boost::get<Tensor<2, dim>>(model_constants.at(constant_name));
 }
 
 template <unsigned int dim>
-inline dealii::Tensor<2, (2 * dim) - 1 + (dim / 3)>
+inline Tensor<2, (2 * dim) - 1 + (dim / 3)>
 UserConstants<dim>::get_elasticity_tensor(const std::string &constant_name) const
 {
   Assert(model_constants.find(constant_name) != model_constants.end(),
@@ -297,7 +297,7 @@ UserConstants<dim>::get_elasticity_tensor(const std::string &constant_name) cons
            "that you attempted to access was " +
            constant_name + "."));
 
-  return boost::get<dealii::Tensor<2, (2 * dim) - 1 + (dim / 3)>>(
+  return boost::get<Tensor<2, (2 * dim) - 1 + (dim / 3)>>(
     model_constants.at(constant_name));
 }
 
@@ -347,7 +347,7 @@ UserConstants<dim>::remove_parentheses(std::vector<std::string> &tensor_elements
 }
 
 template <unsigned int dim>
-inline dealii::Tensor<1, dim>
+inline Tensor<1, dim>
 UserConstants<dim>::compute_rank_1_tensor_constant(
   const unsigned int             &n_elements,
   const std::vector<std::string> &tensor_elements)
@@ -356,7 +356,7 @@ UserConstants<dim>::compute_rank_1_tensor_constant(
               dealii::ExcMessage("The columns in user-defined constant tensors must be "
                                  "equal to the maximum number of dimensions."));
 
-  dealii::Tensor<1, dim> temp;
+  Tensor<1, dim> temp;
   for (unsigned int i = 0; i < dim; i++)
     {
       temp[i] = dealii::Utilities::string_to_double(tensor_elements.at(i));
@@ -366,7 +366,7 @@ UserConstants<dim>::compute_rank_1_tensor_constant(
 }
 
 template <unsigned int dim>
-inline dealii::Tensor<2, dim>
+inline Tensor<2, dim>
 UserConstants<dim>::compute_rank_2_tensor_constant(
   const unsigned int             &n_elements,
   const std::vector<std::string> &tensor_elements)
@@ -377,7 +377,7 @@ UserConstants<dim>::compute_rank_2_tensor_constant(
 
   const unsigned int row_length = 3;
 
-  dealii::Tensor<2, dim> temp;
+  Tensor<2, dim> temp;
   for (unsigned int i = 0; i < dim; i++)
     {
       for (unsigned int j = 0; j < dim; j++)
@@ -481,7 +481,7 @@ UserConstants<dim>::construct_user_constant(
             }
         }
 
-      dealii::Tensor<2, (2 * dim) - 1 + (dim / 3)> temp =
+      Tensor<2, (2 * dim) - 1 + (dim / 3)> temp =
         get_cij_tensor(temp_elastic_constants, elastic_const_symmetry, stress_state);
       return temp;
     }
@@ -527,7 +527,7 @@ UserConstants<dim>::primitive_model_constant(
 }
 
 template <unsigned int dim>
-inline dealii::Tensor<2, (2 * dim) - 1 + (dim / 3)>
+inline Tensor<2, (2 * dim) - 1 + (dim / 3)>
 UserConstants<dim>::get_cij_tensor(std::vector<double> elastic_constants,
                                    const std::string  &elastic_const_symmetry,
                                    const StressState  &stress_state) const
@@ -568,22 +568,22 @@ UserConstants<dim>::get_cij_tensor(std::vector<double> elastic_constants,
                      indices_2d.end(),
                      std::back_inserter(elastic_constants),
                      [&elastic_constants_temp](unsigned int index)
-                     {
-                       return elastic_constants_temp.at(index);
-                     });
+                       {
+                         return elastic_constants_temp.at(index);
+                       });
     }
 
   return get_cij_matrix(mat_model, elastic_constants, stress_state);
 }
 
 template <unsigned int dim>
-inline dealii::Tensor<2, (2 * dim) - 1 + (dim / 3)>
+inline Tensor<2, (2 * dim) - 1 + (dim / 3)>
 UserConstants<dim>::get_cij_matrix(const ElasticityModel     &model,
                                    const std::vector<double> &constants,
                                    const StressState         &stress_state) const
 {
   // Initialize stiffness tensor
-  dealii::Tensor<2, (2 * dim) - 1 + (dim / 3)> stiffness;
+  Tensor<2, (2 * dim) - 1 + (dim / 3)> stiffness;
 
   switch (dim)
     {

@@ -32,8 +32,8 @@ InitialCondition<dim, degree, number>::InitialCondition(
 
 template <unsigned int dim, unsigned int degree, typename number>
 void
-InitialCondition<dim, degree, number>::vector_value(const dealii::Point<dim> &p,
-                                                    dealii::Vector<number>   &value) const
+InitialCondition<dim, degree, number>::vector_value(const Point<dim>       &p,
+                                                    dealii::Vector<number> &value) const
 {
   // Initialize passed variables to zero
   dealii::Vector<number> vector_value(dim);
@@ -75,8 +75,8 @@ ReadInitialCondition<dim, number>::ReadInitialCondition(
 
 template <unsigned int dim, typename number>
 void
-ReadInitialCondition<dim, number>::vector_value(const dealii::Point<dim> &p,
-                                                dealii::Vector<number>   &value) const
+ReadInitialCondition<dim, number>::vector_value(const Point<dim>       &p,
+                                                dealii::Vector<number> &value) const
 {
   // Initialize passed variables to zero
   dealii::Vector<number> vector_value(dim);

@@ -9,12 +9,12 @@ template <unsigned int degree, typename number>
 class CustomPDE : public PDEOperatorBase<2, degree, number>
 {
 public:
-  using ScalarValue = dealii::VectorizedArray<number>;
-  using ScalarGrad  = dealii::Tensor<1, 2, ScalarValue>;
-  using ScalarHess  = dealii::Tensor<2, 2, ScalarValue>;
-  using VectorValue = dealii::Tensor<1, 2, ScalarValue>;
-  using VectorGrad  = dealii::Tensor<2, 2, ScalarValue>;
-  using VectorHess  = dealii::Tensor<3, 2, ScalarValue>;
+  using ScalarValue = VectorizedArray<number>;
+  using ScalarGrad  = Tensor<1, 2, ScalarValue>;
+  using ScalarHess  = Tensor<2, 2, ScalarValue>;
+  using VectorValue = Tensor<1, 2, ScalarValue>;
+  using VectorGrad  = Tensor<2, 2, ScalarValue>;
+  using VectorHess  = Tensor<3, 2, ScalarValue>;
   using PDEOperatorBase<2, degree, number>::get_user_inputs;
   using PDEOperatorBase<2, degree, number>::get_pf_tools;
 
@@ -39,10 +39,10 @@ public:
 
 private:
   void
-  set_initial_condition([[maybe_unused]] const unsigned int     &index,
-                        [[maybe_unused]] const unsigned int     &component,
-                        [[maybe_unused]] const dealii::Point<2> &point,
-                        [[maybe_unused]] number                 &scalar_value,
+  set_initial_condition([[maybe_unused]] const unsigned int &index,
+                        [[maybe_unused]] const unsigned int &component,
+                        [[maybe_unused]] const Point<2>     &point,
+                        [[maybe_unused]] number             &scalar_value,
                         [[maybe_unused]] number &vector_component_value) const override
   {
     using std::cos;
@@ -58,12 +58,12 @@ private:
   }
 
   void
-  set_dirichlet([[maybe_unused]] const unsigned int     &index,
-                [[maybe_unused]] const unsigned int     &boundary_id,
-                [[maybe_unused]] const unsigned int     &component,
-                [[maybe_unused]] const dealii::Point<2> &point,
-                [[maybe_unused]] const SimulationTimer  &sim_timer,
-                [[maybe_unused]] number                 &scalar_value,
+  set_dirichlet([[maybe_unused]] const unsigned int    &index,
+                [[maybe_unused]] const unsigned int    &boundary_id,
+                [[maybe_unused]] const unsigned int    &component,
+                [[maybe_unused]] const Point<2>        &point,
+                [[maybe_unused]] const SimulationTimer &sim_timer,
+                [[maybe_unused]] number                &scalar_value,
                 [[maybe_unused]] number &vector_component_value) const override
   {
     using std::sin;

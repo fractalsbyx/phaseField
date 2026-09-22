@@ -14,8 +14,7 @@ PRISMS_PF_BEGIN_NAMESPACE
 
 template <unsigned int dim>
 double
-Mesh<dim>::distance(const dealii::Point<dim> &point_1,
-                    const dealii::Point<dim> &point_2) const
+Mesh<dim>::distance(const Point<dim> &point_1, const Point<dim> &point_2) const
 {
   return point_1.distance(point_2);
 }
@@ -23,11 +22,11 @@ Mesh<dim>::distance(const dealii::Point<dim> &point_1,
 template <unsigned int dim>
 template <typename real1, typename real2>
 double
-Mesh<dim>::distance(const dealii::Point<dim, real1> &point_1,
-                    const dealii::Point<dim, real2> &point_2) const
+Mesh<dim>::distance(const Point<dim, real1> &point_1,
+                    const Point<dim, real2> &point_2) const
 {
-  dealii::Point<dim> p1;
-  dealii::Point<dim> p2;
+  Point<dim> p1;
+  Point<dim> p2;
   for (unsigned int d = 0; d < dim; ++d)
     {
       p1[d] = point_1[d];
@@ -38,17 +37,16 @@ Mesh<dim>::distance(const dealii::Point<dim, real1> &point_1,
 
 template <unsigned int dim>
 template <typename real1>
-dealii::VectorizedArray<real1>
-Mesh<dim>::distance(
-  const dealii::Point<dim, dealii::VectorizedArray<real1>> &point_1,
-  const dealii::Point<dim, dealii::VectorizedArray<real1>> &point_2) const
+VectorizedArray<real1>
+Mesh<dim>::distance(const Point<dim, VectorizedArray<real1>> &point_1,
+                    const Point<dim, VectorizedArray<real1>> &point_2) const
 {
-  constexpr unsigned int         size = dealii::VectorizedArray<real1>::size();
-  dealii::VectorizedArray<real1> out;
+  constexpr unsigned int size = VectorizedArray<real1>::size();
+  VectorizedArray<real1> out;
   for (unsigned int i = 0; i < size; ++i)
     {
-      dealii::Point<dim> p1;
-      dealii::Point<dim> p2;
+      Point<dim> p1;
+      Point<dim> p2;
       for (unsigned int d = 0; d < dim; ++d)
         {
           p1[d] = point_1[d][i];
@@ -120,9 +118,9 @@ Mesh<dim>::mark_periodic(const dealii::DoFHandler<dim>     &dof_handler,
 }
 
 template <unsigned int dim>
-RectangularMesh<dim>::RectangularMesh(dealii::Tensor<1, dim, double> _size,
-                                      dealii::Tensor<1, dim, double> _lower_bound,
-                                      std::vector<unsigned int>      _subdivisions)
+RectangularMesh<dim>::RectangularMesh(Tensor<1, dim, double>    _size,
+                                      Tensor<1, dim, double>    _lower_bound,
+                                      std::vector<unsigned int> _subdivisions)
   : size(_size)
   , lower_bound(_lower_bound)
   , subdivisions(_subdivisions)
@@ -136,9 +134,8 @@ RectangularMesh<dim>::generate_mesh(
   validate();
   dealii::GridGenerator::subdivided_hyper_rectangle(triangulation,
                                                     subdivisions,
-                                                    dealii::Point<dim>(lower_bound),
-                                                    dealii::Point<dim>(lower_bound +
-                                                                       size),
+                                                    Point<dim>(lower_bound),
+                                                    Point<dim>(lower_bound + size),
                                                     true);
 }
 
@@ -178,8 +175,7 @@ RectangularMesh<dim>::periodicity_set() const
 
 template <unsigned int dim>
 double
-RectangularMesh<dim>::distance(const dealii::Point<dim> &point_1,
-                               const dealii::Point<dim> &point_2) const
+RectangularMesh<dim>::distance(const Point<dim> &point_1, const Point<dim> &point_2) const
 {
   using std::sqrt;
   const std::list<PeriodicPair<dim>> &pair_set = periodicity_set();
@@ -312,7 +308,7 @@ SphericalMesh<dim>::generate_mesh(
   // rectangle. Better off to have users change it in their parameter file. It's only
   // a few lines anyway.
   AssertThrow(dim != 1, dealii::ExcMessage("Spherical mesh not valid in 1D"));
-  dealii::GridGenerator::hyper_ball(triangulation, dealii::Point<dim>(), radius);
+  dealii::GridGenerator::hyper_ball(triangulation, Point<dim>(), radius);
 }
 
 template <unsigned int dim>
@@ -597,8 +593,8 @@ SpatialDiscretization<dim>::periodicity_set() const
 
 template <unsigned int dim>
 double
-SpatialDiscretization<dim>::distance(const dealii::Point<dim> &point_1,
-                                     const dealii::Point<dim> &point_2) const
+SpatialDiscretization<dim>::distance(const Point<dim> &point_1,
+                                     const Point<dim> &point_2) const
 {
   return get_mesh().distance(point_1, point_2);
 }

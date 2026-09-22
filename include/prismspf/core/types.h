@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <deal.II/base/tensor.h>
 #include <deal.II/matrix_free/evaluation_flags.h>
 
 #include <prismspf/config.h>
@@ -68,5 +69,19 @@ namespace Defaults
  */
 
 using EvalFlags = dealii::EvaluationFlags::EvaluationFlags;
+
+template <int _rank, int dim, typename Number = double>
+using Tensor = dealii::Tensor<_rank, dim, Number>;
+
+template <int dim, typename Number = double>
+using Point = dealii::Point<dim, Number>;
+
+template <typename Number,
+          std::size_t width =
+            dealii::internal::VectorizedArrayWidthSpecifier<Number>::max_width>
+using VectorizedArray = dealii::VectorizedArray<Number, width>;
+
+template <typename T>
+using AlignedVector = dealii::AlignedVector<T>;
 
 PRISMS_PF_END_NAMESPACE

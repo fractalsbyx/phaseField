@@ -11,12 +11,12 @@ template <unsigned int dim, unsigned int degree, typename number>
 class CustomPDE : public PDEOperatorBase<dim, degree, number>
 {
 public:
-  using ScalarValue = dealii::VectorizedArray<number>;
-  using ScalarGrad  = dealii::Tensor<1, dim, ScalarValue>;
-  using ScalarHess  = dealii::Tensor<2, dim, ScalarValue>;
-  using VectorValue = dealii::Tensor<1, dim, ScalarValue>;
-  using VectorGrad  = dealii::Tensor<2, dim, ScalarValue>;
-  using VectorHess  = dealii::Tensor<3, dim, ScalarValue>;
+  using ScalarValue = VectorizedArray<number>;
+  using ScalarGrad  = Tensor<1, dim, ScalarValue>;
+  using ScalarHess  = Tensor<2, dim, ScalarValue>;
+  using VectorValue = Tensor<1, dim, ScalarValue>;
+  using VectorGrad  = Tensor<2, dim, ScalarValue>;
+  using VectorHess  = Tensor<3, dim, ScalarValue>;
   using PDEOperatorBase<dim, degree, number>::get_user_inputs;
   using PDEOperatorBase<dim, degree, number>::get_pf_tools;
 
@@ -67,10 +67,10 @@ public:
   {}
 
   void
-  set_initial_condition([[maybe_unused]] const unsigned int       &index,
-                        [[maybe_unused]] const unsigned int       &component,
-                        [[maybe_unused]] const dealii::Point<dim> &point,
-                        [[maybe_unused]] number                   &scalar_value,
+  set_initial_condition([[maybe_unused]] const unsigned int &index,
+                        [[maybe_unused]] const unsigned int &component,
+                        [[maybe_unused]] const Point<dim>   &point,
+                        [[maybe_unused]] number             &scalar_value,
                         [[maybe_unused]] number &vector_component_value) const override
   {
     // Initial condition for the concentration field
@@ -168,14 +168,14 @@ public:
           }
         // Terms for the nucleation rate
         auto max = [](const ScalarValue &arr, number val)
-        {
-          ScalarValue result;
-          for (unsigned int i = 0; i < arr.size(); ++i)
-            {
-              result[i] = std::max(arr[i], val);
-            }
-          return result;
-        };
+          {
+            ScalarValue result;
+            for (unsigned int i = 0; i < arr.size(); ++i)
+              {
+                result[i] = std::max(arr[i], val);
+              }
+            return result;
+          };
         // Calculate the nucleation rate
         double      current_time = sim_timer.get_time();
         ScalarValue J =
@@ -192,10 +192,10 @@ public:
   }
 
   void
-  seed_nucleus(const dealii::Point<dim, ScalarValue> &q_point_loc,
-               ScalarValue                           &source_term,
-               ScalarValue                           &gamma,
-               const SimulationTimer                 &sim_timer) const
+  seed_nucleus(const Point<dim, ScalarValue> &q_point_loc,
+               ScalarValue                   &source_term,
+               ScalarValue                   &gamma,
+               const SimulationTimer         &sim_timer) const
   {
     unsigned int current_increment = sim_timer.get_increment();
     double       current_time      = sim_timer.get_time();
@@ -203,16 +203,16 @@ public:
     for (const Nucleus<dim> &nucleus : get_pf_tools().nuclei_list)
       {
         // Calculate the distance function to the nucleus center
-        const dealii::Point<dim, ScalarValue> loc_as_arr = [&]()
-        {
-          dealii::Point<dim, ScalarValue> result;
-          const dealii::Point<dim>       &point = nucleus.location;
-          for (unsigned int d = 0; d < dim; ++d)
-            {
-              result[d] = ScalarValue(point[d]);
-            }
-          return result;
-        }();
+        const Point<dim, ScalarValue> loc_as_arr = [&]()
+          {
+            Point<dim, ScalarValue> result;
+            const Point<dim>       &point = nucleus.location;
+            for (unsigned int d = 0; d < dim; ++d)
+              {
+                result[d] = ScalarValue(point[d]);
+              }
+            return result;
+          }();
 
         ScalarValue dist =
           get_user_inputs().spatial_discretization.distance(q_point_loc, loc_as_arr);

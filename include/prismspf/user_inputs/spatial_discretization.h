@@ -49,7 +49,7 @@ struct PeriodicPair
   unsigned int               boundary_id_1 = -1;
   unsigned int               boundary_id_2 = -1;
   unsigned int               direction     = -1;
-  dealii::Tensor<1, dim>     translation_vector;
+  Tensor<1, dim>             translation_vector;
   dealii::FullMatrix<double> rotation_matrix;
 };
 
@@ -86,21 +86,20 @@ struct Mesh
    * @brief Calculation the distance between two points considering periodic boundaries.
    */
   virtual double
-  distance(const dealii::Point<dim> &point_1, const dealii::Point<dim> &point_2) const;
+  distance(const Point<dim> &point_1, const Point<dim> &point_2) const;
   /**
    * @brief Calculation the distance between two points considering periodic boundaries.
    */
   template <typename real1, typename real2>
   double
-  distance(const dealii::Point<dim, real1> &point_1,
-           const dealii::Point<dim, real2> &point_2) const;
+  distance(const Point<dim, real1> &point_1, const Point<dim, real2> &point_2) const;
   /**
    * @brief Calculation the distance between two points considering periodic boundaries.
    */
   template <typename real1>
-  dealii::VectorizedArray<real1>
-  distance(const dealii::Point<dim, dealii::VectorizedArray<real1>> &point_1,
-           const dealii::Point<dim, dealii::VectorizedArray<real1>> &point_2) const;
+  VectorizedArray<real1>
+  distance(const Point<dim, VectorizedArray<real1>> &point_1,
+           const Point<dim, VectorizedArray<real1>> &point_2) const;
 
   /**
    * @brief Validate.
@@ -163,9 +162,9 @@ struct RectangularMesh : public Mesh<dim>
   /**
    * @brief Constructor.
    */
-  RectangularMesh(dealii::Tensor<1, dim, double> _size,
-                  dealii::Tensor<1, dim, double> _lower_bound,
-                  std::vector<unsigned int>      _subdivisions);
+  RectangularMesh(Tensor<1, dim, double>    _size,
+                  Tensor<1, dim, double>    _lower_bound,
+                  std::vector<unsigned int> _subdivisions);
 
   /**
    * @brief Generate the mesh.
@@ -193,8 +192,7 @@ struct RectangularMesh : public Mesh<dim>
    * @brief Calculation the distance between two points considering periodic boundaries.
    */
   double
-  distance(const dealii::Point<dim> &point_1,
-           const dealii::Point<dim> &point_2) const override;
+  distance(const Point<dim> &point_1, const Point<dim> &point_2) const override;
 
   /**
    * @brief Declare the parameters to be read from an input file.
@@ -217,12 +215,12 @@ struct RectangularMesh : public Mesh<dim>
   /**
    * @brief Upper bound point.
    */
-  dealii::Tensor<1, dim, double> size;
+  Tensor<1, dim, double> size;
 
   /**
    * @brief Lower bound point.
    */
-  dealii::Tensor<1, dim, double> lower_bound;
+  Tensor<1, dim, double> lower_bound;
 
   /**
    * @brief Mesh subdivisions in each cartesian direction.
@@ -354,8 +352,7 @@ public:
    * @brief Calculation the distance between two points considering periodic boundaries.
    */
   double
-  distance(const dealii::Point<dim> &point_1,
-           const dealii::Point<dim> &point_2) const override;
+  distance(const Point<dim> &point_1, const Point<dim> &point_2) const override;
 
   using Mesh<dim>::mark_periodic;
   using Mesh<dim>::distance;

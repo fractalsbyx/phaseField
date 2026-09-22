@@ -10,11 +10,11 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <cmath>
 
-template <typename Number, std::size_t width = dealii::VectorizedArray<Number>::size()>
+template <typename Number, std::size_t width = VectorizedArray<Number>::size()>
 void
-check_all_lanes_rel(const dealii::VectorizedArray<Number, width> &result,
-                    const Number                                  expected,
-                    const Number                                  tol)
+check_all_lanes_rel(const VectorizedArray<Number, width> &result,
+                    const Number                          expected,
+                    const Number                          tol)
 {
   for (std::size_t i = 0; i < width; ++i)
     {
@@ -27,7 +27,7 @@ TEMPLATE_TEST_CASE("erf matches std::erf element-wise",
                    float,
                    double)
 {
-  using VecArray              = dealii::VectorizedArray<TestType>;
+  using VecArray              = VectorizedArray<TestType>;
   constexpr std::size_t width = VecArray::size();
 
   constexpr auto tol = TestType(1e-5);
@@ -52,7 +52,7 @@ TEMPLATE_TEST_CASE("erfc matches std::erfc element-wise",
                    float,
                    double)
 {
-  using VecArray              = dealii::VectorizedArray<TestType>;
+  using VecArray              = VectorizedArray<TestType>;
   constexpr std::size_t width = VecArray::size();
 
   constexpr auto tol = TestType(1e-6);
@@ -77,7 +77,7 @@ TEMPLATE_TEST_CASE("fmod matches std::fmod element-wise",
                    float,
                    double)
 {
-  using VecArray              = dealii::VectorizedArray<TestType>;
+  using VecArray              = VectorizedArray<TestType>;
   constexpr std::size_t width = VecArray::size();
 
   constexpr auto tol = TestType(1e-6);

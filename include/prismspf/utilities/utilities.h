@@ -185,10 +185,10 @@ pmod(const Number &value, const Number &modulus)
  */
 template <unsigned int dim, unsigned int degree, typename T>
 inline DEAL_II_ALWAYS_INLINE T
-stabilization_parameter(const T                         &timestep,
-                        const T                         &element_volume,
-                        const dealii::Tensor<1, dim, T> &velocity,
-                        const T                         &kinematic_viscosity)
+stabilization_parameter(const T                 &timestep,
+                        const T                 &element_volume,
+                        const Tensor<1, dim, T> &velocity,
+                        const T                 &kinematic_viscosity)
 {
   using dealii::Utilities::fixed_power;
   using std::cbrt;
@@ -238,9 +238,9 @@ stabilization_parameter(const T                         &timestep,
  */
 template <unsigned int dim, unsigned int degree, typename T>
 inline DEAL_II_ALWAYS_INLINE T
-stabilization_parameter(const T                         &element_volume,
-                        const dealii::Tensor<1, dim, T> &velocity,
-                        const T                         &kinematic_viscosity)
+stabilization_parameter(const T                 &element_volume,
+                        const Tensor<1, dim, T> &velocity,
+                        const T                 &kinematic_viscosity)
 {
   using dealii::Utilities::fixed_power;
   using std::cbrt;
@@ -289,9 +289,9 @@ stabilization_parameter(const T                         &element_volume,
  */
 template <unsigned int dim, unsigned int degree, typename T>
 inline DEAL_II_ALWAYS_INLINE T
-stabilization_parameter(const T                         &timestep,
-                        const T                         &element_volume,
-                        const dealii::Tensor<1, dim, T> &velocity)
+stabilization_parameter(const T                 &timestep,
+                        const T                 &element_volume,
+                        const Tensor<1, dim, T> &velocity)
 {
   using dealii::Utilities::fixed_power;
   using std::cbrt;
@@ -340,8 +340,7 @@ stabilization_parameter(const T                         &timestep,
  */
 template <unsigned int dim, unsigned int degree, typename T>
 inline DEAL_II_ALWAYS_INLINE T
-stabilization_parameter(const T                         &element_volume,
-                        const dealii::Tensor<1, dim, T> &velocity)
+stabilization_parameter(const T &element_volume, const Tensor<1, dim, T> &velocity)
 {
   using dealii::Utilities::fixed_power;
   using std::cbrt;
@@ -382,7 +381,7 @@ stabilization_parameter(const T                         &element_volume,
 
 template <unsigned int dim, typename number>
 inline DEAL_II_ALWAYS_INLINE std::vector<number>
-dealii_point_to_vector(const dealii::Point<dim, number> &point)
+                             dealii_point_to_vector(const Point<dim, number> &point)
 {
   static_assert(dim < 4, "We only allow 3 space dimensions");
 

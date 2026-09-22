@@ -27,23 +27,23 @@ public:
    */
   Nucleus() = default;
 
-  Nucleus(const unsigned int       &_field_index,
-          const dealii::Point<dim> &_location,
-          const double             &_seed_time,
-          const unsigned int       &_seed_increment)
+  Nucleus(const unsigned int &_field_index,
+          const Point<dim>   &_location,
+          const double       &_seed_time,
+          const unsigned int &_seed_increment)
     : field_index(_field_index)
     , location(_location)
     , seed_time(_seed_time)
     , seed_increment(_seed_increment)
   {}
 
-  dealii::Point<dim, dealii::VectorizedArray<double>>
+  Point<dim, VectorizedArray<double>>
   location_vectorized() const;
 
-  unsigned int       field_index = 0;
-  dealii::Point<dim> location;
-  double             seed_time      = 0.0;
-  unsigned int       seed_increment = 0;
+  unsigned int field_index = 0;
+  Point<dim>   location;
+  double       seed_time      = 0.0;
+  unsigned int seed_increment = 0;
 
   static MPI_Datatype
   mpi_datatype();
@@ -59,13 +59,13 @@ public:
 };
 
 template <unsigned int dim>
-inline dealii::Point<dim, dealii::VectorizedArray<double>>
+inline Point<dim, VectorizedArray<double>>
 Nucleus<dim>::location_vectorized() const
 {
-  dealii::Point<dim, dealii::VectorizedArray<double>> result;
+  Point<dim, VectorizedArray<double>> result;
   for (unsigned int d = 0; d < dim; ++d)
     {
-      result[d] = dealii::VectorizedArray<double>(location[d]);
+      result[d] = VectorizedArray<double>(location[d]);
     }
   return result;
 }

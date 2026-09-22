@@ -11,12 +11,12 @@ template <unsigned int dim, unsigned int degree, typename number>
 class CustomPDE : public PDEOperatorBase<dim, degree, number>
 {
 public:
-  using ScalarValue = dealii::VectorizedArray<number>;
-  using ScalarGrad  = dealii::Tensor<1, dim, ScalarValue>;
-  using ScalarHess  = dealii::Tensor<2, dim, ScalarValue>;
-  using VectorValue = dealii::Tensor<1, dim, ScalarValue>;
-  using VectorGrad  = dealii::Tensor<2, dim, ScalarValue>;
-  using VectorHess  = dealii::Tensor<3, dim, ScalarValue>;
+  using ScalarValue = VectorizedArray<number>;
+  using ScalarGrad  = Tensor<1, dim, ScalarValue>;
+  using ScalarHess  = Tensor<2, dim, ScalarValue>;
+  using VectorValue = Tensor<1, dim, ScalarValue>;
+  using VectorGrad  = Tensor<2, dim, ScalarValue>;
+  using VectorHess  = Tensor<3, dim, ScalarValue>;
   using PDEOperatorBase<dim, degree, number>::get_user_inputs;
   using PDEOperatorBase<dim, degree, number>::get_pf_tools;
 
@@ -40,13 +40,13 @@ public:
 
 private:
   void
-  set_initial_condition([[maybe_unused]] const unsigned int       &index,
-                        [[maybe_unused]] const unsigned int       &component,
-                        [[maybe_unused]] const dealii::Point<dim> &point,
-                        [[maybe_unused]] number                   &scalar_value,
+  set_initial_condition([[maybe_unused]] const unsigned int &index,
+                        [[maybe_unused]] const unsigned int &component,
+                        [[maybe_unused]] const Point<dim>   &point,
+                        [[maybe_unused]] number             &scalar_value,
                         [[maybe_unused]] number &vector_component_value) const override
   {
-    const dealii::Tensor<1, dim> &mesh_size =
+    const Tensor<1, dim> &mesh_size =
       get_user_inputs().spatial_discretization.rectangular_mesh.size;
 
     if (index == 0)
@@ -61,8 +61,8 @@ private:
         // the order parameter ranges from -1 to 1 in this model.
 
         // Center at the origin with some radius
-        const dealii::Point<dim> center;
-        const double             radius = 5.0;
+        const Point<dim> center;
+        const double     radius = 5.0;
 
         // Compute the distance
         double distance = point.distance(center);

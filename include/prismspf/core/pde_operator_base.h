@@ -24,7 +24,12 @@ template <unsigned int dim, unsigned int degree, typename number>
 class PDEOperatorBase
 {
 public:
-  using SizeType = dealii::VectorizedArray<number>;
+  using ScalarValue = VectorizedArray<number>;
+  using ScalarGrad  = Tensor<1, dim, ScalarValue>;
+  using ScalarHess  = Tensor<2, dim, ScalarValue>;
+  using VectorValue = Tensor<1, dim, ScalarValue>;
+  using VectorGrad  = Tensor<2, dim, ScalarValue>;
+  using VectorHess  = Tensor<3, dim, ScalarValue>;
 
   /**
    * @brief Constructor.
@@ -44,11 +49,11 @@ public:
    * @brief User-implemented class for the setting initial conditions.
    */
   virtual void
-  set_initial_condition([[maybe_unused]] const unsigned int       &index,
-                        [[maybe_unused]] const unsigned int       &component,
-                        [[maybe_unused]] const dealii::Point<dim> &point,
-                        [[maybe_unused]] number                   &scalar_value,
-                        [[maybe_unused]] number &vector_component_value) const
+  set_initial_condition([[maybe_unused]] const unsigned int &index,
+                        [[maybe_unused]] const unsigned int &component,
+                        [[maybe_unused]] const Point<dim>   &point,
+                        [[maybe_unused]] number             &scalar_value,
+                        [[maybe_unused]] number             &vector_component_value) const
   {}
 
   /**
@@ -56,13 +61,13 @@ public:
    * behavior is to call initial conditions.
    */
   virtual void
-  set_dirichlet([[maybe_unused]] const unsigned int       &index,
-                [[maybe_unused]] const unsigned int       &boundary_id,
-                [[maybe_unused]] const unsigned int       &component,
-                [[maybe_unused]] const dealii::Point<dim> &point,
-                [[maybe_unused]] const SimulationTimer    &sim_timer,
-                [[maybe_unused]] number                   &scalar_value,
-                [[maybe_unused]] number                   &vector_component_value) const
+  set_dirichlet([[maybe_unused]] const unsigned int    &index,
+                [[maybe_unused]] const unsigned int    &boundary_id,
+                [[maybe_unused]] const unsigned int    &component,
+                [[maybe_unused]] const Point<dim>      &point,
+                [[maybe_unused]] const SimulationTimer &sim_timer,
+                [[maybe_unused]] number                &scalar_value,
+                [[maybe_unused]] number                &vector_component_value) const
   {
     this->set_initial_condition(index,
                                 component,

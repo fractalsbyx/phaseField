@@ -175,7 +175,7 @@ MFOperator<dim, degree, number>::compute_local_field_diagonal(
         }
     }
   // Object to hold the local diagonal
-  dealii::AlignedVector<Value<Rank>> cell_diagonal(dofs_per_component, zero<Rank>());
+  AlignedVector<Value<Rank>> cell_diagonal(dofs_per_component, zero<Rank>());
   for (unsigned int i = 0; i < dofs_per_component; ++i)
     {
       for (unsigned int j = 0; j < dofs_per_component; ++j)

@@ -60,8 +60,7 @@ main(int argc, char *argv[])
   std::vector<SolveBlock> solve_blocks({c_block, mu_block, Phi_block, pp_block});
 
   UserInputParameters<2> user_inputs(parameters_filename);
-  user_inputs.spatial_discretization.rectangular_mesh.size =
-    dealii::Tensor<1, 2>({100.0, 100.0});
+  user_inputs.spatial_discretization.rectangular_mesh.size = Tensor<1, 2>({100.0, 100.0});
 
   BoundaryConditionSet &Phi_bcs       = fields[3].boundary_conditions;
   Phi_bcs.component_constraints[0][0] = Dirichlet;

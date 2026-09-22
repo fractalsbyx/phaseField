@@ -102,10 +102,10 @@ namespace
     return std::any_of(solve_blocks.begin(),
                        solve_blocks.end(),
                        [](const SolveBlock &solve_block)
-                       {
-                         return solve_block.linear_solver_parameters.preconditioner ==
-                                GMG;
-                       });
+                         {
+                           return solve_block.linear_solver_parameters.preconditioner ==
+                                  GMG;
+                         });
   }
 
   template <unsigned int dim, unsigned int degree, typename number>
@@ -233,7 +233,7 @@ Problem<dim, degree, number>::init_system()
   // Print some basic initialization stuff
   {
     const unsigned int n_proc = dealii::Utilities::MPI::n_mpi_processes(MPI_COMM_WORLD);
-    const unsigned int n_vect_doubles = dealii::VectorizedArray<number>::size();
+    const unsigned int n_vect_doubles = VectorizedArray<number>::size();
     const unsigned int n_vect_bits    = 8 * sizeof(number) * n_vect_doubles;
 
     Logger::instance() << LogFormatter::section("Initialization") << std::endl;
